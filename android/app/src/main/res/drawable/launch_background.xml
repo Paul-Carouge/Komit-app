@@ -1,10 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Splash before Android 12: Komo centered on the brand background (cream, or warm night in dark mode). -->
+<!-- Splash before Android 12: Komo's face in a sunburst circle, centered on the brand background
+     (cream, or night indigo in dark mode), matching the Android 12+ system splash. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/komit_launch_background" />
     <item
-        android:width="192dp"
-        android:height="192dp"
+        android:width="144dp"
+        android:height="144dp"
+        android:gravity="center">
+        <shape android:shape="oval">
+            <solid android:color="@color/komo_body" />
+        </shape>
+    </item>
+    <item
+        android:width="216dp"
+        android:height="216dp"
         android:drawable="@drawable/ic_launcher_foreground"
         android:gravity="center" />
 </layer-list>

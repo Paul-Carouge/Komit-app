@@ -1,47 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Komo, Komit's mascot, with the same 100-unit geometry as lib/features/mascot/komo_painter.dart,
-     scaled into the 66dp safe zone of the 108dp adaptive icon. Also the Android 12+ splash icon. -->
+<!-- Komo's face filling the icon: big eyes, cheeks and a tiny smile, inside the 66dp safe circle.
+     Source: docs/design/komit-launcher-icon.svg. Also the Android 12+ splash icon, on a komo_body circle. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <group
-        android:scaleX="0.66"
-        android:scaleY="0.66"
-        android:translateX="21"
-        android:translateY="21">
-        <path
-            android:pathData="M50,37 Q50,30 51,25"
-            android:strokeWidth="3"
-            android:strokeColor="@color/komo_sprout"
-            android:strokeLineCap="round" />
-        <path
-            android:fillColor="@color/komo_sprout"
-            android:pathData="M51,26 C54,17 62,14 68,15 C67,22 60,27 51,26 Z M49,28 C46,22 41,20 36,21 C37,26 42,29 49,28 Z" />
-        <path
-            android:fillColor="@color/komo_body"
-            android:pathData="M38,36 H62 A16,16 0 0 1 78,52 V70 A16,16 0 0 1 62,86 H38 A16,16 0 0 1 22,70 V52 A16,16 0 0 1 38,36 Z" />
-        <group>
-            <clip-path android:pathData="M38,36 H62 A16,16 0 0 1 78,52 V70 A16,16 0 0 1 62,86 H38 A16,16 0 0 1 22,70 V52 A16,16 0 0 1 38,36 Z" />
-            <path
-                android:fillColor="@color/komo_body_shade"
-                android:pathData="M22,77 H78 V86 H22 Z" />
-        </group>
-        <path
-            android:fillAlpha="0.7"
-            android:fillColor="@color/komo_cheek"
-            android:pathData="M26.5,67 a5,3.2 0 1,0 10,0 a5,3.2 0 1,0 -10,0 Z M63.5,67 a5,3.2 0 1,0 10,0 a5,3.2 0 1,0 -10,0 Z" />
-        <path
-            android:fillColor="@color/komo_face"
-            android:pathData="M34.7,59 a4.3,4.3 0 1,0 8.6,0 a4.3,4.3 0 1,0 -8.6,0 Z M56.7,59 a4.3,4.3 0 1,0 8.6,0 a4.3,4.3 0 1,0 -8.6,0 Z" />
-        <path
-            android:fillColor="@color/komit_cream"
-            android:pathData="M39,57.5 a1.4,1.4 0 1,0 2.8,0 a1.4,1.4 0 1,0 -2.8,0 Z M61,57.5 a1.4,1.4 0 1,0 2.8,0 a1.4,1.4 0 1,0 -2.8,0 Z" />
-        <path
-            android:pathData="M45.5,66.5 Q50,71 54.5,66.5"
-            android:strokeWidth="2.6"
-            android:strokeColor="@color/komo_face"
-            android:strokeLineCap="round" />
-    </group>
+    <path
+        android:fillAlpha="0.8"
+        android:fillColor="@color/komo_cheek"
+        android:pathData="M24,64.5 a5.5,3.4 0 1,0 11,0 a5.5,3.4 0 1,0 -11,0 Z M73,64.5 a5.5,3.4 0 1,0 11,0 a5.5,3.4 0 1,0 -11,0 Z" />
+    <path
+        android:fillColor="@color/komo_face"
+        android:pathData="M33,51 a9,12.5 0 1,0 18,0 a9,12.5 0 1,0 -18,0 Z M57,51 a9,12.5 0 1,0 18,0 a9,12.5 0 1,0 -18,0 Z" />
+    <path
+        android:fillColor="@color/komo_eye_highlight"
+        android:pathData="M41.4,46 a3.5,3.5 0 1,0 7,0 a3.5,3.5 0 1,0 -7,0 Z M65.4,46 a3.5,3.5 0 1,0 7,0 a3.5,3.5 0 1,0 -7,0 Z M37.1,56.2 a1.7,1.7 0 1,0 3.4,0 a1.7,1.7 0 1,0 -3.4,0 Z M61.1,56.2 a1.7,1.7 0 1,0 3.4,0 a1.7,1.7 0 1,0 -3.4,0 Z" />
+    <path
+        android:pathData="M49.5,66 Q54,71 58.5,66"
+        android:strokeWidth="3.2"
+        android:strokeColor="@color/komo_face"
+        android:strokeLineCap="round" />
 </vector>

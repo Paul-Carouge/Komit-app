@@ -1,18 +1,24 @@
-<!-- Source of the legacy launcher PNGs (Android 7 / API 24-25). Same geometry as
-     android/app/src/main/res/drawable/ic_launcher_foreground.xml and KomoPainter. -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="18 18 72 72" width="192" height="192">
-  <rect x="18" y="18" width="72" height="72" rx="16" fill="#FBF6E5"/>
+<!-- Komit launcher icon, source of truth. Komo's face fills the whole icon: there is no character
+     on a background, only Komo's sunburst body color edge to edge, its big eyes, cheeks and a tiny smile.
+     Coordinates are the 108-unit adaptive icon grid; the face stays inside the 66-unit safe circle.
+     Mirrored by android/app/src/main/res/drawable/ic_launcher_background.xml (gradient),
+     ic_launcher_foreground.xml (face) and ic_launcher_monochrome.xml (eyes only).
+     The legacy PNGs are rendered from the 18..90 square of this file by tool/render_launcher_icons.swift. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" width="432" height="432">
   <defs>
-    <clipPath id="body"><path d="M38,36 H62 A16,16 0 0 1 78,52 V70 A16,16 0 0 1 62,86 H38 A16,16 0 0 1 22,70 V52 A16,16 0 0 1 38,36 Z"/></clipPath>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFCB45"/>
+      <stop offset="1" stop-color="#FFAA10"/>
+    </linearGradient>
   </defs>
-  <g transform="translate(21 21) scale(0.66)">
-    <path d="M50,37 Q50,30 51,25" stroke="#4E8F35" stroke-width="3" stroke-linecap="round" fill="none"/>
-    <path d="M51,26 C54,17 62,14 68,15 C67,22 60,27 51,26 Z M49,28 C46,22 41,20 36,21 C37,26 42,29 49,28 Z" fill="#4E8F35"/>
-    <path d="M38,36 H62 A16,16 0 0 1 78,52 V70 A16,16 0 0 1 62,86 H38 A16,16 0 0 1 22,70 V52 A16,16 0 0 1 38,36 Z" fill="#F9A825"/>
-    <rect x="22" y="77" width="56" height="9" fill="#E08A00" clip-path="url(#body)"/>
-    <path d="M26.5,67 a5,3.2 0 1,0 10,0 a5,3.2 0 1,0 -10,0 Z M63.5,67 a5,3.2 0 1,0 10,0 a5,3.2 0 1,0 -10,0 Z" fill="#FF7F6B" fill-opacity="0.7"/>
-    <path d="M34.7,59 a4.3,4.3 0 1,0 8.6,0 a4.3,4.3 0 1,0 -8.6,0 Z M56.7,59 a4.3,4.3 0 1,0 8.6,0 a4.3,4.3 0 1,0 -8.6,0 Z" fill="#231A10"/>
-    <path d="M39,57.5 a1.4,1.4 0 1,0 2.8,0 a1.4,1.4 0 1,0 -2.8,0 Z M61,57.5 a1.4,1.4 0 1,0 2.8,0 a1.4,1.4 0 1,0 -2.8,0 Z" fill="#FBF6E5"/>
-    <path d="M45.5,66.5 Q50,71 54.5,66.5" stroke="#231A10" stroke-width="2.6" stroke-linecap="round" fill="none"/>
-  </g>
+  <rect width="108" height="108" fill="url(#body)"/>
+  <ellipse cx="29.5" cy="64.5" rx="5.5" ry="3.4" fill="#FF7F6B" fill-opacity="0.8"/>
+  <ellipse cx="78.5" cy="64.5" rx="5.5" ry="3.4" fill="#FF7F6B" fill-opacity="0.8"/>
+  <ellipse cx="42" cy="51" rx="9" ry="12.5" fill="#2A1F3D"/>
+  <ellipse cx="66" cy="51" rx="9" ry="12.5" fill="#2A1F3D"/>
+  <circle cx="44.9" cy="46" r="3.5" fill="#FFFFFF"/>
+  <circle cx="68.9" cy="46" r="3.5" fill="#FFFFFF"/>
+  <circle cx="38.8" cy="56.2" r="1.7" fill="#FFFFFF"/>
+  <circle cx="62.8" cy="56.2" r="1.7" fill="#FFFFFF"/>
+  <path d="M49.5,66 Q54,71 58.5,66" stroke="#2A1F3D" stroke-width="3.2" stroke-linecap="round" fill="none"/>
 </svg>
