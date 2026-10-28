@@ -28,7 +28,12 @@ class SettingsScreen extends ConsumerWidget {
         padding: const EdgeInsets.fromLTRB(AppSpacing.screenGutter, 0, AppSpacing.screenGutter, AppSpacing.huge),
         children: [
           SectionTitle(localizations.yourName),
-          _UserNameField(initialUserName: settings.userName, onSubmitted: settingsController.updateUserName),
+          _UserNameField(
+            // A new key resets the field when the name changes elsewhere, e.g. after an import.
+            key: ValueKey(settings.userName),
+            initialUserName: settings.userName,
+            onSubmitted: settingsController.updateUserName,
+          ),
           SectionTitle(localizations.appearance),
           Card(
             child: RadioGroup<ThemeMode>(
@@ -106,7 +111,7 @@ class SettingsScreen extends ConsumerWidget {
 }
 
 class _UserNameField extends StatefulWidget {
-  const _UserNameField({required this.initialUserName, required this.onSubmitted});
+  const _UserNameField({required this.initialUserName, required this.onSubmitted, super.key});
 
   final String? initialUserName;
   final ValueChanged<String> onSubmitted;

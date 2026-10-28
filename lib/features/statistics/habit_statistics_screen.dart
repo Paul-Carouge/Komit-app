@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/calendar_day.dart';
+import '../../core/current_calendar_day.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/repositories/habit_repository.dart';
 import '../../domain/habit_statistics.dart';
@@ -37,8 +38,12 @@ class HabitStatisticsScreen extends ConsumerWidget {
             ? Center(child: Text(localizations.habitNotFound))
             : AsyncValueView(
                 value: objectiveIdByDay,
-                builder: (objectiveIdByDay) =>
-                    _StatisticsContent(habit: habit, objectiveIdByDay: objectiveIdByDay, year: year),
+                builder: (objectiveIdByDay) => _StatisticsContent(
+                  habit: habit,
+                  objectiveIdByDay: objectiveIdByDay,
+                  year: year,
+                  today: ref.watch(currentCalendarDayProvider),
+                ),
               ),
       ),
     );
@@ -46,11 +51,17 @@ class HabitStatisticsScreen extends ConsumerWidget {
 }
 
 class _StatisticsContent extends StatelessWidget {
-  const _StatisticsContent({required this.habit, required this.objectiveIdByDay, required this.year});
+  const _StatisticsContent({
+    required this.habit,
+    required this.objectiveIdByDay,
+    required this.year,
+    required this.today,
+  });
 
   final HabitWithObjectives habit;
   final Map<CalendarDay, int> objectiveIdByDay;
   final int year;
+  final CalendarDay today;
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +69,7 @@ class _StatisticsContent extends StatelessWidget {
     final komitColors = KomitColors.of(context);
     final textTheme = Theme.of(context).textTheme;
     final statistics = computeYearStatistics(objectiveIdByDay, year: year);
-    final streaks = computeStreakSummary(objectiveIdByDay.keys, today: CalendarDay.today());
+    final streaks = computeStreakSummary(objectiveIdByDay.keys, today: today);
     return ListView(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.screenGutter,

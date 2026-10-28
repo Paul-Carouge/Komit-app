@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/calendar_day.dart';
+import '../../core/date_formatting.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/repositories/habit_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../shared/shared_widgets.dart';
-import 'habit_details_screen.dart';
 
 sealed class LogDayChoice {
   const LogDayChoice();
@@ -28,6 +28,9 @@ Future<LogDayChoice?> showLogDaySheet(
   required HabitWithObjectives habit,
   required CalendarDay day,
   required int? currentObjectiveId,
+
+  /// False for a future day: only an existing log (imported from the old app) can be cleared.
+  required bool canLogObjective,
 }) {
   return showModalBottomSheet<LogDayChoice>(
     context: context,
@@ -48,16 +51,17 @@ Future<LogDayChoice?> showLogDaySheet(
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: AppSpacing.large),
-              for (final objective in habit.objectives)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.small),
-                  child: _ObjectiveButton(
-                    title: objective.title,
-                    color: Color(objective.colorArgb),
-                    isSelected: objective.id == currentObjectiveId,
-                    onPressed: () => Navigator.of(context).pop(LogDayChoiceObjective(objective.id)),
+              if (canLogObjective)
+                for (final objective in habit.objectives)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.small),
+                    child: _ObjectiveButton(
+                      title: objective.title,
+                      color: Color(objective.colorArgb),
+                      isSelected: objective.id == currentObjectiveId,
+                      onPressed: () => Navigator.of(context).pop(LogDayChoiceObjective(objective.id)),
+                    ),
                   ),
-                ),
               if (currentObjectiveId != null)
                 TextButton.icon(
                   style: TextButton.styleFrom(

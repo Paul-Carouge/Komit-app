@@ -348,4 +348,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loading => 'Loading…';
+
+  @override
+  String get updateErrorInstallPermission =>
+      'allow Komit to install apps in the settings that just opened, then try again.';
+
+  @override
+  String get updateErrorNetwork => 'the download was interrupted. Check your connection and try again.';
+
+  @override
+  String get updateErrorInvalidRelease => 'this version is not available for installation.';
+
+  @override
+  String get updateErrorCorruptedDownload => 'the downloaded file is damaged. Try again.';
+
+  @override
+  String get updateErrorInstallFailed => 'Android refused the installation.';
+
+  @override
+  String get logAnotherDay => 'Log another day';
+
+  @override
+  String get habitNameTooLong => 'The habit name is too long.';
+
+  @override
+  String get exportPrivacyNote => 'The exported file is not encrypted: keep it somewhere private.';
 }

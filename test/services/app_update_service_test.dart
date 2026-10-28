@@ -3,14 +3,17 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:komit/services/app_update_service.dart';
 
+const String _validSha256 = 'ab12ab12ab12ab12ab12ab12ab12ab12ab12ab12ab12ab12ab12ab12ab12ab12';
+
 String buildReleaseJson({
   String downloadUrl = 'https://github.com/Paul-Carouge/Komit-app/releases/download/v1.1.0/komit-v1.1.0.apk',
+  String digest = 'sha256:$_validSha256',
 }) => jsonEncode({
   'tag_name': 'v1.1.0',
   'body': '- New statistics screen',
   'assets': [
     {'name': 'notes.txt', 'browser_download_url': 'https://github.com/x', 'digest': 'sha256:00'},
-    {'name': 'komit-v1.1.0.apk', 'browser_download_url': downloadUrl, 'digest': 'sha256:abc123'},
+    {'name': 'komit-v1.1.0.apk', 'browser_download_url': downloadUrl, 'digest': digest, 'size': 26000000},
   ],
 });
 
@@ -33,7 +36,8 @@ void main() {
     test('picks the APK asset with its digest and strips the v prefix', () {
       final update = parseLatestRelease(buildReleaseJson());
       expect(update.version, '1.1.0');
-      expect(update.apkSha256, 'abc123');
+      expect(update.apkSha256, _validSha256);
+      expect(update.apkSizeBytes, 26000000);
       expect(update.releaseNotes, '- New statistics screen');
       expect(update.apkDownloadUrl.path, endsWith('.apk'));
     });
@@ -43,6 +47,10 @@ void main() {
         () => parseLatestRelease(buildReleaseJson(downloadUrl: 'https://evil.example/komit.apk')),
         throwsA(isA<AppUpdateException>()),
       );
+    });
+
+    test('refuses an APK whose digest is not a SHA-256', () {
+      expect(() => parseLatestRelease(buildReleaseJson(digest: 'sha256:abc')), throwsA(isA<AppUpdateException>()));
     });
 
     test('refuses a release without APK', () {

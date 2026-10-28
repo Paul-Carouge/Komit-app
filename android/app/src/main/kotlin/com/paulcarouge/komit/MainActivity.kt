@@ -76,11 +76,10 @@ class MainActivity : FlutterActivity() {
             return
         }
         backgroundExecutor.execute {
+            val apkFile = File(apkPath)
             try {
-                val apkFile = File(apkPath)
                 val actualSha256 = sha256Of(apkFile)
                 if (actualSha256 != expectedSha256) {
-                    apkFile.delete()
                     runOnUiThread { result.error("checksum_mismatch", "Downloaded file is corrupted", null) }
                     return@execute
                 }
@@ -88,6 +87,9 @@ class MainActivity : FlutterActivity() {
                 runOnUiThread { result.success(null) }
             } catch (exception: Exception) {
                 runOnUiThread { result.error("install_failed", exception.message, null) }
+            } finally {
+                // The install session holds its own copy, so the cached APK is never needed again.
+                apkFile.delete()
             }
         }
     }
