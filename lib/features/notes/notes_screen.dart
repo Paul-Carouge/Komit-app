@@ -5,6 +5,10 @@ import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/ui/game_badges.dart';
+import '../../core/ui/game_button.dart';
+import '../../core/ui/game_card.dart';
+import '../../core/ui/game_text.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
 import '../../router.dart';
@@ -33,22 +37,17 @@ class NotesScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.screenGutter,
                 AppSpacing.extraLarge,
-                AppSpacing.small,
+                AppSpacing.screenGutter,
                 AppSpacing.large,
               ),
               sliver: SliverToBoxAdapter(
                 child: Row(
                   children: [
-                    Expanded(
-                      child: Semantics(
-                        header: true,
-                        child: Text(localizations.secondBrain, style: textTheme.headlineSmall),
-                      ),
-                    ),
-                    IconButton(
+                    Expanded(child: GameTitle(localizations.secondBrain, style: textTheme.headlineMedium)),
+                    GameIconButton(
+                      icon: LucideIcons.settings,
                       tooltip: localizations.settingsTooltip,
                       onPressed: () => context.push(AppRoutes.settings),
-                      icon: const Icon(LucideIcons.settings),
                     ),
                   ],
                 ),
@@ -82,21 +81,23 @@ class NotesScreen extends ConsumerWidget {
                   separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.medium),
                   itemBuilder: (context, index) {
                     final note = notes[index];
-                    return PressableCard(
+                    return GameCard(
                       onTap: () => context.push(AppRoutes.noteEditor(note.id)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(AppSpacing.large),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              dateFormat.format(note.updatedAt),
-                              style: textTheme.labelMedium?.copyWith(color: komitColors.mutedText),
-                            ),
-                            const SizedBox(height: AppSpacing.small),
-                            Text(note.content, maxLines: _notePreviewMaximumLines, overflow: TextOverflow.ellipsis),
-                          ],
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            dateFormat.format(note.updatedAt),
+                            style: textTheme.labelMedium?.copyWith(color: komitColors.mutedText),
+                          ),
+                          const SizedBox(height: AppSpacing.small),
+                          Text(
+                            note.content,
+                            maxLines: _notePreviewMaximumLines,
+                            overflow: TextOverflow.ellipsis,
+                            style: textTheme.bodyLarge,
+                          ),
+                        ],
                       ),
                     );
                   },
@@ -119,32 +120,24 @@ class _NewNoteBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final komitColors = KomitColors.of(context);
-    final foregroundColor = komitColors.onNotesGradient;
-    return PressableCard(
-      gradient: LinearGradient(colors: [komitColors.notesGradientStart, komitColors.notesGradientEnd]),
+    return GameCard(
+      color: komitColors.notesFace,
+      isHero: true,
+      padding: const EdgeInsets.all(AppSpacing.extraLarge),
       onTap: () => context.push(AppRoutes.newNote),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.extraLarge),
-        child: Row(
-          children: [
-            Container(
-              width: AppSizes.heroBadge,
-              height: AppSizes.heroBadge,
-              decoration: BoxDecoration(
-                color: foregroundColor.withValues(alpha: AppOpacity.overlayOnColor),
-                borderRadius: BorderRadius.circular(AppRadii.medium),
-              ),
-              child: Icon(LucideIcons.plus, color: foregroundColor, size: AppSizes.iconHero),
+      child: Row(
+        children: [
+          GameBadge(icon: LucideIcons.plus, color: Theme.of(context).colorScheme.primary, size: AppSizes.heroBadge),
+          const SizedBox(width: AppSpacing.large),
+          Expanded(
+            child: GameTitle(
+              AppLocalizations.of(context).newNote,
+              isHeader: false,
+              onColor: komitColors.notesFace,
+              style: Theme.of(context).textTheme.headlineSmall,
             ),
-            const SizedBox(width: AppSpacing.large),
-            Expanded(
-              child: Text(
-                AppLocalizations.of(context).newNote,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(color: foregroundColor),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

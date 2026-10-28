@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/ui/game_badges.dart';
+import '../../core/ui/game_card.dart';
+import '../../core/ui/game_text.dart';
 import '../../domain/habit_statistics.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -24,9 +27,7 @@ class StreakCards extends StatelessWidget {
               icon: LucideIcons.flame,
               label: localizations.currentStreak,
               value: localizations.dayCount(streaks.currentStreakDays),
-              backgroundColor: colorScheme.primaryContainer,
-              accentColor: komitColors.accentText,
-              valueColor: komitColors.accentText,
+              faceColor: komitColors.streakFace,
             ),
           ),
           const SizedBox(width: AppSpacing.medium),
@@ -35,9 +36,7 @@ class StreakCards extends StatelessWidget {
               icon: LucideIcons.trophy,
               label: localizations.bestStreak,
               value: localizations.dayCount(streaks.bestStreakDays),
-              backgroundColor: colorScheme.surfaceContainerLow,
-              accentColor: komitColors.mutedText,
-              valueColor: colorScheme.onSurface,
+              faceColor: colorScheme.primary,
             ),
           ),
         ],
@@ -47,48 +46,32 @@ class StreakCards extends StatelessWidget {
 }
 
 class _StreakCard extends StatelessWidget {
-  const _StreakCard({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.backgroundColor,
-    required this.accentColor,
-    required this.valueColor,
-  });
+  const _StreakCard({required this.icon, required this.label, required this.value, required this.faceColor});
 
   final IconData icon;
   final String label;
   final String value;
-  final Color backgroundColor;
-  final Color accentColor;
-  final Color valueColor;
+  final Color faceColor;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final foregroundColor = foregroundColorReadableOn(faceColor);
     return MergeSemantics(
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.large),
-        decoration: BoxDecoration(color: backgroundColor, borderRadius: BorderRadius.circular(AppRadii.tile)),
+      child: GameCard(
+        color: faceColor,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(icon, size: AppSizes.iconMedium, color: accentColor),
-                const SizedBox(width: AppSpacing.small),
-                Expanded(
-                  child: Text(label, style: textTheme.labelLarge?.copyWith(color: accentColor)),
-                ),
-              ],
-            ),
+            GameBadge(icon: icon, color: depthShadeOf(faceColor), size: AppSizes.smallBadge),
             const SizedBox(height: AppSpacing.small),
-            Text(
+            Text(label, style: textTheme.labelLarge?.copyWith(color: foregroundColor)),
+            const SizedBox(height: AppSpacing.small),
+            GameTitle(
               value,
-              style: textTheme.headlineSmall?.copyWith(
-                color: valueColor,
-                fontFeatures: const [FontFeature.tabularFigures()],
-              ),
+              isHeader: false,
+              onColor: faceColor,
+              style: textTheme.headlineMedium?.copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
             ),
           ],
         ),

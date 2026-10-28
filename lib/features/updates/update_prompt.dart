@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/ui/game_badges.dart';
+import '../../core/ui/game_button.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
 import '../../services/app_update_service.dart';
@@ -96,12 +98,18 @@ class _UpdateAvailableDialog extends StatelessWidget {
           ),
         ),
       ),
+      actionsOverflowButtonSpacing: AppSpacing.small,
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(localizations.later)),
-        FilledButton(
-          style: FilledButton.styleFrom(minimumSize: const Size(0, AppSizes.minimumTouchTarget)),
+        GameButton(
+          isCompact: true,
+          tone: GameButtonTone.neutral,
+          onPressed: () => Navigator.of(context).pop(false),
+          label: localizations.later,
+        ),
+        GameButton(
+          isCompact: true,
           onPressed: () => Navigator.of(context).pop(true),
-          child: Text(localizations.installUpdate),
+          label: localizations.installUpdate,
         ),
       ],
     );
@@ -165,14 +173,17 @@ class _UpdateProgressDialogState extends State<_UpdateProgressDialog> {
               children: [
                 Text(localizations.downloadingUpdate((_progress * 100).round())),
                 const SizedBox(height: AppSpacing.large),
-                LinearProgressIndicator(value: _progress == 0 ? null : _progress),
+                // The percentage is already written above; the bar only draws it.
+                GameProgressBar(value: _progress, color: Theme.of(context).colorScheme.primary),
               ],
             ),
       actions: [
         if (failureReason != null)
-          TextButton(
+          GameButton(
+            isCompact: true,
+            tone: GameButtonTone.neutral,
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(MaterialLocalizations.of(context).closeButtonLabel),
+            label: MaterialLocalizations.of(context).closeButtonLabel,
           ),
       ],
     );

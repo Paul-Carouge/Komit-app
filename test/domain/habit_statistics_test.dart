@@ -56,4 +56,26 @@ void main() {
     expect(CalendarDay.fromDateTime(DateTime(2026, 3, 29, 23, 59)), CalendarDay.fromDate(2026, 3, 29));
     expect(CalendarDay.fromDate(2026, 3, 29).asLocalDate, DateTime(2026, 3, 29));
   });
+
+  group('isEveryHabitLoggedOn', () {
+    final yesterday = today.addDays(-1);
+    final logsByHabitId = {
+      1: {today: 10},
+      2: {yesterday: 20, today: 21},
+      3: {yesterday: 30},
+    };
+
+    test('is true when every habit has a log that day', () {
+      expect(isEveryHabitLoggedOn(today, habitIds: const [1, 2], objectiveIdByDayByHabitId: logsByHabitId), isTrue);
+    });
+
+    test('is false when one habit is missing that day or has no log at all', () {
+      expect(isEveryHabitLoggedOn(today, habitIds: const [1, 3], objectiveIdByDayByHabitId: logsByHabitId), isFalse);
+      expect(isEveryHabitLoggedOn(today, habitIds: const [1, 4], objectiveIdByDayByHabitId: logsByHabitId), isFalse);
+    });
+
+    test('is vacuously true without habits, so logging the only habit celebrates', () {
+      expect(isEveryHabitLoggedOn(today, habitIds: const [], objectiveIdByDayByHabitId: const {}), isTrue);
+    });
+  });
 }

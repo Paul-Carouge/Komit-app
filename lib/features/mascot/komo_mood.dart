@@ -2,10 +2,10 @@ import '../../core/theme/app_motion.dart';
 
 /// How Komo feels; each mood has its own pose and animation loop.
 enum KomoMood {
-  /// Calm breathing and an occasional blink: the default companion.
-  idle(AppDurations.mascotBreathCycle),
+  /// A little squash-and-stretch bounce, then a blink: the default companion.
+  idle(AppDurations.mascotBounceCycle),
 
-  /// Hops with raised arms and sparkles: a day logged, a milestone reached.
+  /// Big springy hops with raised arms and sparkles: every habit logged, a milestone reached.
   happy(AppDurations.mascotHopCycle),
 
   /// Eyes closed, drooping sprout, slow breathing: nothing yet, or a streak to restart.

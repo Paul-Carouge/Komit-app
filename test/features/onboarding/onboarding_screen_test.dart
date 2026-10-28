@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:komit/core/theme/app_theme.dart';
+import 'package:komit/core/ui/game_button.dart';
 import 'package:komit/data/repositories/settings_repository.dart';
 import 'package:komit/features/onboarding/onboarding_screen.dart';
 import 'package:komit/l10n/app_localizations.dart';
@@ -45,21 +46,28 @@ Future<SharedPreferences> _pumpOnboarding(WidgetTester tester) async {
   return preferences;
 }
 
+/// The test window is short: the step actions may sit below the fold of the scrolling layout.
+Future<void> _scrollToAndTap(WidgetTester tester, Finder finder) async {
+  await tester.ensureVisible(finder);
+  await tester.pumpAndSettle();
+  await tester.tap(finder);
+}
+
 void main() {
   testWidgets('walks through the three steps and saves the first name', (tester) async {
     final preferences = await _pumpOnboarding(tester);
     expect(find.text("Hi, I'm Komo."), findsOneWidget);
     expect(find.text('Restore from a backup'), findsOneWidget);
 
-    await tester.tap(find.text('Get started'));
+    await _scrollToAndTap(tester, find.text('Get started'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), 'Paul');
-    await tester.tap(find.text('Continue'));
+    await _scrollToAndTap(tester, find.text('Continue'));
     await tester.pumpAndSettle();
     expect(find.text('A gentle nudge in the evening?'), findsOneWidget);
     expect(find.text('Allow notifications'), findsOneWidget);
 
-    await tester.tap(find.text('Later'));
+    await _scrollToAndTap(tester, find.text('Later'));
     await tester.pumpAndSettle();
 
     expect(find.text(_homeText), findsOneWidget);
@@ -71,12 +79,12 @@ void main() {
   testWidgets('skipping the name step leaves no name', (tester) async {
     final preferences = await _pumpOnboarding(tester);
 
-    await tester.tap(find.text('Get started'));
+    await _scrollToAndTap(tester, find.text('Get started'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), 'Typo');
-    await tester.tap(find.text('Skip'));
+    await _scrollToAndTap(tester, find.text('Skip'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Later'));
+    await _scrollToAndTap(tester, find.text('Later'));
     await tester.pumpAndSettle();
 
     expect(SettingsRepository(preferences).readSettings().userName, isNull);
@@ -85,11 +93,11 @@ void main() {
   testWidgets('the back button returns to the previous step', (tester) async {
     await _pumpOnboarding(tester);
 
-    await tester.tap(find.text('Get started'));
+    await _scrollToAndTap(tester, find.text('Get started'));
     await tester.pumpAndSettle();
     expect(find.text('What should I call you?'), findsOneWidget);
 
-    await tester.tap(find.byType(BackButton));
+    await tester.tap(find.byType(GameBackButton));
     await tester.pumpAndSettle();
 
     expect(find.text("Hi, I'm Komo."), findsOneWidget);

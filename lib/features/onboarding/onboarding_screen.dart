@@ -10,6 +10,9 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/haptics.dart';
 import '../../core/theme/app_motion.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/ui/game_badges.dart';
+import '../../core/ui/game_button.dart';
+import '../../core/ui/game_text.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
 import '../../router.dart';
@@ -119,7 +122,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(AppSpacing.small, AppSpacing.small, AppSpacing.extraLarge, 0),
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.extraLarge,
+                      AppSpacing.small,
+                      AppSpacing.extraLarge,
+                      0,
+                    ),
                     child: _OnboardingTopBar(
                       step: _step,
                       onBackPressed: previousStep == null ? null : () => _showStep(previousStep),
@@ -194,14 +202,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       _OnboardingStep.welcome => _StepParts(
         title: localizations.onboardingTitle,
         message: localizations.onboardingSubtitle,
-        primaryAction: FilledButton(
+        primaryAction: GameButton(
           onPressed: _isFinishing ? null : () => _showStep(_OnboardingStep.name),
-          child: Text(localizations.getStarted),
+          label: localizations.getStarted,
         ),
-        secondaryAction: TextButton.icon(
+        secondaryAction: GameButton(
+          tone: GameButtonTone.neutral,
           onPressed: _isFinishing ? null : _restoreFromBackup,
-          icon: const Icon(LucideIcons.upload),
-          label: Text(localizations.restoreFromBackup),
+          icon: LucideIcons.upload,
+          label: localizations.restoreFromBackup,
         ),
       ),
       _OnboardingStep.name => _StepParts(
@@ -216,27 +225,32 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           onSubmitted: (_) => _showStep(_OnboardingStep.reminders),
           decoration: InputDecoration(labelText: localizations.onboardingNameLabel),
         ),
-        primaryAction: FilledButton(
+        primaryAction: GameButton(
           onPressed: () => _showStep(_OnboardingStep.reminders),
-          child: Text(localizations.continueAction),
+          label: localizations.continueAction,
         ),
-        secondaryAction: TextButton(
+        secondaryAction: GameButton(
+          tone: GameButtonTone.neutral,
           onPressed: () {
             _nameController.clear();
             _showStep(_OnboardingStep.reminders);
           },
-          child: Text(localizations.skip),
+          label: localizations.skip,
         ),
       ),
       _OnboardingStep.reminders => _StepParts(
         title: localizations.onboardingRemindersTitle,
         message: localizations.onboardingRemindersMessage,
-        primaryAction: FilledButton.icon(
+        primaryAction: GameButton(
           onPressed: _isFinishing ? null : _requestNotificationsAndFinish,
-          icon: const Icon(LucideIcons.bellRing),
-          label: Text(localizations.allowNotifications),
+          icon: LucideIcons.bellRing,
+          label: localizations.allowNotifications,
         ),
-        secondaryAction: TextButton(onPressed: _isFinishing ? null : _finish, child: Text(localizations.later)),
+        secondaryAction: GameButton(
+          tone: GameButtonTone.neutral,
+          onPressed: _isFinishing ? null : _finish,
+          label: localizations.later,
+        ),
       ),
     };
   }
@@ -257,7 +271,7 @@ class _OnboardingTopBar extends StatelessWidget {
       height: AppSizes.minimumTouchTarget,
       child: Row(
         children: [
-          if (onBackPressed != null) BackButton(onPressed: onBackPressed),
+          if (onBackPressed != null) GameBackButton(onPressed: onBackPressed),
           const Spacer(),
           _StepIndicator(currentStepIndex: step.index, stepCount: _OnboardingStep.values.length),
         ],
@@ -266,40 +280,24 @@ class _OnboardingTopBar extends StatelessWidget {
   }
 }
 
-/// Progress drawn as day cells: done and current steps are filled with amber, like logged days.
+/// Width of the step progress bar in the top bar; short enough to leave room for the back button.
+const double _stepProgressWidth = 112;
+
+/// Onboarding progress as a chunky amber bar that springs forward at each step.
 class _StepIndicator extends StatelessWidget {
   const _StepIndicator({required this.currentStepIndex, required this.stepCount});
 
   final int currentStepIndex;
   final int stepCount;
 
-  static const double _cellSize = 10;
-  static const double _currentCellWidth = 28;
-
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final komitColors = KomitColors.of(context);
-    final duration = motionAwareDuration(context, AppDurations.standard);
-    return Semantics(
-      label: AppLocalizations.of(context).onboardingStepProgress(currentStepIndex + 1, stepCount),
-      excludeSemantics: true,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (var stepIndex = 0; stepIndex < stepCount; stepIndex++)
-            AnimatedContainer(
-              duration: duration,
-              curve: AppCurves.emphasized,
-              margin: const EdgeInsets.only(left: AppSpacing.extraSmall),
-              width: stepIndex == currentStepIndex ? _currentCellWidth : _cellSize,
-              height: _cellSize,
-              decoration: BoxDecoration(
-                color: stepIndex <= currentStepIndex ? colorScheme.primary : komitColors.emptyCell,
-                borderRadius: BorderRadius.circular(AppRadii.gridCell),
-              ),
-            ),
-        ],
+    return SizedBox(
+      width: _stepProgressWidth,
+      child: GameProgressBar(
+        value: (currentStepIndex + 1) / stepCount,
+        color: Theme.of(context).colorScheme.primary,
+        semanticLabel: AppLocalizations.of(context).onboardingStepProgress(currentStepIndex + 1, stepCount),
       ),
     );
   }
@@ -334,10 +332,7 @@ class _StepText extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Semantics(
-          header: true,
-          child: Text(parts.title, textAlign: TextAlign.center, style: textTheme.headlineMedium),
-        ),
+        GameTitle(parts.title, textAlign: TextAlign.center, style: textTheme.headlineLarge),
         const SizedBox(height: AppSpacing.medium),
         Text(
           parts.message,
@@ -361,7 +356,7 @@ class _StepActions extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         parts.primaryAction,
-        const SizedBox(height: AppSpacing.small),
+        const SizedBox(height: AppSpacing.medium),
         parts.secondaryAction,
       ],
     );

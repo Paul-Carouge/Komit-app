@@ -52,3 +52,10 @@ YearStatistics computeYearStatistics(Map<CalendarDay, int> objectiveIdByDay, {re
   }
   return YearStatistics(logCountByObjectiveId: logCountByObjectiveId, logCountByMonth: logCountByMonth);
 }
+
+/// True when each of [habitIds] has a log on [day]; vacuously true for no habit.
+bool isEveryHabitLoggedOn(
+  CalendarDay day, {
+  required Iterable<int> habitIds,
+  required Map<int, Map<CalendarDay, int>> objectiveIdByDayByHabitId,
+}) => habitIds.every((habitId) => objectiveIdByDayByHabitId[habitId]?.containsKey(day) ?? false);

@@ -8,6 +8,7 @@ import 'data/repositories/backup_repository.dart';
 import 'data/repositories/habit_repository.dart';
 import 'data/repositories/note_repository.dart';
 import 'data/repositories/settings_repository.dart';
+import 'domain/habit_statistics.dart';
 import 'services/app_update_service.dart';
 import 'services/reminder_scheduler.dart';
 
@@ -67,6 +68,17 @@ const int dashboardRecentDayCount = 28;
 final recentLogsForAllHabitsProvider = StreamProvider((ref) {
   final firstDay = ref.watch(currentCalendarDayProvider).addDays(-(dashboardRecentDayCount - 1));
   return ref.watch(habitRepositoryProvider).watchObjectiveIdByDayForAllHabitsSince(firstDay);
+});
+
+/// True once every habit has a log today: Komo celebrates on the dashboard.
+final isEveryHabitLoggedTodayProvider = Provider<bool>((ref) {
+  final habits = ref.watch(allHabitsProvider).value ?? const [];
+  return habits.isNotEmpty &&
+      isEveryHabitLoggedOn(
+        ref.watch(currentCalendarDayProvider),
+        habitIds: habits.map((habit) => habit.habit.id),
+        objectiveIdByDayByHabitId: ref.watch(recentLogsForAllHabitsProvider).value ?? const {},
+      );
 });
 
 final lastLoggedDayByHabitIdProvider = StreamProvider(

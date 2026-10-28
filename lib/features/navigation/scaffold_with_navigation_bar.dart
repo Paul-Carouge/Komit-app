@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../core/theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../updates/update_prompt.dart';
 
@@ -16,14 +17,22 @@ class ScaffoldWithNavigationBar extends StatelessWidget {
     return StartupUpdateCheck(
       child: Scaffold(
         body: navigationShell,
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: navigationShell.currentIndex,
-          onDestinationSelected: (index) =>
-              navigationShell.goBranch(index, initialLocation: index == navigationShell.currentIndex),
-          destinations: [
-            NavigationDestination(icon: const Icon(LucideIcons.house), label: localizations.habitsTab),
-            NavigationDestination(icon: const Icon(LucideIcons.newspaper), label: localizations.notesTab),
-          ],
+        // The ink line on top sets the bar apart like the edge of a game tray.
+        bottomNavigationBar: DecoratedBox(
+          decoration: BoxDecoration(
+            border: Border(
+              top: BorderSide(color: KomitColors.of(context).outline, width: AppOutline.regular),
+            ),
+          ),
+          child: NavigationBar(
+            selectedIndex: navigationShell.currentIndex,
+            onDestinationSelected: (index) =>
+                navigationShell.goBranch(index, initialLocation: index == navigationShell.currentIndex),
+            destinations: [
+              NavigationDestination(icon: const Icon(LucideIcons.house), label: localizations.habitsTab),
+              NavigationDestination(icon: const Icon(LucideIcons.newspaper), label: localizations.notesTab),
+            ],
+          ),
         ),
       ),
     );

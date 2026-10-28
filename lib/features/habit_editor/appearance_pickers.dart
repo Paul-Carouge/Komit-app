@@ -3,6 +3,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/habit_appearance.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/ui/game_text.dart';
 import '../../l10n/app_localizations.dart';
 
 const double _swatchSize = AppSizes.minimumTouchTarget;
@@ -33,12 +34,10 @@ Future<int?> showColorPickerSheet(BuildContext context, {required int selectedCo
                 decoration: BoxDecoration(
                   color: Color(colorArgb),
                   shape: BoxShape.circle,
-                  border: colorArgb == selectedColorArgb
-                      ? Border.all(
-                          color: Theme.of(context).colorScheme.onSurface,
-                          width: AppSizes.selectedSwatchBorderWidth,
-                        )
-                      : null,
+                  border: Border.all(
+                    color: KomitColors.of(context).outline,
+                    width: colorArgb == selectedColorArgb ? AppSizes.selectedSwatchBorderWidth : AppOutline.regular,
+                  ),
                 ),
                 child: colorArgb == selectedColorArgb
                     ? Icon(LucideIcons.check, color: foregroundColorReadableOn(Color(colorArgb)))
@@ -57,6 +56,8 @@ Future<String?> showIconPickerSheet(BuildContext context, {required String selec
     isScrollControlled: true,
     builder: (context) {
       final colorScheme = Theme.of(context).colorScheme;
+      final komitColors = KomitColors.of(context);
+      final habitColor = Color(colorArgb);
       return _PickerSheet(
         title: AppLocalizations.of(context).chooseIcon,
         children: [
@@ -66,12 +67,19 @@ Future<String?> showIconPickerSheet(BuildContext context, {required String selec
               isSelected: iconName == selectedIconName,
               style: IconButton.styleFrom(
                 minimumSize: const Size.square(_swatchSize),
-                backgroundColor: iconName == selectedIconName
-                    ? Color(colorArgb).withValues(alpha: AppOpacity.selectedTint)
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.badge)),
+                backgroundColor: iconName == selectedIconName ? habitColor : null,
+                side: iconName == selectedIconName
+                    ? BorderSide(color: komitColors.outline, width: AppOutline.regular)
                     : null,
               ),
               onPressed: () => Navigator.of(context).pop(iconName),
-              icon: Icon(icon, color: iconName == selectedIconName ? Color(colorArgb) : colorScheme.onSurfaceVariant),
+              icon: Icon(
+                icon,
+                color: iconName == selectedIconName
+                    ? foregroundColorReadableOn(habitColor)
+                    : colorScheme.onSurfaceVariant,
+              ),
             ),
         ],
       );
@@ -100,7 +108,7 @@ class _PickerSheet extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: Theme.of(context).textTheme.titleLarge),
+              GameTitle(title, style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: AppSpacing.large),
               Wrap(spacing: AppSpacing.medium, runSpacing: AppSpacing.medium, children: children),
             ],

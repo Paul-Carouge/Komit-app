@@ -6,9 +6,12 @@ import '../../core/theme/app_theme.dart';
 
 /// One square of a [DayGrid]; a null [color] leaves the slot blank (e.g. February 30).
 class DayGridCell {
-  const DayGridCell({required this.color, required this.semanticLabel, this.onTap});
+  const DayGridCell({required this.color, required this.semanticLabel, this.onTap, this.isLogged = false});
 
   final Color? color;
+
+  /// Logged days are drawn as tiny raised game tiles, with a darker band under their face.
+  final bool isLogged;
   final String semanticLabel;
   final VoidCallback? onTap;
 }
@@ -22,6 +25,9 @@ const double _poppingCellInitialScale = 0.4;
 
 /// The ring around a popping cell grows by this share of the cell size while fading out.
 const double _poppingRingGrowth = 0.6;
+
+/// Height of a logged cell's darker bottom band, as a share of the cell size.
+const double _loggedCellDepthShare = 0.2;
 
 /// Paints a whole grid of days in one [CustomPaint] instead of hundreds of widgets,
 /// while still exposing every cell to screen readers.
@@ -143,15 +149,32 @@ class _DayGridPainter extends CustomPainter {
       final color = cell.color;
       if (color == null) continue;
       if (isPopping && previousColorByPoppingCellIndex.containsKey(index)) {
-        _paintPoppingCell(canvas, paint, index, color, radius);
+        _paintPoppingCell(canvas, paint, index, color, radius, isLogged: cell.isLogged);
         continue;
       }
-      paint.color = color;
-      canvas.drawRRect(RRect.fromRectAndRadius(geometry.cellRect(index), radius), paint);
+      _paintCell(canvas, paint, geometry.cellRect(index), color, radius, isLogged: cell.isLogged);
     }
   }
 
-  void _paintPoppingCell(Canvas canvas, Paint paint, int index, Color color, Radius radius) {
+  void _paintCell(Canvas canvas, Paint paint, Rect rect, Color color, Radius radius, {required bool isLogged}) {
+    if (!isLogged) {
+      paint.color = color;
+      canvas.drawRRect(RRect.fromRectAndRadius(rect, radius), paint);
+      return;
+    }
+    paint.color = depthShadeOf(color);
+    canvas.drawRRect(RRect.fromRectAndRadius(rect, radius), paint);
+    paint.color = color;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTRB(rect.left, rect.top, rect.right, rect.bottom - rect.height * _loggedCellDepthShare),
+        radius,
+      ),
+      paint,
+    );
+  }
+
+  void _paintPoppingCell(Canvas canvas, Paint paint, int index, Color color, Radius radius, {required bool isLogged}) {
     final progress = popAnimation.value;
     final cellRect = geometry.cellRect(index);
     final previousColor = previousColorByPoppingCellIndex[index];
@@ -161,13 +184,13 @@ class _DayGridPainter extends CustomPainter {
       canvas.drawRRect(RRect.fromRectAndRadius(cellRect, radius), paint);
     }
     final scale = _poppingCellInitialScale + (1 - _poppingCellInitialScale) * AppCurves.emphasized.transform(progress);
-    paint.color = color;
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromCenter(center: cellRect.center, width: cellRect.width * scale, height: cellRect.height * scale),
-        radius,
-      ),
+    _paintCell(
+      canvas,
       paint,
+      Rect.fromCenter(center: cellRect.center, width: cellRect.width * scale, height: cellRect.height * scale),
+      color,
+      radius,
+      isLogged: isLogged,
     );
     final ringRect = cellRect.inflate(geometry.cellSize * _poppingRingGrowth * AppCurves.standard.transform(progress));
     final ringPaint = Paint()

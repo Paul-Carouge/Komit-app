@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/ui/game_text.dart';
 import 'komo_mascot.dart';
 
 /// Komo above a short message and an optional next action: empty lists, errors, missing items.
@@ -37,13 +38,13 @@ class KomoEmptyState extends StatelessWidget {
             children: [
               KomoMascot(mood: mood, size: mascotSize),
               const SizedBox(height: AppSpacing.large),
-              Text(title, textAlign: TextAlign.center, style: textTheme.titleLarge),
+              GameTitle(title, textAlign: TextAlign.center, style: textTheme.headlineSmall),
               if (message != null) ...[
                 const SizedBox(height: AppSpacing.small),
                 Text(
                   message,
                   textAlign: TextAlign.center,
-                  style: textTheme.bodyMedium?.copyWith(color: KomitColors.of(context).mutedText),
+                  style: textTheme.bodyLarge?.copyWith(color: KomitColors.of(context).mutedText),
                 ),
               ],
               if (action != null) ...[const SizedBox(height: AppSpacing.extraLarge), action],

@@ -51,7 +51,7 @@ void main() {
     await tester.pumpWidget(_komoApp(mood: KomoMood.idle));
     expect(tester.hasRunningAnimations, isTrue);
 
-    await tester.pump(AppDurations.mascotAnimationBudget + AppDurations.mascotBreathCycle);
+    await tester.pump(AppDurations.mascotAnimationBudget + AppDurations.mascotBounceCycle);
 
     expect(tester.hasRunningAnimations, isFalse);
   });
@@ -64,7 +64,7 @@ void main() {
 
   testWidgets('a mood change plays the new mood', (tester) async {
     await tester.pumpWidget(_komoApp(mood: KomoMood.idle));
-    await tester.pump(AppDurations.mascotAnimationBudget + AppDurations.mascotBreathCycle);
+    await tester.pump(AppDurations.mascotAnimationBudget + AppDurations.mascotBounceCycle);
     expect(tester.hasRunningAnimations, isFalse);
 
     await tester.pumpWidget(_komoApp(mood: KomoMood.happy));

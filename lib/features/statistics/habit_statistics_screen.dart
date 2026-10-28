@@ -7,6 +7,10 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/calendar_day.dart';
 import '../../core/current_calendar_day.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/ui/game_badges.dart';
+import '../../core/ui/game_button.dart';
+import '../../core/ui/game_card.dart';
+import '../../core/ui/game_text.dart';
 import '../mascot/komo_empty_state.dart';
 import '../mascot/komo_mascot.dart';
 import '../../data/repositories/habit_repository.dart';
@@ -34,11 +38,11 @@ class HabitStatisticsScreen extends ConsumerWidget {
     final habit = ref.watch(habitProvider(habitId));
     final objectiveIdByDay = ref.watch(objectiveIdByDayForHabitProvider(habitId));
     return Scaffold(
-      appBar: AppBar(title: Text(localizations.statisticsTitle(year))),
+      appBar: AppBar(leading: const GameBackButton(), title: Text(localizations.statisticsTitle(year))),
       body: AsyncValueView(
         value: habit,
         builder: (habit) => habit == null
-            ? Center(child: Text(localizations.habitNotFound))
+            ? KomoEmptyState(mood: KomoMood.sleepy, title: localizations.habitNotFound)
             : AsyncValueView(
                 value: objectiveIdByDay,
                 builder: (objectiveIdByDay) => _StatisticsContent(
@@ -70,6 +74,7 @@ class _StatisticsContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final komitColors = KomitColors.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final statistics = computeYearStatistics(objectiveIdByDay, year: year);
     final streaks = computeStreakSummary(objectiveIdByDay.keys, today: today);
@@ -82,35 +87,30 @@ class _StatisticsContent extends StatelessWidget {
       ),
       children: [
         MergeSemantics(
-          child: Container(
+          child: GameCard(
+            color: komitColors.notesFace,
+            isHero: true,
             padding: const EdgeInsets.all(AppSpacing.extraLarge),
-            decoration: BoxDecoration(
-              color: komitColors.highlightContainer,
-              borderRadius: BorderRadius.circular(AppRadii.large),
-            ),
             child: Row(
               children: [
-                HabitIconBadge(
-                  icon: LucideIcons.trophy,
-                  color: komitColors.onHighlightContainer,
-                  size: AppSizes.heroBadge,
-                ),
+                GameBadge(icon: LucideIcons.trophy, color: colorScheme.primary, size: AppSizes.heroBadge),
                 const SizedBox(width: AppSpacing.large),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      localizations.daysLogged,
-                      style: textTheme.bodyLarge?.copyWith(color: komitColors.onHighlightContainer),
-                    ),
-                    Text(
-                      '${statistics.totalLogCount}',
-                      style: textTheme.displaySmall?.copyWith(
-                        color: komitColors.onHighlightContainer,
-                        fontFeatures: const [FontFeature.tabularFigures()],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        localizations.daysLogged,
+                        style: textTheme.titleMedium?.copyWith(color: komitColors.onNotesFace),
                       ),
-                    ),
-                  ],
+                      GameTitle(
+                        '${statistics.totalLogCount}',
+                        isHeader: false,
+                        onColor: komitColors.notesFace,
+                        style: textTheme.displayMedium?.copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -160,6 +160,7 @@ class _ObjectiveDistributionChart extends StatelessWidget {
                       color: Color(objective.colorArgb),
                       radius: _donutRadius,
                       showTitle: false,
+                      borderSide: BorderSide(color: KomitColors.of(context).outline, width: AppOutline.regular),
                     ),
                 ],
               ),
@@ -170,16 +171,28 @@ class _ObjectiveDistributionChart extends StatelessWidget {
         for (final objective in loggedObjectives)
           MergeSemantics(
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.extraSmall),
-              child: Row(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.small),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  ColorDot(color: Color(objective.colorArgb)),
-                  const SizedBox(width: AppSpacing.medium),
-                  Expanded(child: Text(objective.title, style: textTheme.bodyLarge)),
-                  Text(
-                    '${statistics.logCountByObjectiveId[objective.id]} · '
-                    '${(statistics.logCountByObjectiveId[objective.id]! * 100 / statistics.totalLogCount).round()} %',
-                    style: textTheme.bodyLarge?.copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
+                  Row(
+                    children: [
+                      ColorDot(color: Color(objective.colorArgb)),
+                      const SizedBox(width: AppSpacing.medium),
+                      Expanded(child: Text(objective.title, style: textTheme.titleMedium)),
+                      Text(
+                        '${statistics.logCountByObjectiveId[objective.id]} · '
+                        '${(statistics.logCountByObjectiveId[objective.id]! * 100 / statistics.totalLogCount).round()} %',
+                        style: textTheme.titleMedium?.copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.small),
+                  // The share is already written above; the bar only draws it.
+                  GameProgressBar(
+                    value: statistics.logCountByObjectiveId[objective.id]! / statistics.totalLogCount,
+                    color: Color(objective.colorArgb),
+                    height: AppSizes.compactProgressBarHeight,
                   ),
                 ],
               ),
@@ -244,6 +257,7 @@ class _MonthlyActivityChart extends StatelessWidget {
                         color: colorScheme.primary,
                         width: _monthBarWidth,
                         borderRadius: BorderRadius.circular(AppRadii.gridCell),
+                        borderSide: BorderSide(color: komitColors.outline, width: AppOutline.thin),
                       ),
                     ],
                   ),

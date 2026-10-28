@@ -108,6 +108,7 @@ class YearlyGrid extends StatelessWidget {
           : isFuture
           ? komitColors.futureCell
           : komitColors.emptyCell,
+      isLogged: objective != null,
       semanticLabel: '${fullDateFormat.format(day.asLocalDate)}: ${objective?.title ?? '-'}',
       // Future days cannot be logged: the old app allowed it and produced misleading streaks.
       // An imported future log stays tappable so it can be cleared.
