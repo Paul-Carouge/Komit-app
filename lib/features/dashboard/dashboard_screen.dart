@@ -122,7 +122,7 @@ class _HabitCardGrid extends ConsumerWidget {
     final lastLoggedDayByHabitId = ref.watch(lastLoggedDayByHabitIdProvider).value ?? const {};
     final today = ref.watch(currentCalendarDayProvider);
     final isLargeText = isLargeTextScale(context);
-    final textScale = MediaQuery.textScalerOf(context).scale(AppSpacing.large) / AppSpacing.large;
+    final textScale = bodyTextScaleOf(context);
     final baseAspectRatio = isLargeText ? _singleColumnCardAspectRatio : _cardAspectRatio;
     return SliverPadding(
       padding: const EdgeInsets.fromLTRB(AppSpacing.screenGutter, 0, AppSpacing.screenGutter, AppSpacing.extraLarge),

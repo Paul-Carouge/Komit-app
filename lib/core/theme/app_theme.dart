@@ -89,9 +89,15 @@ abstract final class AppSizes {
 /// From this text scale on, side-by-side layouts stack vertically so words are not cut mid-word.
 const double largeTextScaleThreshold = 1.5;
 
+/// Body text size at which the system text scale is measured; non-linear scalers grow small text more.
+const double _textScaleReferenceFontSize = 16;
+
+/// How much the user's font size setting enlarges body text: 1 by default, 2 at 200 %.
+double bodyTextScaleOf(BuildContext context) =>
+    MediaQuery.textScalerOf(context).scale(_textScaleReferenceFontSize) / _textScaleReferenceFontSize;
+
 /// True when the user's font size calls for stacked layouts.
-bool isLargeTextScale(BuildContext context) =>
-    MediaQuery.textScalerOf(context).scale(AppSpacing.large) / AppSpacing.large >= largeTextScaleThreshold;
+bool isLargeTextScale(BuildContext context) => bodyTextScaleOf(context) >= largeTextScaleThreshold;
 
 /// Opacities used to tint a surface with a habit or brand color.
 abstract final class AppOpacity {
