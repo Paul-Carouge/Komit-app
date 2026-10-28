@@ -6,9 +6,6 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/haptics.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/ui/game_badges.dart';
-import '../../core/ui/game_button.dart';
-import '../../core/ui/game_card.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
 import '../shared/shared_widgets.dart';
@@ -29,7 +26,7 @@ class SettingsScreen extends ConsumerWidget {
     final currentLanguageCode =
         settings.languageCode ?? (Localizations.localeOf(context).languageCode == 'fr' ? 'fr' : 'en');
     return Scaffold(
-      appBar: AppBar(leading: const GameBackButton(), title: Text(localizations.settings)),
+      appBar: AppBar(title: Text(localizations.settings)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(AppSpacing.screenGutter, 0, AppSpacing.screenGutter, AppSpacing.huge),
         children: [
@@ -41,8 +38,7 @@ class SettingsScreen extends ConsumerWidget {
             onSubmitted: settingsController.updateUserName,
           ),
           SectionTitle(localizations.appearance),
-          GameCard(
-            padding: EdgeInsets.zero,
+          Card(
             child: RadioGroup<ThemeMode>(
               groupValue: settings.themeMode,
               onChanged: (themeMode) {
@@ -59,7 +55,7 @@ class SettingsScreen extends ConsumerWidget {
                   ])
                     RadioListTile<ThemeMode>(
                       value: themeMode,
-                      secondary: GameBadge(icon: icon, color: colorScheme.primary),
+                      secondary: HabitIconBadge(icon: icon, color: colorScheme.primary),
                       title: Text(label),
                       controlAffinity: ListTileControlAffinity.trailing,
                     ),
@@ -68,42 +64,29 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           SectionTitle(localizations.language),
-          Row(
-            children: [
-              for (final (index, (languageCode, languageName)) in const [
-                ('en', 'English'),
-                ('fr', 'Français'),
-              ].indexed) ...[
-                if (index > 0) const SizedBox(width: AppSpacing.medium),
-                Expanded(
-                  child: GameButton(
-                    isCompact: true,
-                    tone: languageCode == currentLanguageCode ? GameButtonTone.primary : GameButtonTone.neutral,
-                    isSelected: languageCode == currentLanguageCode,
-                    trailing: languageCode == currentLanguageCode ? const Icon(LucideIcons.check) : null,
-                    label: languageName,
-                    onPressed: () {
-                      unawaited(KomitHaptics.selection());
-                      settingsController.updateLanguageCode(languageCode);
-                    },
-                  ),
-                ),
-              ],
+          SegmentedButton<String>(
+            segments: const [
+              ButtonSegment(value: 'en', label: Text('English')),
+              ButtonSegment(value: 'fr', label: Text('Français')),
             ],
+            selected: {currentLanguageCode},
+            onSelectionChanged: (selection) {
+              unawaited(KomitHaptics.selection());
+              settingsController.updateLanguageCode(selection.single);
+            },
           ),
           SectionTitle(localizations.dataAndStorage),
-          GameCard(
-            padding: EdgeInsets.zero,
+          Card(
             child: Column(
               children: [
                 ListTile(
-                  leading: GameBadge(icon: LucideIcons.download, color: komitColors.notesFace),
+                  leading: HabitIconBadge(icon: LucideIcons.download, color: komitColors.mutedText),
                   title: Text(localizations.exportData),
                   trailing: const Icon(LucideIcons.chevronRight),
                   onTap: () => exportBackupToUserChosenFile(context, ref),
                 ),
                 ListTile(
-                  leading: GameBadge(icon: LucideIcons.upload, color: colorScheme.error),
+                  leading: HabitIconBadge(icon: LucideIcons.upload, color: colorScheme.error),
                   title: Text(localizations.importData, style: TextStyle(color: colorScheme.error)),
                   trailing: const Icon(LucideIcons.chevronRight),
                   onTap: () => importBackupFromUserChosenFile(context, ref),
@@ -113,10 +96,9 @@ class SettingsScreen extends ConsumerWidget {
           ),
           if (ref.watch(appUpdateServiceProvider).isSupported) ...[
             SectionTitle(localizations.updates),
-            GameCard(
-              padding: EdgeInsets.zero,
+            Card(
               child: ListTile(
-                leading: GameBadge(icon: LucideIcons.refreshCw, color: colorScheme.tertiary),
+                leading: HabitIconBadge(icon: LucideIcons.refreshCw, color: colorScheme.primary),
                 title: Text(localizations.checkForUpdates),
                 trailing: const Icon(LucideIcons.chevronRight),
                 onTap: () => checkForUpdate(context, ref, isUserInitiated: true),

@@ -8,10 +8,6 @@ import '../../core/calendar_day.dart';
 import '../../core/current_calendar_day.dart';
 import '../../core/habit_appearance.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/ui/game_badges.dart';
-import '../../core/ui/game_button.dart';
-import '../../core/ui/game_card.dart';
-import '../../core/ui/game_text.dart';
 import '../../data/repositories/habit_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
@@ -24,12 +20,6 @@ import '../shared/shared_widgets.dart';
 const int _cardsPerRow = 2;
 const int _daysPerGridRow = 7;
 const double _cardAspectRatio = 0.86;
-
-/// With large text the cards stack in one column, which is wider than tall.
-const double _singleColumnCardAspectRatio = 1.1;
-
-/// Share of a card's height taken by text; only that share grows with the user's font size.
-const double _textShareOfCardHeight = 0.5;
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -49,7 +39,7 @@ class DashboardScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.screenGutter,
                 AppSpacing.extraLarge,
-                AppSpacing.screenGutter,
+                AppSpacing.small,
                 AppSpacing.large,
               ),
               sliver: SliverToBoxAdapter(
@@ -57,17 +47,19 @@ class DashboardScreen extends ConsumerWidget {
                   children: [
                     if (hasHabits) ...[const _DashboardKomo(), const SizedBox(width: AppSpacing.medium)],
                     Expanded(
-                      child: GameTitle(
-                        userName == null ? localizations.greetingWithoutName : localizations.greeting(userName),
-                        style: Theme.of(context).textTheme.headlineMedium,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                      child: Semantics(
+                        header: true,
+                        child: Text(
+                          userName == null ? localizations.greetingWithoutName : localizations.greeting(userName),
+                          style: Theme.of(context).textTheme.headlineSmall,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ),
-                    GameIconButton(
-                      icon: LucideIcons.settings,
+                    IconButton(
                       tooltip: localizations.settingsTooltip,
                       onPressed: () => context.push(AppRoutes.settings),
+                      icon: const Icon(LucideIcons.settings),
                     ),
                   ],
                 ),
@@ -80,10 +72,10 @@ class DashboardScreen extends ConsumerWidget {
                   mood: KomoMood.waving,
                   title: localizations.dashboardEmptyTitle,
                   message: localizations.dashboardEmptyMessage,
-                  action: GameButton(
+                  action: FilledButton.icon(
                     onPressed: () => context.push(AppRoutes.newHabit),
-                    icon: LucideIcons.plus,
-                    label: localizations.createFirstHabit,
+                    icon: const Icon(LucideIcons.plus),
+                    label: Text(localizations.createFirstHabit),
                   ),
                 ),
               ),
@@ -106,7 +98,11 @@ class _DashboardKomo extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isEveryHabitLoggedToday = ref.watch(isEveryHabitLoggedTodayProvider);
+    final today = ref.watch(currentCalendarDayProvider);
+    final habits = ref.watch(allHabitsProvider).value ?? const [];
+    final recentLogsByHabitId = ref.watch(recentLogsForAllHabitsProvider).value ?? const {};
+    final isEveryHabitLoggedToday =
+        habits.isNotEmpty && habits.every((habit) => recentLogsByHabitId[habit.habit.id]?.containsKey(today) ?? false);
     return KomoMascot(mood: isEveryHabitLoggedToday ? KomoMood.happy : KomoMood.idle, size: AppSizes.mascotSmall);
   }
 }
@@ -121,17 +117,14 @@ class _HabitCardGrid extends ConsumerWidget {
     final recentLogsByHabitId = ref.watch(recentLogsForAllHabitsProvider).value ?? const {};
     final lastLoggedDayByHabitId = ref.watch(lastLoggedDayByHabitIdProvider).value ?? const {};
     final today = ref.watch(currentCalendarDayProvider);
-    final isLargeText = isLargeTextScale(context);
-    final textScale = bodyTextScaleOf(context);
-    final baseAspectRatio = isLargeText ? _singleColumnCardAspectRatio : _cardAspectRatio;
     return SliverPadding(
       padding: const EdgeInsets.fromLTRB(AppSpacing.screenGutter, 0, AppSpacing.screenGutter, AppSpacing.extraLarge),
       sliver: SliverGrid.builder(
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: isLargeText ? 1 : _cardsPerRow,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: _cardsPerRow,
           mainAxisSpacing: AppSpacing.large,
           crossAxisSpacing: AppSpacing.large,
-          childAspectRatio: baseAspectRatio / (1 + (textScale - 1) * _textShareOfCardHeight),
+          childAspectRatio: _cardAspectRatio,
         ),
         itemCount: habits.length + 1,
         itemBuilder: (context, index) {
@@ -179,55 +172,51 @@ class _HabitCard extends StatelessWidget {
       for (var offset = 0; offset < dashboardRecentDayCount; offset++)
         _recentDayCell(firstDay.addDays(offset), komitColors, dateFormat),
     ];
-    return GameCard(
+    return PressableCard(
       onTap: () => context.push(AppRoutes.habitDetails(habit.habit.id)),
-      // Tighter than other cards: two fit side by side and each needs room for its title.
-      padding: const EdgeInsets.all(AppSpacing.medium),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              GameBadge(
-                icon: habitIconForName(habit.habit.iconName),
-                color: Color(habit.habit.colorArgb),
-                size: AppSizes.smallBadge,
-              ),
-              const SizedBox(width: AppSpacing.small),
-              Expanded(
-                // Lilita One is condensed: long single words such as "Meditation" fit a narrow card.
-                child: Text(
-                  habit.habit.title,
-                  style: textTheme.titleLarge?.copyWith(fontSize: textTheme.titleMedium?.fontSize),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const Spacer(),
-          ExcludeSemantics(
-            child: DayGrid(columnCount: _daysPerGridRow, cells: cells),
-          ),
-          const Spacer(),
-          Semantics(
-            label: lastActivitySemanticLabel,
-            excludeSemantics: true,
-            child: Row(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.large),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Icon(LucideIcons.history, size: textTheme.bodySmall?.fontSize, color: komitColors.mutedText),
-                const SizedBox(width: AppSpacing.extraSmall),
+                HabitIconBadge(icon: habitIconForName(habit.habit.iconName), color: Color(habit.habit.colorArgb)),
+                const SizedBox(width: AppSpacing.medium),
                 Expanded(
                   child: Text(
-                    lastActivityText,
-                    style: textTheme.bodySmall?.copyWith(color: komitColors.mutedText),
+                    habit.habit.title,
+                    style: textTheme.titleMedium,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
             ),
-          ),
-        ],
+            const Spacer(),
+            ExcludeSemantics(
+              child: DayGrid(columnCount: _daysPerGridRow, cells: cells),
+            ),
+            const Spacer(),
+            Semantics(
+              label: lastActivitySemanticLabel,
+              excludeSemantics: true,
+              child: Row(
+                children: [
+                  Icon(LucideIcons.history, size: textTheme.bodySmall?.fontSize, color: komitColors.mutedText),
+                  const SizedBox(width: AppSpacing.extraSmall),
+                  Expanded(
+                    child: Text(
+                      lastActivityText,
+                      style: textTheme.bodySmall?.copyWith(color: komitColors.mutedText),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -236,7 +225,6 @@ class _HabitCard extends StatelessWidget {
     final objective = recentObjectiveIdByDay[day] == null ? null : habit.objectiveWithId(recentObjectiveIdByDay[day]!);
     return DayGridCell(
       color: objective == null ? komitColors.emptyCell : Color(objective.colorArgb),
-      isLogged: objective != null,
       semanticLabel: '${dateFormat.format(day.asLocalDate)}: ${objective?.title ?? '-'}',
     );
   }
@@ -248,22 +236,28 @@ class _NewHabitCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return GameCard(
-      color: colorScheme.surfaceContainerHigh,
+    final komitColors = KomitColors.of(context);
+    return PressableCard(
+      color: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadii.large),
+        side: BorderSide(color: colorScheme.outlineVariant, width: AppSizes.emphasisBorderWidth),
+      ),
       onTap: () => context.push(AppRoutes.newHabit),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            GameBadge(icon: LucideIcons.plus, color: colorScheme.primary, size: AppSizes.heroBadge),
-            const SizedBox(height: AppSpacing.medium),
-            Text(
-              AppLocalizations.of(context).newHabit,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(color: colorScheme.onSurface),
-            ),
-          ],
-        ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircleAvatar(
+            radius: AppSizes.minimumTouchTarget / 2,
+            backgroundColor: colorScheme.primaryContainer,
+            child: Icon(LucideIcons.plus, color: colorScheme.onPrimaryContainer),
+          ),
+          const SizedBox(height: AppSpacing.medium),
+          Text(
+            AppLocalizations.of(context).newHabit,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(color: komitColors.accentText),
+          ),
+        ],
       ),
     );
   }

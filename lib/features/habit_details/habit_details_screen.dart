@@ -10,10 +10,6 @@ import '../../core/current_calendar_day.dart';
 import '../../core/haptics.dart';
 import '../../core/habit_appearance.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/ui/game_badges.dart';
-import '../../core/ui/game_button.dart';
-import '../../core/ui/game_card.dart';
-import '../../core/ui/game_text.dart';
 import '../../data/repositories/habit_repository.dart';
 import '../../domain/habit_statistics.dart';
 import '../../l10n/app_localizations.dart';
@@ -76,25 +72,24 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
       slivers: [
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.medium, vertical: AppSpacing.small),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.small, vertical: AppSpacing.small),
             child: Row(
               children: [
-                GameBackButton(onPressed: () => context.pop()),
+                BackButton(onPressed: () => context.pop()),
                 const Spacer(),
                 _YearChip(
                   year: _selectedYear,
                   onPressed: () => _chooseYear(firstYear: firstYear, lastYear: today.year),
                 ),
                 const Spacer(),
-                GameIconButton(
+                IconButton(
                   tooltip: localizations.statisticsTooltip,
-                  icon: LucideIcons.chartNoAxesColumn,
+                  icon: const Icon(LucideIcons.chartNoAxesColumn),
                   onPressed: () => context.push(AppRoutes.habitStatistics(habit.habit.id, _selectedYear)),
                 ),
-                const SizedBox(width: AppSpacing.small),
-                GameIconButton(
+                IconButton(
                   tooltip: localizations.moreActionsTooltip,
-                  icon: LucideIcons.ellipsis,
+                  icon: const Icon(LucideIcons.ellipsis),
                   onPressed: () => _showMoreActions(habit),
                 ),
               ],
@@ -116,34 +111,38 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
               SectionTitle(
                 localizations.yearlyProgress,
                 trailing: _selectedYear == today.year
-                    ? GameButton(
-                        isCompact: true,
+                    ? FilledButton.tonalIcon(
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size(0, AppSizes.minimumTouchTarget),
+                          // Explicit, because the tonal default is the secondary (violet) container.
+                          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                          foregroundColor: KomitColors.of(context).accentText,
+                        ),
                         onPressed: () => _openLogSheet(habit, today, objectiveIdByDay[today]),
-                        icon: LucideIcons.plus,
-                        label: localizations.logToday,
+                        icon: const Icon(LucideIcons.plus),
+                        label: Text(localizations.logToday),
                       )
                     : null,
               ),
-              GameCard(
-                padding: const EdgeInsets.all(AppSpacing.medium),
-                child: YearlyGrid(
-                  year: _selectedYear,
-                  today: today,
-                  habit: habit,
-                  objectiveIdByDay: objectiveIdByDay,
-                  onDayTapped: (day) => _openLogSheet(habit, day, objectiveIdByDay[day]),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.medium),
+                  child: YearlyGrid(
+                    year: _selectedYear,
+                    today: today,
+                    habit: habit,
+                    objectiveIdByDay: objectiveIdByDay,
+                    onDayTapped: (day) => _openLogSheet(habit, day, objectiveIdByDay[day]),
+                  ),
                 ),
               ),
-              const SizedBox(height: AppSpacing.medium),
               // Grid cells are below the 48 dp touch target size; this is the accessible equivalent.
               Align(
                 alignment: Alignment.centerRight,
-                child: GameButton(
-                  isCompact: true,
-                  tone: GameButtonTone.neutral,
+                child: TextButton.icon(
                   onPressed: () => _pickDayToLog(habit, objectiveIdByDay, firstYear: firstYear, today: today),
-                  icon: LucideIcons.calendarPlus,
-                  label: localizations.logAnotherDay,
+                  icon: const Icon(LucideIcons.calendarPlus),
+                  label: Text(localizations.logAnotherDay),
                 ),
               ),
               SectionTitle(localizations.objectivesLegend),
@@ -152,9 +151,10 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
                 runSpacing: AppSpacing.small,
                 children: [
                   for (final objective in habit.objectives)
-                    GameTag(
-                      leading: ColorDot(color: Color(objective.colorArgb)),
-                      label: objective.title,
+                    Chip(
+                      avatar: ColorDot(color: Color(objective.colorArgb)),
+                      label: Text(objective.title),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.medium)),
                     ),
                 ],
               ),
@@ -192,24 +192,11 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
     );
     if (choice == null || !mounted) return;
     final repository = ref.read(habitRepositoryProvider);
-    final today = ref.read(currentCalendarDayProvider);
-    // Read before writing: the log about to be added is the one that may complete the day.
-    final completesTheDay =
-        day == today &&
-        currentObjectiveId == null &&
-        isEveryHabitLoggedOn(
-          today,
-          habitIds: [
-            for (final other in ref.read(allHabitsProvider).value ?? const <HabitWithObjectives>[])
-              if (other.habit.id != habit.habit.id) other.habit.id,
-          ],
-          objectiveIdByDayByHabitId: ref.read(recentLogsForAllHabitsProvider).value ?? const {},
-        );
     try {
       switch (choice) {
         case LogDayChoiceObjective(:final objectiveId):
           await repository.logObjectiveForDay(habitId: habit.habit.id, objectiveId: objectiveId, day: day);
-          unawaited(completesTheDay ? KomitHaptics.celebration() : KomitHaptics.success());
+          unawaited(KomitHaptics.success());
         case LogDayChoiceClear():
           await repository.clearLogForDay(habitId: habit.habit.id, day: day);
           unawaited(KomitHaptics.warning());
@@ -232,38 +219,27 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
 
   Future<void> _showMoreActions(HabitWithObjectives habit) async {
     final localizations = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
     final isDeleteRequested = await showModalBottomSheet<bool>(
       context: context,
       builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.screenGutter,
-            0,
-            AppSpacing.screenGutter,
-            AppSpacing.extraLarge,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              GameButton(
-                tone: GameButtonTone.neutral,
-                icon: LucideIcons.pencil,
-                label: localizations.editHabit,
-                onPressed: () {
-                  Navigator.of(context).pop(false);
-                  unawaited(GoRouter.of(context).push(AppRoutes.habitEditor(habit.habit.id)));
-                },
-              ),
-              const SizedBox(height: AppSpacing.medium),
-              GameButton(
-                tone: GameButtonTone.danger,
-                icon: LucideIcons.trash2,
-                label: localizations.deleteHabit,
-                onPressed: () => Navigator.of(context).pop(true),
-              ),
-            ],
-          ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(LucideIcons.pencil),
+              title: Text(localizations.editHabit),
+              onTap: () {
+                Navigator.of(context).pop(false);
+                unawaited(GoRouter.of(context).push(AppRoutes.habitEditor(habit.habit.id)));
+              },
+            ),
+            ListTile(
+              leading: Icon(LucideIcons.trash2, color: colorScheme.error),
+              title: Text(localizations.deleteHabit, style: TextStyle(color: colorScheme.error)),
+              onTap: () => Navigator.of(context).pop(true),
+            ),
+          ],
         ),
       ),
     );
@@ -293,14 +269,24 @@ class _YearChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GameButton(
-      isCompact: true,
-      tone: GameButtonTone.neutral,
-      icon: LucideIcons.calendar,
-      trailing: const Icon(LucideIcons.chevronDown, size: AppSizes.iconSmall),
-      label: '$year',
-      semanticLabel: '${AppLocalizations.of(context).chooseYear}, $year',
-      onPressed: onPressed,
+    final colorScheme = Theme.of(context).colorScheme;
+    return Semantics(
+      label: AppLocalizations.of(context).chooseYear,
+      child: ActionChip(
+        onPressed: onPressed,
+        avatar: Icon(LucideIcons.calendar, color: colorScheme.onSurfaceVariant),
+        label: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('$year', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(width: AppSpacing.extraSmall),
+            Icon(LucideIcons.chevronDown, size: AppSizes.iconSmall, color: KomitColors.of(context).accentText),
+          ],
+        ),
+        backgroundColor: colorScheme.surfaceContainerLowest,
+        side: BorderSide(color: colorScheme.outlineVariant),
+        shape: const StadiumBorder(),
+      ),
     );
   }
 }
@@ -314,6 +300,7 @@ class _YearPickerSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(AppSpacing.screenGutter, 0, AppSpacing.screenGutter, AppSpacing.extraLarge),
@@ -322,12 +309,12 @@ class _YearPickerSheet extends StatelessWidget {
           runSpacing: AppSpacing.small,
           children: [
             for (var year = lastYear; year >= firstYear; year--)
-              GameButton(
-                isCompact: true,
-                tone: year == selectedYear ? GameButtonTone.primary : GameButtonTone.neutral,
-                isSelected: year == selectedYear,
-                label: '$year',
-                onPressed: () => Navigator.of(context).pop(year),
+              ChoiceChip(
+                label: Text('$year'),
+                selected: year == selectedYear,
+                selectedColor: colorScheme.primary,
+                labelStyle: TextStyle(color: year == selectedYear ? colorScheme.onPrimary : colorScheme.onSurface),
+                onSelected: (_) => Navigator.of(context).pop(year),
               ),
           ],
         ),
@@ -335,6 +322,9 @@ class _YearPickerSheet extends StatelessWidget {
     );
   }
 }
+
+/// The hero gradient fades slightly toward the text color, which keeps that text readable.
+const double _heroGradientForegroundBlend = 0.12;
 
 class _HabitHeroCard extends StatelessWidget {
   const _HabitHeroCard({required this.habit});
@@ -346,34 +336,39 @@ class _HabitHeroCard extends StatelessWidget {
     final habitColor = Color(habit.habit.colorArgb);
     final foregroundColor = foregroundColorReadableOn(habitColor);
     final textTheme = Theme.of(context).textTheme;
-    final isLargeText = isLargeTextScale(context);
-    final titleAndDescription = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        GameTitle(habit.habit.title, style: textTheme.headlineMedium, onColor: habitColor),
-        if (habit.habit.description.isNotEmpty) ...[
-          const SizedBox(height: AppSpacing.extraSmall),
-          Text(habit.habit.description, style: textTheme.bodyLarge?.copyWith(color: foregroundColor)),
-        ],
-      ],
-    );
-    return GameCard(
-      color: habitColor,
-      isHero: true,
+    return Container(
       padding: const EdgeInsets.all(AppSpacing.extraLarge),
-      child: Flex(
-        // Large text needs the full card width for the title.
-        direction: isLargeText ? Axis.vertical : Axis.horizontal,
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: isLargeText ? CrossAxisAlignment.start : CrossAxisAlignment.center,
-        spacing: AppSpacing.large,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppRadii.large),
+        gradient: LinearGradient(
+          colors: [habitColor, Color.lerp(habitColor, foregroundColor, _heroGradientForegroundBlend)!],
+        ),
+      ),
+      child: Row(
         children: [
-          GameBadge(
-            icon: habitIconForName(habit.habit.iconName),
-            color: depthShadeOf(habitColor),
-            size: AppSizes.heroBadge,
+          Container(
+            width: AppSizes.heroBadge,
+            height: AppSizes.heroBadge,
+            decoration: BoxDecoration(
+              color: foregroundColor.withValues(alpha: AppOpacity.overlayOnColor),
+              borderRadius: BorderRadius.circular(AppRadii.medium),
+            ),
+            child: Icon(habitIconForName(habit.habit.iconName), color: foregroundColor, size: AppSizes.iconHero),
           ),
-          if (isLargeText) titleAndDescription else Expanded(child: titleAndDescription),
+          const SizedBox(width: AppSpacing.large),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Semantics(
+                  header: true,
+                  child: Text(habit.habit.title, style: textTheme.headlineSmall?.copyWith(color: foregroundColor)),
+                ),
+                if (habit.habit.description.isNotEmpty)
+                  Text(habit.habit.description, style: textTheme.bodyMedium?.copyWith(color: foregroundColor)),
+              ],
+            ),
+          ),
         ],
       ),
     );

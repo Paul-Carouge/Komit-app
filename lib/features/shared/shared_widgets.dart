@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/theme/app_motion.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/ui/game_button.dart';
-import '../../core/ui/game_text.dart';
 import '../../l10n/app_localizations.dart';
 import '../mascot/komo_empty_state.dart';
 import '../mascot/komo_mascot.dart';
@@ -20,8 +19,76 @@ class AsyncValueView<T> extends StatelessWidget {
     return switch (value) {
       AsyncData(:final value) => builder(value),
       AsyncError() => KomoEmptyState(mood: KomoMood.sleepy, title: AppLocalizations.of(context).genericError),
-      _ => const GameLoadingIndicator(),
+      _ => Center(child: CircularProgressIndicator(semanticsLabel: AppLocalizations.of(context).loading)),
     };
+  }
+}
+
+class HabitIconBadge extends StatelessWidget {
+  const HabitIconBadge({required this.icon, required this.color, this.size = AppSizes.iconBadge, super.key});
+
+  final IconData icon;
+  final Color color;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: isDark ? AppOpacity.badgeTintOnDark : AppOpacity.badgeTintOnLight),
+        borderRadius: BorderRadius.circular(AppRadii.badge),
+      ),
+      child: Icon(icon, color: color, size: size * AppSizes.iconToBadgeRatio),
+    );
+  }
+}
+
+/// A tappable card that sinks slightly while pressed, so every card answers the finger the same way.
+class PressableCard extends StatefulWidget {
+  const PressableCard({required this.onTap, required this.child, this.color, this.shape, this.gradient, super.key});
+
+  final VoidCallback onTap;
+  final Widget child;
+  final Color? color;
+  final ShapeBorder? shape;
+
+  /// Painted under the ink ripple, which a plain [Card.color] could not do with a gradient.
+  final Gradient? gradient;
+
+  @override
+  State<PressableCard> createState() => _PressableCardState();
+}
+
+class _PressableCardState extends State<PressableCard> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final gradient = widget.gradient;
+    final inkWell = InkWell(
+      onTap: widget.onTap,
+      onHighlightChanged: (isPressed) => setState(() => _isPressed = isPressed),
+      child: widget.child,
+    );
+    return AnimatedScale(
+      scale: _isPressed ? pressedScale : 1,
+      duration: motionAwareDuration(context, AppDurations.quick),
+      curve: AppCurves.standard,
+      child: Card(
+        color: widget.color,
+        shape: widget.shape,
+        clipBehavior: Clip.antiAlias,
+        child: gradient == null
+            ? inkWell
+            : Ink(
+                decoration: BoxDecoration(gradient: gradient),
+                child: inkWell,
+              ),
+      ),
+    );
   }
 }
 
@@ -35,11 +102,7 @@ class ColorDot extends StatelessWidget {
   Widget build(BuildContext context) => SizedBox.square(
     dimension: size,
     child: DecoratedBox(
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-        border: Border.all(color: KomitColors.of(context).outline, width: AppOutline.thin),
-      ),
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     ),
   );
 }
@@ -56,7 +119,9 @@ class SectionTitle extends StatelessWidget {
       padding: const EdgeInsets.only(top: AppSpacing.extraLarge, bottom: AppSpacing.medium),
       child: Row(
         children: [
-          Expanded(child: GameTitle(text, style: Theme.of(context).textTheme.titleLarge)),
+          Expanded(
+            child: Semantics(header: true, child: Text(text, style: Theme.of(context).textTheme.titleLarge)),
+          ),
           ?trailing,
         ],
       ),
@@ -72,24 +137,18 @@ Future<bool> showDestructiveConfirmationDialog(
   String? title,
 }) async {
   final localizations = AppLocalizations.of(context);
+  final colorScheme = Theme.of(context).colorScheme;
   final isConfirmed = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
       title: title == null ? null : Text(title),
       content: Text(message),
-      actionsOverflowButtonSpacing: AppSpacing.small,
       actions: [
-        GameButton(
-          label: localizations.cancel,
-          tone: GameButtonTone.neutral,
-          isCompact: true,
-          onPressed: () => Navigator.of(context).pop(false),
-        ),
-        GameButton(
-          label: confirmLabel,
-          tone: GameButtonTone.danger,
-          isCompact: true,
+        TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(localizations.cancel)),
+        TextButton(
+          style: TextButton.styleFrom(foregroundColor: colorScheme.error),
           onPressed: () => Navigator.of(context).pop(true),
+          child: Text(confirmLabel),
         ),
       ],
     ),
@@ -101,13 +160,4 @@ void showMessageSnackBar(BuildContext context, String message) {
   ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
     ..showSnackBar(SnackBar(content: Text(message)));
-}
-
-/// Loading state: a chunky amber spinner, labeled for screen readers.
-class GameLoadingIndicator extends StatelessWidget {
-  const GameLoadingIndicator({super.key});
-
-  @override
-  Widget build(BuildContext context) =>
-      Center(child: CircularProgressIndicator(semanticsLabel: AppLocalizations.of(context).loading));
 }

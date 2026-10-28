@@ -8,9 +8,6 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/habit_appearance.dart';
 import '../../core/haptics.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/ui/game_badges.dart';
-import '../../core/ui/game_button.dart';
-import '../../core/ui/game_card.dart';
 import '../../data/database/app_database.dart';
 import '../../data/repositories/habit_repository.dart';
 import '../../l10n/app_localizations.dart';
@@ -105,22 +102,20 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
-        leading: const GameBackButton(),
         title: Text(widget.habitId == null ? localizations.createHabit : localizations.editHabit),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: AppSpacing.medium),
-            child: GameIconButton(
-              tone: GameButtonTone.primary,
+            padding: const EdgeInsets.only(right: AppSpacing.small),
+            child: IconButton.filled(
               tooltip: localizations.save,
               onPressed: _isLoading || _isSaving ? null : _save,
-              icon: LucideIcons.check,
+              icon: const Icon(LucideIcons.check),
             ),
           ),
         ],
       ),
       body: _isLoading
-          ? const GameLoadingIndicator()
+          ? Center(child: CircularProgressIndicator(semanticsLabel: localizations.loading))
           : ListView(
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.screenGutter,
@@ -157,7 +152,7 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
                     const SizedBox(width: AppSpacing.medium),
                     Expanded(
                       child: _AppearanceTile(
-                        leading: GameBadge(icon: habitIconForName(_iconName), color: Color(_colorArgb)),
+                        leading: HabitIconBadge(icon: habitIconForName(_iconName), color: Color(_colorArgb)),
                         label: localizations.icon,
                         onTap: _chooseIcon,
                       ),
@@ -176,12 +171,10 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
                 ),
                 SectionTitle(
                   localizations.objectives,
-                  trailing: GameButton(
-                    isCompact: true,
-                    tone: GameButtonTone.neutral,
+                  trailing: TextButton.icon(
                     onPressed: _addObjective,
-                    icon: LucideIcons.plus,
-                    label: localizations.addObjective,
+                    icon: const Icon(LucideIcons.plus),
+                    label: Text(localizations.addObjective),
                   ),
                 ),
                 ReorderableListView(
@@ -207,11 +200,7 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
                     padding: const EdgeInsets.only(top: AppSpacing.medium),
                     child: Semantics(
                       liveRegion: true,
-                      child: Text(
-                        _validationMessage!,
-                        style: Theme.of(context).textTheme.bodyLarge
-                            ?.copyWith(color: colorScheme.error, fontWeight: AppTypefaces.strongWeight),
-                      ),
+                      child: Text(_validationMessage!, style: TextStyle(color: colorScheme.error)),
                     ),
                   ),
               ],
@@ -346,15 +335,21 @@ class _AppearanceTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GameCard(
-      onTap: onTap,
-      child: Row(
-        children: [
-          leading,
-          const SizedBox(width: AppSpacing.medium),
-          Expanded(child: Text(label, style: Theme.of(context).textTheme.titleMedium)),
-          Icon(LucideIcons.chevronRight, color: KomitColors.of(context).mutedText),
-        ],
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.large),
+          child: Row(
+            children: [
+              leading,
+              const SizedBox(width: AppSpacing.medium),
+              Expanded(child: Text(label, style: Theme.of(context).textTheme.titleSmall)),
+              Icon(LucideIcons.chevronRight, color: KomitColors.of(context).mutedText),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -381,13 +376,12 @@ class _ReminderCard extends StatelessWidget {
             ),
             alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context),
           );
-    return GameCard(
-      padding: EdgeInsets.zero,
+    return Card(
       child: Column(
         children: [
           SwitchListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.large, vertical: AppSpacing.small),
-            secondary: GameBadge(icon: LucideIcons.bell, color: colorScheme.primary),
+            secondary: HabitIconBadge(icon: LucideIcons.bell, color: colorScheme.primary),
             title: Text(localizations.dailyReminder, style: Theme.of(context).textTheme.titleMedium),
             subtitle: Text(
               formattedTime == null ? localizations.reminderDisabled : localizations.reminderEnabledAt(formattedTime),
@@ -405,13 +399,7 @@ class _ReminderCard extends StatelessWidget {
             ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.large),
               title: Text(localizations.reminderTime),
-              trailing: GameButton(
-                isCompact: true,
-                tone: GameButtonTone.neutral,
-                icon: LucideIcons.clock,
-                onPressed: onTimeTapped,
-                label: formattedTime,
-              ),
+              trailing: OutlinedButton(onPressed: onTimeTapped, child: Text(formattedTime)),
               onTap: onTimeTapped,
             ),
           ],
@@ -440,48 +428,49 @@ class _ObjectiveRowEditor extends StatelessWidget {
     final localizations = AppLocalizations.of(context);
     final komitColors = KomitColors.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.medium),
-      child: GameCard(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.small, vertical: AppSpacing.extraSmall),
-        child: Row(
-          children: [
-            ReorderableDragStartListener(
-              index: index,
-              child: Tooltip(
-                message: localizations.reorderObjective,
-                child: SizedBox.square(
-                  dimension: AppSizes.minimumTouchTarget,
-                  child: Icon(LucideIcons.gripVertical, color: komitColors.mutedText),
+      padding: const EdgeInsets.only(bottom: AppSpacing.small),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.small, vertical: AppSpacing.extraSmall),
+          child: Row(
+            children: [
+              ReorderableDragStartListener(
+                index: index,
+                child: Tooltip(
+                  message: localizations.reorderObjective,
+                  child: SizedBox.square(
+                    dimension: AppSizes.minimumTouchTarget,
+                    child: Icon(LucideIcons.gripVertical, color: komitColors.mutedText),
+                  ),
                 ),
               ),
-            ),
-            IconButton(
-              tooltip: localizations.chooseColor,
-              onPressed: onColorTapped,
-              icon: ColorDot(color: Color(objective.colorArgb), size: AppSizes.iconMedium),
-            ),
-            Expanded(
-              child: TextField(
-                controller: objective.titleController,
-                maxLength: maximumObjectiveTitleLength,
-                textCapitalization: TextCapitalization.sentences,
-                style: Theme.of(context).textTheme.titleMedium,
-                decoration: InputDecoration(
-                  hintText: localizations.objectiveName,
-                  counterText: '',
-                  filled: false,
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
+              IconButton(
+                tooltip: localizations.chooseColor,
+                onPressed: onColorTapped,
+                icon: ColorDot(color: Color(objective.colorArgb), size: AppSizes.iconMedium),
+              ),
+              Expanded(
+                child: TextField(
+                  controller: objective.titleController,
+                  maxLength: maximumObjectiveTitleLength,
+                  textCapitalization: TextCapitalization.sentences,
+                  style: Theme.of(context).textTheme.titleMedium,
+                  decoration: InputDecoration(
+                    hintText: localizations.objectiveName,
+                    counterText: '',
+                    filled: false,
+                    border: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                  ),
                 ),
               ),
-            ),
-            IconButton(
-              tooltip: localizations.removeObjective,
-              onPressed: onRemoved,
-              icon: Icon(LucideIcons.x, color: komitColors.mutedText),
-            ),
-          ],
+              IconButton(
+                tooltip: localizations.removeObjective,
+                onPressed: onRemoved,
+                icon: Icon(LucideIcons.x, color: komitColors.mutedText),
+              ),
+            ],
+          ),
         ),
       ),
     );

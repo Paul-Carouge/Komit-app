@@ -5,8 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_theme.dart';
-import '../../core/ui/game_badges.dart';
-import '../../core/ui/game_button.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
 import '../../services/app_update_service.dart';
@@ -98,18 +96,12 @@ class _UpdateAvailableDialog extends StatelessWidget {
           ),
         ),
       ),
-      actionsOverflowButtonSpacing: AppSpacing.small,
       actions: [
-        GameButton(
-          isCompact: true,
-          tone: GameButtonTone.neutral,
-          onPressed: () => Navigator.of(context).pop(false),
-          label: localizations.later,
-        ),
-        GameButton(
-          isCompact: true,
+        TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(localizations.later)),
+        FilledButton(
+          style: FilledButton.styleFrom(minimumSize: const Size(0, AppSizes.minimumTouchTarget)),
           onPressed: () => Navigator.of(context).pop(true),
-          label: localizations.installUpdate,
+          child: Text(localizations.installUpdate),
         ),
       ],
     );
@@ -173,17 +165,14 @@ class _UpdateProgressDialogState extends State<_UpdateProgressDialog> {
               children: [
                 Text(localizations.downloadingUpdate((_progress * 100).round())),
                 const SizedBox(height: AppSpacing.large),
-                // The percentage is already written above; the bar only draws it.
-                GameProgressBar(value: _progress, color: Theme.of(context).colorScheme.primary),
+                LinearProgressIndicator(value: _progress == 0 ? null : _progress),
               ],
             ),
       actions: [
         if (failureReason != null)
-          GameButton(
-            isCompact: true,
-            tone: GameButtonTone.neutral,
+          TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            label: MaterialLocalizations.of(context).closeButtonLabel,
+            child: Text(MaterialLocalizations.of(context).closeButtonLabel),
           ),
       ],
     );

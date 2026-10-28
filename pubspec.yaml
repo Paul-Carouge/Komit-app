@@ -74,19 +74,15 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
-  # Lilita One and Nunito (both SIL Open Font License 1.1) give Komit its chunky, playful voice:
-  # Lilita One for titles and button labels, Nunito (one variable file, weight axis) for everything else.
+  # Fraunces (SIL Open Font License 1.1) gives headings Komit's warm, soft editorial voice.
+  # One variable file covers every weight and the SOFT axis used by the type scale.
   fonts:
-    - family: LilitaOne
+    - family: Fraunces
       fonts:
-        - asset: assets/fonts/LilitaOne-Regular.ttf
-    - family: Nunito
-      fonts:
-        - asset: assets/fonts/Nunito-Variable.ttf
+        - asset: assets/fonts/Fraunces-Variable.ttf
 
   assets:
-    - assets/fonts/LilitaOne-OFL.txt
-    - assets/fonts/Nunito-OFL.txt
+    - assets/fonts/Fraunces-OFL.txt
 
   # To add assets to your application, add an assets section, like this:
   # assets:

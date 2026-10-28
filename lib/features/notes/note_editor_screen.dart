@@ -8,7 +8,6 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/haptics.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/ui/game_button.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
 import '../shared/shared_widgets.dart';
@@ -110,30 +109,23 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          leading: const GameBackButton(),
           centerTitle: false,
           title: Text(
             title,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(color: KomitColors.of(context).mutedText),
           ),
           actions: [
-            if (_noteId != null) ...[
-              GameIconButton(tooltip: localizations.deleteNote, onPressed: _delete, icon: LucideIcons.trash2),
-              const SizedBox(width: AppSpacing.small),
-            ],
-            Padding(
-              padding: const EdgeInsets.only(right: AppSpacing.medium),
-              child: GameIconButton(
-                tone: GameButtonTone.primary,
-                tooltip: localizations.save,
-                onPressed: _isLoading ? null : _saveAndClose,
-                icon: LucideIcons.check,
-              ),
+            if (_noteId != null)
+              IconButton(tooltip: localizations.deleteNote, onPressed: _delete, icon: const Icon(LucideIcons.trash2)),
+            IconButton(
+              tooltip: localizations.save,
+              onPressed: _isLoading ? null : _saveAndClose,
+              icon: const Icon(LucideIcons.check),
             ),
           ],
         ),
         body: _isLoading
-            ? const GameLoadingIndicator()
+            ? Center(child: CircularProgressIndicator(semanticsLabel: localizations.loading))
             : Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenGutter),
                 child: TextField(
@@ -149,7 +141,6 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                     hintText: localizations.noteHint,
                     filled: false,
                     border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
                   ),
                 ),

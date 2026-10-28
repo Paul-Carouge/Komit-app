@@ -12,14 +12,10 @@ import 'services/reminder_scheduler.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // The SIL Open Font License asks for its text to travel with the bundled fonts.
+  // The SIL Open Font License asks for its text to travel with the bundled Fraunces font.
   LicenseRegistry.addLicense(() async* {
-    for (final (fontName, licenseAsset) in const [
-      ('Lilita One', 'assets/fonts/LilitaOne-OFL.txt'),
-      ('Nunito', 'assets/fonts/Nunito-OFL.txt'),
-    ]) {
-      yield LicenseEntryWithLineBreaks([fontName], await rootBundle.loadString(licenseAsset));
-    }
+    final frauncesLicense = await rootBundle.loadString('assets/fonts/Fraunces-OFL.txt');
+    yield LicenseEntryWithLineBreaks(const ['Fraunces'], frauncesLicense);
   });
   final (preferences, reminderScheduler) = await (SharedPreferences.getInstance(), ReminderScheduler.initialize()).wait;
   runApp(

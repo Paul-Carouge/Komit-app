@@ -12,10 +12,8 @@ class KomoPalette {
   const KomoPalette({
     required this.body,
     required this.bodyShade,
-    required this.outline,
     required this.face,
     required this.eyeHighlight,
-    required this.gloss,
     required this.cheek,
     required this.sprout,
     required this.groundShadow,
@@ -25,12 +23,8 @@ class KomoPalette {
 
   final Color body;
   final Color bodyShade;
-
-  /// The thick ink line around every part of Komo, like a sticker.
-  final Color outline;
   final Color face;
   final Color eyeHighlight;
-  final Color gloss;
   final Color cheek;
   final Color sprout;
   final Color groundShadow;
@@ -42,10 +36,8 @@ class KomoPalette {
       other is KomoPalette &&
       other.body == body &&
       other.bodyShade == bodyShade &&
-      other.outline == outline &&
       other.face == face &&
       other.eyeHighlight == eyeHighlight &&
-      other.gloss == gloss &&
       other.cheek == cheek &&
       other.sprout == sprout &&
       other.groundShadow == groundShadow &&
@@ -56,10 +48,8 @@ class KomoPalette {
   int get hashCode => Object.hash(
     body,
     bodyShade,
-    outline,
     face,
     eyeHighlight,
-    gloss,
     cheek,
     sprout,
     groundShadow,
@@ -69,74 +59,54 @@ class KomoPalette {
 }
 
 /// Komo's geometry, in a 100 × 100 design box. The launcher icon
-/// (docs/design/komit-launcher-icon.svg and the Android drawables) reuses the eye shapes.
+/// (android/app/src/main/res/drawable/ic_launcher_foreground.xml) uses the same numbers.
 abstract final class KomoGeometry {
   static const double designBoxSize = 100;
-  static const Rect body = Rect.fromLTRB(20, 34, 80, 88);
-  static const double bodyCornerRadius = 22;
-  static const double outlineWidth = 3.6;
+  static const Rect body = Rect.fromLTRB(22, 36, 78, 86);
+  static const double bodyCornerRadius = 16;
 
-  /// The lower band of the body is darker, like the side of a game button.
-  static const double bodyShadeTop = 78;
-
-  /// Glossy highlight across the top of the body.
-  static const Rect gloss = Rect.fromLTRB(28, 39, 72, 47);
-  static const double glossCornerRadius = 4;
-  static const Offset groundShadowCenter = Offset(50, 93);
-  static const double groundShadowRadiusX = 26;
-  static const double groundShadowRadiusY = 3.6;
-
-  /// Big, tall eyes carry Komo's expression; the launcher icon uses the same proportions.
-  static const Offset leftEye = Offset(38.5, 60);
-  static const Offset rightEye = Offset(61.5, 60);
-  static const double eyeRadiusX = 6;
-  static const double eyeRadiusY = 8;
-  static const Offset eyeHighlightOffset = Offset(1.9, -3.2);
-  static const double eyeHighlightRadius = 2.3;
-  static const Offset eyeSparkOffset = Offset(-2.1, 3.4);
-  static const double eyeSparkRadius = 1.1;
-  static const double eyeArcHalfWidth = 6;
-  static const double eyeArcHeight = 6;
-  static const Offset leftCheek = Offset(27.5, 71);
-  static const Offset rightCheek = Offset(72.5, 71);
-  static const Size cheekSize = Size(9, 5.5);
-  static const double faceStrokeWidth = 3.2;
-  static const Offset mouthCenter = Offset(50, 71);
+  /// The lower band of the body is darker, like the side of a key cap.
+  static const double bodyShadeTop = 77;
+  static const Offset groundShadowCenter = Offset(50, 90);
+  static const double groundShadowRadiusX = 22;
+  static const double groundShadowRadiusY = 3.4;
+  static const Offset leftEye = Offset(39, 59);
+  static const Offset rightEye = Offset(61, 59);
+  static const double eyeRadius = 4.3;
+  static const Offset eyeHighlightOffset = Offset(1.4, -1.5);
+  static const double eyeHighlightRadius = 1.4;
+  static const double eyeArcHalfWidth = 4;
+  static const double eyeArcHeight = 5;
+  static const Offset leftCheek = Offset(31.5, 67);
+  static const Offset rightCheek = Offset(68.5, 67);
+  static const Size cheekSize = Size(10, 6.4);
+  static const double faceStrokeWidth = 2.6;
+  static const Offset mouthCenter = Offset(50, 66.5);
   static const double smileHalfWidth = 4.5;
-  static const double smileDepth = 4;
+  static const double smileDepth = 4.5;
   static const double softSmileHalfWidth = 3;
-  static const double softSmileDepth = 2.2;
-  static const double grinHalfWidth = 6.5;
-  static const double grinDepth = 9;
+  static const double softSmileDepth = 2.5;
+  static const double grinHalfWidth = 6;
+  static const double grinDepth = 9.5;
 
   /// The grin starts slightly above the smile line so the open mouth stays centered.
-  static const double grinTopOffset = 1.5;
-  static const Offset sproutBase = Offset(50, 35);
-  static const Offset sproutTip = Offset(51, 22);
-  static const double sproutStemWidth = 3.4;
-
-  /// The ink line drawn under the stem; wider than the stem so an edge shows on each side.
-  static const double sproutStemOutlinedWidth = 7.8;
-  static const Offset leftShoulder = Offset(23, 68);
-  static const Offset rightShoulder = Offset(77, 68);
-  static const double armLength = 16;
-  static const double armThickness = 10;
-  static const Offset sparkleOrigin = Offset(50, 58);
-  static const double sparkleStartDistance = 34;
+  static const double grinTopOffset = 1;
+  static const Offset sproutBase = Offset(50, 37);
+  static const Offset sproutTip = Offset(51, 25);
+  static const double sproutStemWidth = 3;
+  static const Offset leftShoulder = Offset(26, 63);
+  static const Offset rightShoulder = Offset(74, 63);
+  static const double armLength = 19;
+  static const double armThickness = 7.5;
+  static const Offset sparkleOrigin = Offset(50, 56);
+  static const double sparkleStartDistance = 32;
   static const double sparkleTravel = 14;
-  static const double sparkleRadius = 5;
-
-  /// Sparkles pop in at full size and shrink to this share as they fade away.
-  static const double sparkleSmallestScale = 0.6;
-
-  /// A four-point star: its waist is this share of its radius.
-  static const double sparkleWaistRatio = 0.32;
-  static const double sparkleStrokeWidth = 1.6;
+  static const double sparkleSize = 6;
   static const List<double> sparkleAnglesRadians = [-2.62, -1.92, -1.22, -0.52];
-  static const Offset dozeOrigin = Offset(76, 30);
+  static const Offset dozeOrigin = Offset(74, 32);
   static const Offset dozeTravel = Offset(8, -18);
-  static const double dozeLetterSize = 8;
-  static const double dozeStrokeWidth = 2.6;
+  static const double dozeLetterSize = 7;
+  static const double dozeStrokeWidth = 2;
 }
 
 /// Draws Komo for one frame of its [mood] animation; repaints on [animation] ticks only.
@@ -166,29 +136,21 @@ class KomoPainter extends CustomPainter {
     canvas.scale(size.width / KomoGeometry.designBoxSize, size.height / KomoGeometry.designBoxSize);
     _paintGroundShadow(canvas, pose);
     canvas.save();
-    // Squash and stretch are anchored at Komo's feet, so it stays grounded while bouncing.
+    // Squash and stretch are anchored at Komo's feet, so it stays grounded while breathing.
     final feet = Offset(KomoGeometry.body.center.dx, KomoGeometry.body.bottom);
     canvas.translate(feet.dx, feet.dy + pose.bodyLift);
     canvas.scale(pose.stretchX, pose.stretchY);
     canvas.translate(-feet.dx, -feet.dy);
+    _paintArms(canvas, pose);
     _paintSprout(canvas, pose);
     _paintBody(canvas);
     _paintCheeks(canvas);
     _paintEyes(canvas, pose);
     _paintMouth(canvas, pose);
-    // In front of the body, so a raised arm reads as a little mitten rather than a handle.
-    _paintArms(canvas, pose);
     canvas.restore();
     if (pose.sparkleProgress case final sparkleProgress?) _paintSparkles(canvas, sparkleProgress);
     if (pose.dozeProgress case final dozeProgress?) _paintDoze(canvas, dozeProgress);
     canvas.restore();
-  }
-
-  void _outline(Canvas canvas, Path path, {double width = KomoGeometry.outlineWidth}) {
-    _strokePaint
-      ..color = palette.outline
-      ..strokeWidth = width;
-    canvas.drawPath(path, _strokePaint);
   }
 
   void _paintGroundShadow(Canvas canvas, KomoPose pose) {
@@ -206,6 +168,7 @@ class KomoPainter extends CustomPainter {
   }
 
   void _paintArms(Canvas canvas, KomoPose pose) {
+    _fillPaint.color = palette.bodyShade;
     for (final (shoulder, angle) in [
       (KomoGeometry.leftShoulder, pose.leftArmAngleRadians),
       (KomoGeometry.rightShoulder, pose.rightArmAngleRadians),
@@ -214,16 +177,13 @@ class KomoPainter extends CustomPainter {
       canvas.save();
       canvas.translate(shoulder.dx, shoulder.dy);
       canvas.rotate(angle);
-      final arm = Path()
-        ..addRRect(
-          RRect.fromRectAndRadius(
-            const Rect.fromLTWH(0, -KomoGeometry.armThickness / 2, KomoGeometry.armLength, KomoGeometry.armThickness),
-            const Radius.circular(KomoGeometry.armThickness / 2),
-          ),
-        );
-      _fillPaint.color = palette.body;
-      canvas.drawPath(arm, _fillPaint);
-      _outline(canvas, arm);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          const Rect.fromLTWH(0, -KomoGeometry.armThickness / 2, KomoGeometry.armLength, KomoGeometry.armThickness),
+          const Radius.circular(KomoGeometry.armThickness / 2),
+        ),
+        _fillPaint,
+      );
       canvas.restore();
     }
   }
@@ -233,28 +193,29 @@ class KomoPainter extends CustomPainter {
     canvas.translate(KomoGeometry.sproutBase.dx, KomoGeometry.sproutBase.dy);
     canvas.rotate(pose.sproutTiltRadians);
     canvas.translate(-KomoGeometry.sproutBase.dx, -KomoGeometry.sproutBase.dy);
-    final stem = Path()
-      ..moveTo(KomoGeometry.sproutBase.dx, KomoGeometry.sproutBase.dy)
-      ..quadraticBezierTo(50, 28, KomoGeometry.sproutTip.dx, KomoGeometry.sproutTip.dy);
-    // Outline first, wider, then the green stem on top: a stroked line with an ink edge.
-    _outline(canvas, stem, width: KomoGeometry.sproutStemOutlinedWidth);
     _strokePaint
       ..color = palette.sprout
       ..strokeWidth = KomoGeometry.sproutStemWidth;
-    canvas.drawPath(stem, _strokePaint);
-    // Two leaves, right one larger.
-    final leaves = Path()
-      ..moveTo(51, 23)
-      ..cubicTo(54, 13, 63, 10, 70, 11)
-      ..cubicTo(69, 19, 61, 25, 51, 23)
-      ..close()
-      ..moveTo(49, 25)
-      ..cubicTo(46, 18, 40, 16, 34, 17)
-      ..cubicTo(35, 23, 41, 27, 49, 25)
-      ..close();
+    canvas.drawPath(
+      Path()
+        ..moveTo(KomoGeometry.sproutBase.dx, KomoGeometry.sproutBase.dy)
+        ..quadraticBezierTo(50, 30, KomoGeometry.sproutTip.dx, KomoGeometry.sproutTip.dy),
+      _strokePaint,
+    );
     _fillPaint.color = palette.sprout;
-    canvas.drawPath(leaves, _fillPaint);
-    _outline(canvas, leaves);
+    // Two leaves, right one larger; same path data as the launcher icon.
+    canvas.drawPath(
+      Path()
+        ..moveTo(51, 26)
+        ..cubicTo(54, 17, 62, 14, 68, 15)
+        ..cubicTo(67, 22, 60, 27, 51, 26)
+        ..close()
+        ..moveTo(49, 28)
+        ..cubicTo(46, 22, 41, 20, 36, 21)
+        ..cubicTo(37, 26, 42, 29, 49, 28)
+        ..close(),
+      _fillPaint,
+    );
     canvas.restore();
   }
 
@@ -274,12 +235,6 @@ class KomoPainter extends CustomPainter {
       _fillPaint,
     );
     canvas.restore();
-    _fillPaint.color = palette.gloss;
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(KomoGeometry.gloss, const Radius.circular(KomoGeometry.glossCornerRadius)),
-      _fillPaint,
-    );
-    _outline(canvas, Path()..addRRect(_bodyShape));
   }
 
   void _paintCheeks(Canvas canvas) {
@@ -293,6 +248,7 @@ class KomoPainter extends CustomPainter {
   }
 
   void _paintEyes(Canvas canvas, KomoPose pose) {
+    _fillPaint.color = palette.face;
     _strokePaint
       ..color = palette.face
       ..strokeWidth = KomoGeometry.faceStrokeWidth;
@@ -310,13 +266,12 @@ class KomoPainter extends CustomPainter {
 
   void _paintOpenEye(Canvas canvas, Offset center, double openness) {
     const minimumBlinkHeight = KomoGeometry.faceStrokeWidth;
-    final height = math.max(minimumBlinkHeight, 2 * KomoGeometry.eyeRadiusY * openness);
+    final height = math.max(minimumBlinkHeight, 2 * KomoGeometry.eyeRadius * openness);
     _fillPaint.color = palette.face;
-    canvas.drawOval(Rect.fromCenter(center: center, width: 2 * KomoGeometry.eyeRadiusX, height: height), _fillPaint);
-    if (height > KomoGeometry.eyeRadiusY) {
+    canvas.drawOval(Rect.fromCenter(center: center, width: 2 * KomoGeometry.eyeRadius, height: height), _fillPaint);
+    if (height > KomoGeometry.eyeRadius) {
       _fillPaint.color = palette.eyeHighlight;
       canvas.drawCircle(center + KomoGeometry.eyeHighlightOffset, KomoGeometry.eyeHighlightRadius, _fillPaint);
-      canvas.drawCircle(center + KomoGeometry.eyeSparkOffset, KomoGeometry.eyeSparkRadius, _fillPaint);
     }
   }
 
@@ -335,9 +290,6 @@ class KomoPainter extends CustomPainter {
 
   void _paintMouth(Canvas canvas, KomoPose pose) {
     const center = KomoGeometry.mouthCenter;
-    _strokePaint
-      ..color = palette.face
-      ..strokeWidth = KomoGeometry.faceStrokeWidth;
     switch (pose.mouth) {
       case KomoMouth.smile:
         canvas.drawPath(_smilePath(KomoGeometry.smileHalfWidth, KomoGeometry.smileDepth), _strokePaint);
@@ -371,36 +323,23 @@ class KomoPainter extends CustomPainter {
     final opacity = math.sin(math.pi * progress);
     if (opacity <= 0 || palette.sparkles.isEmpty) return;
     final distance = KomoGeometry.sparkleStartDistance + KomoGeometry.sparkleTravel * progress;
-    final radius =
-        KomoGeometry.sparkleRadius *
-        (KomoGeometry.sparkleSmallestScale + (1 - KomoGeometry.sparkleSmallestScale) * opacity);
     for (final (index, angle) in KomoGeometry.sparkleAnglesRadians.indexed) {
       final color = palette.sparkles[index % palette.sparkles.length];
+      _fillPaint.color = color.withValues(alpha: color.a * opacity);
       final center = KomoGeometry.sparkleOrigin + Offset.fromDirection(angle, distance);
       canvas.save();
       canvas.translate(center.dx, center.dy);
       canvas.rotate(progress * math.pi / 2);
-      final star = _starPath(radius);
-      _fillPaint.color = color.withValues(alpha: color.a * opacity);
-      canvas.drawPath(star, _fillPaint);
-      _strokePaint
-        ..color = palette.outline.withValues(alpha: palette.outline.a * opacity)
-        ..strokeWidth = KomoGeometry.sparkleStrokeWidth;
-      canvas.drawPath(star, _strokePaint);
+      // Sparkles are tiny day cells: rounded squares, like the ones in the grids.
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromCenter(center: Offset.zero, width: KomoGeometry.sparkleSize, height: KomoGeometry.sparkleSize),
+          const Radius.circular(KomoGeometry.sparkleSize / 4),
+        ),
+        _fillPaint,
+      );
       canvas.restore();
     }
-  }
-
-  /// A four-point sparkle centered on the origin.
-  Path _starPath(double radius) {
-    final waist = radius * KomoGeometry.sparkleWaistRatio;
-    return Path()
-      ..moveTo(0, -radius)
-      ..quadraticBezierTo(waist, -waist, radius, 0)
-      ..quadraticBezierTo(waist, waist, 0, radius)
-      ..quadraticBezierTo(-waist, waist, -radius, 0)
-      ..quadraticBezierTo(-waist, -waist, 0, -radius)
-      ..close();
   }
 
   void _paintDoze(Canvas canvas, double progress) {

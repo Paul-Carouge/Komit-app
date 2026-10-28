@@ -4,10 +4,9 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/calendar_day.dart';
 import '../../core/date_formatting.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/ui/game_button.dart';
-import '../../core/ui/game_text.dart';
 import '../../data/repositories/habit_repository.dart';
 import '../../l10n/app_localizations.dart';
+import '../shared/shared_widgets.dart';
 
 sealed class LogDayChoice {
   const LogDayChoice();
@@ -38,6 +37,7 @@ Future<LogDayChoice?> showLogDaySheet(
     isScrollControlled: true,
     builder: (context) {
       final localizations = AppLocalizations.of(context);
+      final colorScheme = Theme.of(context).colorScheme;
       return SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(AppSpacing.screenGutter, 0, AppSpacing.screenGutter, AppSpacing.large),
@@ -45,7 +45,7 @@ Future<LogDayChoice?> showLogDaySheet(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              GameTitle(
+              Text(
                 localizations.logForDate(formatFullDate(context, day)),
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleLarge,
@@ -54,30 +54,72 @@ Future<LogDayChoice?> showLogDaySheet(
               if (canLogObjective)
                 for (final objective in habit.objectives)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.medium),
-                    child: GameButton(
-                      label: objective.title,
-                      faceColor: Color(objective.colorArgb),
+                    padding: const EdgeInsets.only(bottom: AppSpacing.small),
+                    child: _ObjectiveButton(
+                      title: objective.title,
+                      color: Color(objective.colorArgb),
                       isSelected: objective.id == currentObjectiveId,
-                      // The check, not the color alone, tells which objective is logged.
-                      trailing: objective.id == currentObjectiveId ? const Icon(LucideIcons.circleCheckBig) : null,
                       onPressed: () => Navigator.of(context).pop(LogDayChoiceObjective(objective.id)),
                     ),
                   ),
-              if (currentObjectiveId != null) ...[
-                const SizedBox(height: AppSpacing.small),
-                GameButton(
-                  isCompact: true,
-                  tone: GameButtonTone.danger,
+              if (currentObjectiveId != null)
+                TextButton.icon(
+                  style: TextButton.styleFrom(
+                    foregroundColor: colorScheme.error,
+                    minimumSize: const Size.fromHeight(AppSizes.minimumTouchTarget),
+                  ),
                   onPressed: () => Navigator.of(context).pop(const LogDayChoiceClear()),
-                  icon: LucideIcons.eraser,
-                  label: localizations.clearLog,
+                  icon: const Icon(LucideIcons.eraser),
+                  label: Text(localizations.clearLog),
                 ),
-              ],
             ],
           ),
         ),
       );
     },
   );
+}
+
+class _ObjectiveButton extends StatelessWidget {
+  const _ObjectiveButton({required this.title, required this.color, required this.isSelected, required this.onPressed});
+
+  final String title;
+  final Color color;
+  final bool isSelected;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Semantics(
+      selected: isSelected,
+      child: OutlinedButton(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size.fromHeight(AppSizes.minimumTouchTarget + AppSpacing.medium),
+          backgroundColor: isSelected
+              ? color.withValues(alpha: AppOpacity.selectedTint)
+              : colorScheme.surfaceContainerLow,
+          side: BorderSide(
+            color: isSelected ? color : colorScheme.outlineVariant,
+            width: isSelected ? AppSizes.emphasisBorderWidth : AppSizes.hairline,
+          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.medium)),
+          foregroundColor: colorScheme.onSurface,
+        ),
+        onPressed: onPressed,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ColorDot(color: color),
+            const SizedBox(width: AppSpacing.medium),
+            Flexible(child: Text(title, style: Theme.of(context).textTheme.bodyLarge)),
+            if (isSelected) ...[
+              const SizedBox(width: AppSpacing.small),
+              Icon(LucideIcons.check, color: colorScheme.onSurface, size: AppSizes.iconMedium),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
 }
