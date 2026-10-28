@@ -5,20 +5,27 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
 ## [Unreleased]
 
 ### Added
-- Meet Komo, Komit's mascot: it waves during the first launch, celebrates on the home
-  screen once every habit is logged today, and keeps you company on empty screens.
-  Tap it to play its animation again.
+- Meet Komo, Komit's mascot: it waves during the first launch, bounces happily with
+  sparkles on the home screen once every habit is logged today, and keeps you company on
+  empty screens. Tap it to play its animation again.
 - A new three-step welcome: say hello (or restore a backup), choose your first name,
   then decide about reminders, with an explanation before Android asks for permission.
-- A new app icon featuring Komo, with a themed (monochrome) version on Android 13 and
-  later, a matching splash screen, and Komo in the notification bar.
-- Haptic feedback: a light tap when you log a day or save, a firmer one when you remove
-  something, a double tap when you finish the welcome. It follows your phone's vibration
-  setting.
-- A freshly logged day pops into its square; cards gently sink when you press them.
+  A chunky progress bar shows how far along you are.
+- A new app icon: Komo's face fills the whole icon (big eyes, rosy cheeks, a tiny smile),
+  with an eyes-only themed version on Android 13 and later, a matching splash screen,
+  and Komo in the notification bar.
+- Haptic feedback: a tick when you press a button, a light tap when you log a day or save,
+  a firmer one when you remove something, and a double tap when you finish the welcome or
+  log the last habit of the day. It follows your phone's vibration setting.
+- Statistics show each objective's share as a bar under its name.
 
 ### Changed
-- Headings use a new rounded serif typeface, and text colors are slightly warmer.
+- A playful new look inspired by mobile games: cards and buttons with thick dark outlines,
+  glossy 3D buttons that press down and bounce back, bold rounded titles (Lilita One) with
+  Nunito for text, saturated colors, and a deep indigo dark theme.
+- Logged days look like little raised tiles, and a freshly logged day pops into its square.
+- With very large text, habit cards stack in a single column and headers stack vertically,
+  so words are no longer cut in the middle.
 - Focused text fields, their labels and the cursor use a darker amber that is easier to see.
 - Messages appear in a floating bar at the bottom of the screen.
 - Screen transitions follow Android's back gesture preview on Android 14 and later.

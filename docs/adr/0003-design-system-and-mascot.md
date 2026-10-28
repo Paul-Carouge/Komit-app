@@ -1,110 +1,126 @@
 # 3. Design system, Komo the mascot, and brand assets
 
-Date: 2026-10-28 · Status: accepted
+Date: 2026-10-28 · Status: accepted (revised the same day, see "Revision")
 
 ## Context
 
-Komit's look was already warm (cream paper, amber, a violet notes gradient) but stayed
-close to Material defaults: system font everywhere, a few hard-coded sizes, opacities and
-colors in screens, no motion vocabulary, the default Flutter launcher icon, a blank white
-splash and an onboarding that was a single form. The user wants a coherent and distinctive
-art direction, a mascot named Komo, haptic feedback and a better first run.
+Komit's look was close to Material defaults: system font, hard-coded sizes and colors in
+screens, no motion vocabulary, the default launcher icon, a blank splash and a one-form
+onboarding. The user asked for a distinctive art direction, a mascot named Komo, haptic
+feedback and a better first run.
 
-The product's signature is the day grid: every logged day is a small colored square.
-The design system grows from that.
+A first pass chose a calm "paper journal" direction (cream paper, the Fraunces serif, flat
+cards). The user rejected it: they like the style of Supercell's mobile games (Clash Royale,
+Brawl Stars, Squad Busters) and want the app icon to be Komo's face filling the whole icon,
+not Komo standing on a background.
+
+The product's signature is the day grid: every logged day is a small colored square. The
+design system still grows from that, now as game tiles.
 
 ## Decision
 
-### Concept: "the paper habit tracker that comes alive"
+### Concept: "a pocket arcade for your habits"
 
-- **Palette.** Kept: cream `#FBF6E5` surface, amber `#F9A825` primary, violet notes
-  gradient. Changed: near-black text becomes a warm ink `#231A10`, so text and Komo's face
-  belong to the same family as the paper. Dark theme keeps the warm night surface `#16140F`.
-  Amber is too light on cream for text, focus rings or labels (WCAG 1.4.3 / 1.4.11), so
-  `KomitColors.accentText` (deep amber `#8A5300` by day, brand amber at night) carries every
-  amber text, focused field border, floating label and cursor.
-- **Typography.** Fraunces (SIL OFL 1.1, bundled as one 360 KB variable font) sets display,
-  headline and `titleLarge` styles: greetings, screen and sheet titles, big numbers. The
-  `SOFT` axis is at its maximum so the serifs are rounded like Komo; weight and optical size
-  are set as variation axes, with a nominal normal weight so the engine never adds a fake
-  bold. Body text and labels stay on the platform sans for legibility.
-- **Shape.** One radius scale by role (`AppRadii`): grid cell 4, small 8, badge 12, control 16,
-  tile 20, card and sheet 28. Komo, the step indicator and the celebration sparkles reuse the
-  day-cell shape.
-- **Elevation.** Flat by default (`AppElevation.flat`); depth comes from surface container
-  tones. Only floating elements (snack bars) get `AppElevation.floating`.
-- **Opacity.** `AppOpacity` names every tint (badge tints, selected tint, overlay on color).
-- **Motion.** `AppDurations` (quick 120 ms for presses, standard 240 ms for in-screen
-  changes, emphasized 460 ms for a logged day, plus Komo's cycles) and `AppCurves`
-  (`easeOutCubic`, `easeOutBack` for things the user just created). Motion answers an action:
-  cards sink to 97 % while pressed (`PressableCard`), a freshly logged day pops into its cell
-  with a fading ring, onboarding steps fade and rise. Page transitions are the Android
-  predictive-back transition with a cream fallback scrim; `enableOnBackInvokedCallback` is on
-  so Android 14+ shows the back preview. `motionAwareDuration` returns zero when the system
-  asks to remove animations.
+Chunky, outlined, glossy, bouncy, inspired by the mobile-game look but entirely original:
+no Supercell font (Supercell-Magic is proprietary), character, logo, asset or trademark is
+used or imitated. Komit stays a daily productivity tool: the playful energy goes into
+outlines, gloss, color and motion, while text stays large, high-contrast and calm.
+
+The full token sheet and layout rules live in `docs/design/art-direction.md`.
+
+- **Palette.** Sunburst amber `#FFBC1F` (Komo, primary actions), plum ink `#2A1F3D` (text
+  and every outline; violet-tinted so it ties amber and grape together), grape `#6B3FE0`
+  (notes, statistics hero), flame `#FF7A1A` (current streak), mint `#2EC27E` (Komo's sprout),
+  tomato `#D92D20` (destructive actions). Light surfaces are warm cream `#FFF4DC` with white
+  cards; the dark theme is a deep indigo "night arcade" (`#1A1736`, cards `#28234F`) rather
+  than grey, so it stays colorful. Amber is too light on cream for text, so
+  `KomitColors.accentText` (deep amber `#8A4B00` by day) carries amber text and focus.
+- **Typography.** Lilita One (SIL OFL 1.1, 28 KB, one heavy rounded condensed weight) for
+  display, headline and `titleLarge` styles and button labels; Nunito (SIL OFL 1.1, one
+  variable file, weight axis driven by `fontWeight`) for everything else, at weight 600 for
+  body and 800 for labels. Both cover French. Titles on saturated colors get a dark outline
+  made of text shadows (`outlinedTextShadows`), so a title stays one `Text`: one semantics
+  node, and it scales with the user's font size. Page titles get a hard amber drop shadow.
+- **Outline and depth.** `AppOutline` (thin 2, regular 2.5, heavy 3) draws every component;
+  `AppDepth` sets the darker band under buttons (5, compact 4, icon 4) and the cards' soft
+  drop shadow. Depth colors of user colors come from `depthShadeOf` (HSL lightness − 0.16).
+- **Components** (`lib/core/ui`): `GamePressable` (press, focus, keyboard, semantics and the
+  press haptic, shared by every control), `GameButton` (primary, neutral, danger tones or a
+  custom face color, compact size, selected state), `GameIconButton`, `GameBackButton`,
+  `GameCard` (thin inner highlight line, outline, soft shadow; pressable with `onTap`),
+  `GameBadge`, `GameTag`, `GameProgressBar`, `GameTitle`, all painted by one
+  `GameSurfacePainter`. Material widgets that remain (fields, switches, radios, dialogs,
+  sheets, snack bars, the navigation bar, date and time pickers) are themed with the same
+  outlines and colors.
+- **Motion.** A button's face sinks into its band in 70 ms and springs back with an elastic
+  overshoot in 320 ms (`AppCurves.pressRelease`); cards shrink to 96 % and bounce back;
+  progress bars fill with an overshoot (`AppCurves.overshoot`); a logged day still pops into
+  its cell. `motionAwareDuration` returns zero when the system removes animations, so every
+  press still shows its pressed state, just without the animation.
+- **Large text.** From a 1.5 text scale (`isLargeTextScale`), the dashboard grid becomes a
+  single column and the habit hero card stacks its badge above the title, so words are not
+  cut mid-word; card heights grow with the text scale.
 
 ### Komo
 
-- An amber day tile with a sprout on top, two eyes, cheeks and a smile, drawn by a
-  `CustomPainter` in a 100-unit design box (`KomoGeometry`); no bitmap asset.
-- Moods (`KomoMood`): `idle` (breathing, blinking), `happy` (hop, raised arms, sparkles
-  shaped like day cells), `sleepy` (eyes closed, drooping sprout, rising "z"), `waving`.
-  Poses are pure periodic functions of the cycle progress (`KomoPose.of`), so progress 0 and 1
-  are the same resting pose and the animation can stop on any cycle boundary.
-- API for other features: `KomoMascot(mood: KomoMood.happy, size: AppSizes.mascotSmall)` and
-  `KomoEmptyState(mood:, title:, message:, action:)`.
-- Battery: one `AnimationController` repaints only the mascot's `RepaintBoundary`, and the
-  animation stops after `AppDurations.mascotAnimationBudget` (12 s); tapping Komo replays it.
-  With animations disabled in the system, Komo is drawn at rest and never ticks.
-- Komo is decorative for screen readers unless given a `semanticLabel`.
-- Where it appears: onboarding (waving, idle, sleepy, then happy on finish), the dashboard
-  header (happy once every habit is logged today, idle otherwise), and empty or error states
-  (no habit yet, no notes, nothing logged this year, habit not found, loading error).
+- An amber day tile with a mint sprout, now drawn like a sticker: thick ink outline around
+  the body, sprout, leaves and arms, a darker bottom band, a glossy highlight, big tall eyes
+  with two highlights, coral cheeks. Drawn by a `CustomPainter` in a 100-unit design box
+  (`KomoGeometry`); no bitmap asset.
+- Moods (`KomoMood`, public API unchanged): `idle` (a small squash-and-stretch hop, a pause,
+  a blink), `happy` (big hops with anticipation squash, landing squash, raised arms, outlined
+  four-point sparkles), `sleepy` (eyes closed, drooping sprout, rising "z"), `waving` (bobbing
+  with each swing of the arm). Poses stay pure periodic functions of the cycle progress
+  (`KomoPose.of`), so the animation can stop on any cycle boundary without a jump.
+- `KomoMascot(mood:, size:, semanticLabel:)` and `KomoEmptyState(mood:, title:, message:,
+  action:, mascotSize:)` keep their signatures. The 12-second animation budget,
+  tap-to-replay and reduced-motion behavior are unchanged.
 
 ### Haptics
 
-`KomitHaptics` maps meanings to platform feedback: `selection` (a choice moved), `success`
-(a day logged, something saved), `celebration` (finishing onboarding), `warning` (something
-removed or cleared), `error` (an action failed). Android routes these through the view's
-haptic feedback, which honors the user's system "touch vibration" setting.
-
-### Onboarding
-
-Three steps led by Komo, with a progress indicator drawn as day cells:
-1. Hello, with "Restore from a backup" for returning users.
-2. First name, optional ("Skip").
-3. Reminders: explains the evening notification before Android asks for the permission;
-   "Not now" finishes without asking.
-Komo stays mounted across steps so its mood changes without a cut. The layout scrolls with
-large text, a keyboard or in landscape, and actions stay low, near the thumb.
+`KomitHaptics` gains `press()` (a selection tick), played by `GamePressable` when a chunky
+control goes down. `celebration()` now also plays when a log completes the day (every habit
+logged today, computed by `isEveryHabitLoggedOn`, which also drives Komo's happy mood on the
+dashboard).
 
 ### Brand assets on Android
 
-- Adaptive launcher icon: cream background, Komo foreground (same geometry as the painter,
-  scaled into the 66 dp safe zone), and a monochrome layer for Android 13+ themed icons.
-- Legacy PNG icons for Android 7 are rendered from `docs/design/komit-launcher-icon.svg`.
-- Splash: Android 12+ system splash with Komo on the brand background (cream, warm night in
-  dark mode); earlier versions use a layer-list with the same drawable. The window background
-  behind Flutter uses the same color to avoid a white or black flash.
-- Notification small icon `ic_stat_komo`: Komo's silhouette, kept from resource shrinking by
-  `res/raw/keep.xml` because only Dart names it. The full-color launcher icon would render as
-  a blank square in the status bar.
+- **Launcher icon: Komo's face is the icon.** The adaptive background is Komo's body color
+  edge to edge (a soft vertical sunburst gradient, no shape edge); the foreground holds only
+  the big eyes, cheeks and a tiny smile, inside the 66 dp safe circle. The Android 13+
+  monochrome layer is the eyes only, highlights cut out.
+- `docs/design/komit-launcher-icon.svg` is the source of truth; the legacy PNGs (API 24-25)
+  are rendered from it offline by `tool/render_launcher_icons.swift`, using macOS's own SVG
+  renderer (no dependency, no network).
+- Splash: Android 12+ shows the face on a sunburst icon circle over the brand background
+  (cream, night indigo in dark mode); earlier versions draw the same with a layer-list.
+- The notification small icon `ic_stat_komo` stays Komo's monochrome silhouette.
 
 ## Alternatives rejected
 
-- **Material's default purple or a dynamic (wallpaper) color scheme**: would erase the warm
-  paper identity users recognize.
-- **A rounded geometric sans (Nunito, Fredoka) for headings**: the default choice for a
-  friendly app; Fraunces gives a journal voice that fits a habit diary and pairs with cream.
-- **Lottie or Rive for Komo**: a new dependency and asset pipeline for four simple moods;
-  a painter is lighter, themeable in light and dark, and shares its geometry with the icon.
-- **A mascot that loops forever**: keeps the GPU awake on the main screen; a budget plus
-  tap-to-replay keeps the delight without the battery cost.
+- **The paper-journal direction (Fraunces serif, flat cards)**: rejected by the user; too
+  quiet for the game-like energy they want.
+- **Copying a Supercell font or UI kit**: proprietary; Lilita One and Nunito give a similar
+  chunky, friendly voice under the OFL.
+- **Lilita One for body text**: one weight, condensed and heavy; tiring in paragraphs and
+  lists. Nunito keeps the rounded feel while staying legible.
+- **A real text stroke drawn by a second `Text` with a stroke paint**: doubles every title
+  for screen readers and tests; shadows give the same look in one widget.
+- **Lottie, Rive or an animation package**: a dependency and an asset pipeline for a few
+  moods and presses; painters and implicit animations cover it and stay themeable.
+- **Komo standing on a background for the icon**: explicitly rejected by the user.
+
+## Revision
+
+The first version of this record chose Fraunces, a cream paper palette and flat cards. It
+was replaced the same day by the game direction above at the user's request; Fraunces and
+its license registration were removed from the app.
 
 ## Consequences
 
-- New user-facing text must use theme text styles; new sizes, radii, opacities and
-  durations go through `AppSizes`, `AppRadii`, `AppOpacity`, `AppDurations`, `AppCurves`.
-- Changing Komo's geometry means updating `KomoGeometry`, the three Android vector drawables
-  and the SVG master, then re-rendering the legacy PNGs.
-- The APK grows by about 360 KB for the font.
+- New UI uses the `Game*` components and the tokens (`AppOutline`, `AppDepth`, `AppRadii`,
+  `AppSizes`, `AppDurations`, `AppCurves`, `KomitColors`); no raw colors, sizes or durations
+  in screens.
+- Changing the icon means editing the SVG, mirroring it in the three adaptive drawables and
+  re-running `swift tool/render_launcher_icons.swift`.
+- The APK carries about 305 KB of fonts (Lilita One and Nunito) instead of 360 KB.
