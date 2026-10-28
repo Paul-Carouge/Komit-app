@@ -212,9 +212,9 @@
       }
     }
   },
-  "onboardingTitle": "Build habits that stick.",
-  "onboardingSubtitle": "Track every day with your own objectives, and see your year at a glance.",
-  "onboardingNameLabel": "What should we call you?",
+  "onboardingTitle": "Hi, I'm Komo.",
+  "onboardingSubtitle": "I keep your habits company. One tap a day, and your year fills up, square by square.",
+  "onboardingNameLabel": "Your first name",
   "getStarted": "Get started",
   "restoreFromBackup": "Restore from a backup",
   "loading": "Loading…",
@@ -225,5 +225,27 @@
   "updateErrorInstallFailed": "Android refused the installation.",
   "logAnotherDay": "Log another day",
   "habitNameTooLong": "The habit name is too long.",
-  "exportPrivacyNote": "The exported file is not encrypted: keep it somewhere private."
+  "exportPrivacyNote": "The exported file is not encrypted: keep it somewhere private.",
+  "onboardingNameTitle": "What should I call you?",
+  "onboardingNameMessage": "Your first name only appears on your home screen. You can skip this step.",
+  "onboardingRemindersTitle": "A gentle nudge in the evening?",
+  "onboardingRemindersMessage": "When you add a reminder to a habit, Komit sends one notification a day, at the time you choose. Android asks for your permission next.",
+  "allowNotifications": "Allow notifications",
+  "continueAction": "Continue",
+  "skip": "Skip",
+  "onboardingStepProgress": "Step {currentStep} of {stepCount}",
+  "@onboardingStepProgress": {
+    "placeholders": {
+      "currentStep": {
+        "type": "int"
+      },
+      "stepCount": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardEmptyTitle": "Your first habit is waiting",
+  "dashboardEmptyMessage": "Pick something to do each day, with your own objectives. I'll take care of the calendar.",
+  "createFirstHabit": "Create a habit",
+  "noNotesYetMessage": "Write down an idea, a feeling or a small win. It stays right here."
 }

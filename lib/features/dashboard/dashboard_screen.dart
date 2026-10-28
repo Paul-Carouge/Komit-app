@@ -12,6 +12,8 @@ import '../../data/repositories/habit_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
 import '../../router.dart';
+import '../mascot/komo_empty_state.dart';
+import '../mascot/komo_mascot.dart';
 import '../shared/day_grid.dart';
 import '../shared/shared_widgets.dart';
 
@@ -27,6 +29,7 @@ class DashboardScreen extends ConsumerWidget {
     final localizations = AppLocalizations.of(context);
     final userName = ref.watch(settingsControllerProvider.select((settings) => settings.userName));
     final habits = ref.watch(allHabitsProvider);
+    final hasHabits = habits.value?.isNotEmpty ?? false;
     return Scaffold(
       body: SafeArea(
         bottom: false,
@@ -42,6 +45,7 @@ class DashboardScreen extends ConsumerWidget {
               sliver: SliverToBoxAdapter(
                 child: Row(
                   children: [
+                    if (hasHabits) ...[const _DashboardKomo(), const SizedBox(width: AppSpacing.medium)],
                     Expanded(
                       child: Semantics(
                         header: true,
@@ -62,6 +66,19 @@ class DashboardScreen extends ConsumerWidget {
               ),
             ),
             switch (habits) {
+              AsyncData(value: final habits) when habits.isEmpty => SliverFillRemaining(
+                hasScrollBody: false,
+                child: KomoEmptyState(
+                  mood: KomoMood.waving,
+                  title: localizations.dashboardEmptyTitle,
+                  message: localizations.dashboardEmptyMessage,
+                  action: FilledButton.icon(
+                    onPressed: () => context.push(AppRoutes.newHabit),
+                    icon: const Icon(LucideIcons.plus),
+                    label: Text(localizations.createFirstHabit),
+                  ),
+                ),
+              ),
               AsyncData(value: final habits) => _HabitCardGrid(habits: habits),
               _ => SliverFillRemaining(
                 hasScrollBody: false,
@@ -72,6 +89,21 @@ class DashboardScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+/// Komo celebrates once every habit is logged today, and keeps calm company otherwise.
+class _DashboardKomo extends ConsumerWidget {
+  const _DashboardKomo();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final today = ref.watch(currentCalendarDayProvider);
+    final habits = ref.watch(allHabitsProvider).value ?? const [];
+    final recentLogsByHabitId = ref.watch(recentLogsForAllHabitsProvider).value ?? const {};
+    final isEveryHabitLoggedToday =
+        habits.isNotEmpty && habits.every((habit) => recentLogsByHabitId[habit.habit.id]?.containsKey(today) ?? false);
+    return KomoMascot(mood: isEveryHabitLoggedToday ? KomoMood.happy : KomoMood.idle, size: AppSizes.mascotSmall);
   }
 }
 
@@ -140,53 +172,50 @@ class _HabitCard extends StatelessWidget {
       for (var offset = 0; offset < dashboardRecentDayCount; offset++)
         _recentDayCell(firstDay.addDays(offset), komitColors, dateFormat),
     ];
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => context.push(AppRoutes.habitDetails(habit.habit.id)),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.large),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+    return PressableCard(
+      onTap: () => context.push(AppRoutes.habitDetails(habit.habit.id)),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.large),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                HabitIconBadge(icon: habitIconForName(habit.habit.iconName), color: Color(habit.habit.colorArgb)),
+                const SizedBox(width: AppSpacing.medium),
+                Expanded(
+                  child: Text(
+                    habit.habit.title,
+                    style: textTheme.titleMedium,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const Spacer(),
+            ExcludeSemantics(
+              child: DayGrid(columnCount: _daysPerGridRow, cells: cells),
+            ),
+            const Spacer(),
+            Semantics(
+              label: lastActivitySemanticLabel,
+              excludeSemantics: true,
+              child: Row(
                 children: [
-                  HabitIconBadge(icon: habitIconForName(habit.habit.iconName), color: Color(habit.habit.colorArgb)),
-                  const SizedBox(width: AppSpacing.medium),
+                  Icon(LucideIcons.history, size: textTheme.bodySmall?.fontSize, color: komitColors.mutedText),
+                  const SizedBox(width: AppSpacing.extraSmall),
                   Expanded(
                     child: Text(
-                      habit.habit.title,
-                      style: textTheme.titleMedium,
-                      maxLines: 2,
+                      lastActivityText,
+                      style: textTheme.bodySmall?.copyWith(color: komitColors.mutedText),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
               ),
-              const Spacer(),
-              ExcludeSemantics(
-                child: DayGrid(columnCount: _daysPerGridRow, cells: cells),
-              ),
-              const Spacer(),
-              Semantics(
-                label: lastActivitySemanticLabel,
-                excludeSemantics: true,
-                child: Row(
-                  children: [
-                    Icon(LucideIcons.history, size: textTheme.bodySmall?.fontSize, color: komitColors.mutedText),
-                    const SizedBox(width: AppSpacing.extraSmall),
-                    Expanded(
-                      child: Text(
-                        lastActivityText,
-                        style: textTheme.bodySmall?.copyWith(color: komitColors.mutedText),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -208,30 +237,27 @@ class _NewHabitCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final komitColors = KomitColors.of(context);
-    return Card(
+    return PressableCard(
       color: Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadii.large),
-        side: BorderSide(color: colorScheme.outlineVariant, width: 2),
+        side: BorderSide(color: colorScheme.outlineVariant, width: AppSizes.emphasisBorderWidth),
       ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => context.push(AppRoutes.newHabit),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircleAvatar(
-              radius: AppSizes.minimumTouchTarget / 2,
-              backgroundColor: colorScheme.primaryContainer,
-              child: Icon(LucideIcons.plus, color: colorScheme.onPrimaryContainer),
-            ),
-            const SizedBox(height: AppSpacing.medium),
-            Text(
-              AppLocalizations.of(context).newHabit,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(color: komitColors.accentText),
-            ),
-          ],
-        ),
+      onTap: () => context.push(AppRoutes.newHabit),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircleAvatar(
+            radius: AppSizes.minimumTouchTarget / 2,
+            backgroundColor: colorScheme.primaryContainer,
+            child: Icon(LucideIcons.plus, color: colorScheme.onPrimaryContainer),
+          ),
+          const SizedBox(height: AppSpacing.medium),
+          Text(
+            AppLocalizations.of(context).newHabit,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(color: komitColors.accentText),
+          ),
+        ],
       ),
     );
   }

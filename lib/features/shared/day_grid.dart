@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+import '../../core/theme/app_motion.dart';
 import '../../core/theme/app_theme.dart';
 
 /// One square of a [DayGrid]; a null [color] leaves the slot blank (e.g. February 30).
@@ -12,9 +13,21 @@ class DayGridCell {
   final VoidCallback? onTap;
 }
 
+/// More changed cells than this at once is a data swap (another year, a new day), not a log:
+/// those cells change silently instead of all popping at the same time.
+const int _maximumChangedCellsAnimatedAsLog = 2;
+
+/// A popping cell starts at this share of its size, then overshoots back to full size.
+const double _poppingCellInitialScale = 0.4;
+
+/// The ring around a popping cell grows by this share of the cell size while fading out.
+const double _poppingRingGrowth = 0.6;
+
 /// Paints a whole grid of days in one [CustomPaint] instead of hundreds of widgets,
 /// while still exposing every cell to screen readers.
-class DayGrid extends StatelessWidget {
+///
+/// When one or two cells change color (a day was just logged or cleared), they pop into place.
+class DayGrid extends StatefulWidget {
   const DayGrid({required this.columnCount, required this.cells, this.cellGap = AppSpacing.extraSmall, super.key});
 
   final int columnCount;
@@ -23,24 +36,62 @@ class DayGrid extends StatelessWidget {
   final List<DayGridCell> cells;
   final double cellGap;
 
-  int get _rowCount => cells.length ~/ columnCount;
+  @override
+  State<DayGrid> createState() => _DayGridState();
+}
+
+class _DayGridState extends State<DayGrid> with SingleTickerProviderStateMixin {
+  late final AnimationController _popController = AnimationController(vsync: this, duration: AppDurations.emphasized);
+
+  /// Previous color of each popping cell, by cell index.
+  Map<int, Color?> _previousColorByPoppingCellIndex = const {};
+
+  @override
+  void didUpdateWidget(DayGrid oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (MediaQuery.disableAnimationsOf(context) || oldWidget.cells.length != widget.cells.length) return;
+    final previousColorByChangedCellIndex = <int, Color?>{};
+    for (final (index, cell) in widget.cells.indexed) {
+      final previousColor = oldWidget.cells[index].color;
+      if (cell.color == previousColor) continue;
+      previousColorByChangedCellIndex[index] = previousColor;
+      if (previousColorByChangedCellIndex.length > _maximumChangedCellsAnimatedAsLog) return;
+    }
+    if (previousColorByChangedCellIndex.isEmpty) return;
+    _previousColorByPoppingCellIndex = previousColorByChangedCellIndex;
+    _popController.forward(from: 0);
+  }
+
+  @override
+  void dispose() {
+    _popController.dispose();
+    super.dispose();
+  }
+
+  int get _rowCount => widget.cells.length ~/ widget.columnCount;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final cellSize = (constraints.maxWidth - cellGap * (columnCount - 1)) / columnCount;
+        final cellGap = widget.cellGap;
+        final cellSize = (constraints.maxWidth - cellGap * (widget.columnCount - 1)) / widget.columnCount;
         final height = cellSize * _rowCount + cellGap * (_rowCount - 1);
-        final geometry = _DayGridGeometry(columnCount: columnCount, cellSize: cellSize, cellGap: cellGap);
+        final geometry = _DayGridGeometry(columnCount: widget.columnCount, cellSize: cellSize, cellGap: cellGap);
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTapUp: (details) {
             final cellIndex = geometry.cellIndexAt(details.localPosition);
-            if (cellIndex != null && cellIndex < cells.length) cells[cellIndex].onTap?.call();
+            if (cellIndex != null && cellIndex < widget.cells.length) widget.cells[cellIndex].onTap?.call();
           },
           child: CustomPaint(
             size: Size(constraints.maxWidth, height),
-            painter: _DayGridPainter(cells: cells, geometry: geometry),
+            painter: _DayGridPainter(
+              cells: widget.cells,
+              geometry: geometry,
+              popAnimation: _popController,
+              previousColorByPoppingCellIndex: _previousColorByPoppingCellIndex,
+            ),
           ),
         );
       },
@@ -71,21 +122,59 @@ class _DayGridGeometry {
 }
 
 class _DayGridPainter extends CustomPainter {
-  _DayGridPainter({required this.cells, required this.geometry});
+  _DayGridPainter({
+    required this.cells,
+    required this.geometry,
+    required this.popAnimation,
+    required this.previousColorByPoppingCellIndex,
+  }) : super(repaint: popAnimation);
 
   final List<DayGridCell> cells;
   final _DayGridGeometry geometry;
+  final AnimationController popAnimation;
+  final Map<int, Color?> previousColorByPoppingCellIndex;
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint();
     final radius = Radius.circular(AppRadii.gridCell.clamp(0, geometry.cellSize / 4));
+    final isPopping = popAnimation.isAnimating;
     for (final (index, cell) in cells.indexed) {
       final color = cell.color;
       if (color == null) continue;
+      if (isPopping && previousColorByPoppingCellIndex.containsKey(index)) {
+        _paintPoppingCell(canvas, paint, index, color, radius);
+        continue;
+      }
       paint.color = color;
       canvas.drawRRect(RRect.fromRectAndRadius(geometry.cellRect(index), radius), paint);
     }
+  }
+
+  void _paintPoppingCell(Canvas canvas, Paint paint, int index, Color color, Radius radius) {
+    final progress = popAnimation.value;
+    final cellRect = geometry.cellRect(index);
+    final previousColor = previousColorByPoppingCellIndex[index];
+    // The old color stays underneath while the new one grows from the center.
+    if (previousColor != null) {
+      paint.color = previousColor;
+      canvas.drawRRect(RRect.fromRectAndRadius(cellRect, radius), paint);
+    }
+    final scale = _poppingCellInitialScale + (1 - _poppingCellInitialScale) * AppCurves.emphasized.transform(progress);
+    paint.color = color;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromCenter(center: cellRect.center, width: cellRect.width * scale, height: cellRect.height * scale),
+        radius,
+      ),
+      paint,
+    );
+    final ringRect = cellRect.inflate(geometry.cellSize * _poppingRingGrowth * AppCurves.standard.transform(progress));
+    final ringPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = AppSizes.emphasisBorderWidth
+      ..color = color.withValues(alpha: color.a * (1 - progress));
+    canvas.drawRRect(RRect.fromRectAndRadius(ringRect, radius), ringPaint);
   }
 
   @override
@@ -106,8 +195,11 @@ class _DayGridPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_DayGridPainter oldDelegate) =>
-      !identical(oldDelegate.cells, cells) || oldDelegate.geometry.cellSize != geometry.cellSize;
+      !identical(oldDelegate.cells, cells) ||
+      oldDelegate.geometry.cellSize != geometry.cellSize ||
+      !identical(oldDelegate.previousColorByPoppingCellIndex, previousColorByPoppingCellIndex);
 
   @override
-  bool shouldRebuildSemantics(_DayGridPainter oldDelegate) => shouldRepaint(oldDelegate);
+  bool shouldRebuildSemantics(_DayGridPainter oldDelegate) =>
+      !identical(oldDelegate.cells, cells) || oldDelegate.geometry.cellSize != geometry.cellSize;
 }

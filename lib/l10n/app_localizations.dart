@@ -659,19 +659,19 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingTitle.
   ///
   /// In en, this message translates to:
-  /// **'Build habits that stick.'**
+  /// **'Hi, I\'m Komo.'**
   String get onboardingTitle;
 
   /// No description provided for @onboardingSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Track every day with your own objectives, and see your year at a glance.'**
+  /// **'I keep your habits company. One tap a day, and your year fills up, square by square.'**
   String get onboardingSubtitle;
 
   /// No description provided for @onboardingNameLabel.
   ///
   /// In en, this message translates to:
-  /// **'What should we call you?'**
+  /// **'Your first name'**
   String get onboardingNameLabel;
 
   /// No description provided for @getStarted.
@@ -739,6 +739,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The exported file is not encrypted: keep it somewhere private.'**
   String get exportPrivacyNote;
+
+  /// No description provided for @onboardingNameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What should I call you?'**
+  String get onboardingNameTitle;
+
+  /// No description provided for @onboardingNameMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your first name only appears on your home screen. You can skip this step.'**
+  String get onboardingNameMessage;
+
+  /// No description provided for @onboardingRemindersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A gentle nudge in the evening?'**
+  String get onboardingRemindersTitle;
+
+  /// No description provided for @onboardingRemindersMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'When you add a reminder to a habit, Komit sends one notification a day, at the time you choose. Android asks for your permission next.'**
+  String get onboardingRemindersMessage;
+
+  /// No description provided for @allowNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow notifications'**
+  String get allowNotifications;
+
+  /// No description provided for @continueAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueAction;
+
+  /// No description provided for @skip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get skip;
+
+  /// No description provided for @onboardingStepProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {currentStep} of {stepCount}'**
+  String onboardingStepProgress(int currentStep, int stepCount);
+
+  /// No description provided for @dashboardEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your first habit is waiting'**
+  String get dashboardEmptyTitle;
+
+  /// No description provided for @dashboardEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick something to do each day, with your own objectives. I\'ll take care of the calendar.'**
+  String get dashboardEmptyMessage;
+
+  /// No description provided for @createFirstHabit.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a habit'**
+  String get createFirstHabit;
+
+  /// No description provided for @noNotesYetMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Write down an idea, a feeling or a small win. It stays right here.'**
+  String get noNotesYetMessage;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -69,16 +69,13 @@ class _StreakCard extends StatelessWidget {
     return MergeSemantics(
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.large),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(AppRadii.medium + AppSpacing.extraSmall),
-        ),
+        decoration: BoxDecoration(color: backgroundColor, borderRadius: BorderRadius.circular(AppRadii.tile)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(icon, size: AppSpacing.large + AppSpacing.extraSmall, color: accentColor),
+                Icon(icon, size: AppSizes.iconMedium, color: accentColor),
                 const SizedBox(width: AppSpacing.small),
                 Expanded(
                   child: Text(label, style: textTheme.labelLarge?.copyWith(color: accentColor)),

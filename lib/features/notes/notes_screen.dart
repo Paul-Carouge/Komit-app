@@ -8,6 +8,8 @@ import '../../core/theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
 import '../../router.dart';
+import '../mascot/komo_empty_state.dart';
+import '../mascot/komo_mascot.dart';
 import '../shared/shared_widgets.dart';
 
 const int _notePreviewMaximumLines = 4;
@@ -62,13 +64,10 @@ class NotesScreen extends ConsumerWidget {
             ),
             switch (notes) {
               AsyncData(value: final notes) when notes.isEmpty => SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.huge),
-                  child: Text(
-                    localizations.noNotesYet,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: komitColors.mutedText),
-                  ),
+                child: KomoEmptyState(
+                  mood: KomoMood.idle,
+                  title: localizations.noNotesYet,
+                  message: localizations.noNotesYetMessage,
                 ),
               ),
               AsyncData(value: final notes) => SliverPadding(
@@ -83,23 +82,20 @@ class NotesScreen extends ConsumerWidget {
                   separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.medium),
                   itemBuilder: (context, index) {
                     final note = notes[index];
-                    return Card(
-                      clipBehavior: Clip.antiAlias,
-                      child: InkWell(
-                        onTap: () => context.push(AppRoutes.noteEditor(note.id)),
-                        child: Padding(
-                          padding: const EdgeInsets.all(AppSpacing.large),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                dateFormat.format(note.updatedAt),
-                                style: textTheme.labelMedium?.copyWith(color: komitColors.mutedText),
-                              ),
-                              const SizedBox(height: AppSpacing.small),
-                              Text(note.content, maxLines: _notePreviewMaximumLines, overflow: TextOverflow.ellipsis),
-                            ],
-                          ),
+                    return PressableCard(
+                      onTap: () => context.push(AppRoutes.noteEditor(note.id)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppSpacing.large),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              dateFormat.format(note.updatedAt),
+                              style: textTheme.labelMedium?.copyWith(color: komitColors.mutedText),
+                            ),
+                            const SizedBox(height: AppSpacing.small),
+                            Text(note.content, maxLines: _notePreviewMaximumLines, overflow: TextOverflow.ellipsis),
+                          ],
                         ),
                       ),
                     );
@@ -123,36 +119,31 @@ class _NewNoteBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final komitColors = KomitColors.of(context);
-    return Material(
-      borderRadius: BorderRadius.circular(AppRadii.large),
-      clipBehavior: Clip.antiAlias,
-      child: Ink(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(colors: [komitColors.notesGradientStart, komitColors.notesGradientEnd]),
-        ),
-        child: InkWell(
-          onTap: () => context.push(AppRoutes.newNote),
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.extraLarge),
-            child: Row(
-              children: [
-                Container(
-                  width: AppSizes.minimumTouchTarget * 1.2,
-                  height: AppSizes.minimumTouchTarget * 1.2,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(AppRadii.medium),
-                  ),
-                  child: const Icon(LucideIcons.plus, color: Colors.white, size: AppSpacing.huge),
-                ),
-                const SizedBox(width: AppSpacing.large),
-                Text(
-                  AppLocalizations.of(context).newNote,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white),
-                ),
-              ],
+    final foregroundColor = komitColors.onNotesGradient;
+    return PressableCard(
+      gradient: LinearGradient(colors: [komitColors.notesGradientStart, komitColors.notesGradientEnd]),
+      onTap: () => context.push(AppRoutes.newNote),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.extraLarge),
+        child: Row(
+          children: [
+            Container(
+              width: AppSizes.heroBadge,
+              height: AppSizes.heroBadge,
+              decoration: BoxDecoration(
+                color: foregroundColor.withValues(alpha: AppOpacity.overlayOnColor),
+                borderRadius: BorderRadius.circular(AppRadii.medium),
+              ),
+              child: Icon(LucideIcons.plus, color: foregroundColor, size: AppSizes.iconHero),
             ),
-          ),
+            const SizedBox(width: AppSpacing.large),
+            Expanded(
+              child: Text(
+                AppLocalizations.of(context).newNote,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(color: foregroundColor),
+              ),
+            ),
+          ],
         ),
       ),
     );

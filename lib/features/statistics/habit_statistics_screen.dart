@@ -7,6 +7,8 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/calendar_day.dart';
 import '../../core/current_calendar_day.dart';
 import '../../core/theme/app_theme.dart';
+import '../mascot/komo_empty_state.dart';
+import '../mascot/komo_mascot.dart';
 import '../../data/repositories/habit_repository.dart';
 import '../../domain/habit_statistics.dart';
 import '../../l10n/app_localizations.dart';
@@ -18,6 +20,7 @@ const double _chartHeight = 220;
 const double _donutRadius = 56;
 const double _donutHoleRadius = 44;
 const double _monthBarWidth = 14;
+const double _donutSectionGap = 2;
 
 class HabitStatisticsScreen extends ConsumerWidget {
   const HabitStatisticsScreen({required this.habitId, required this.year, super.key});
@@ -90,7 +93,7 @@ class _StatisticsContent extends StatelessWidget {
                 HabitIconBadge(
                   icon: LucideIcons.trophy,
                   color: komitColors.onHighlightContainer,
-                  size: AppSizes.minimumTouchTarget * 1.2,
+                  size: AppSizes.heroBadge,
                 ),
                 const SizedBox(width: AppSpacing.large),
                 Column(
@@ -104,7 +107,6 @@ class _StatisticsContent extends StatelessWidget {
                       '${statistics.totalLogCount}',
                       style: textTheme.displaySmall?.copyWith(
                         color: komitColors.onHighlightContainer,
-                        fontWeight: FontWeight.w800,
                         fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
@@ -117,14 +119,7 @@ class _StatisticsContent extends StatelessWidget {
         const SizedBox(height: AppSpacing.medium),
         StreakCards(streaks: streaks),
         if (statistics.totalLogCount == 0)
-          Padding(
-            padding: const EdgeInsets.only(top: AppSpacing.huge),
-            child: Text(
-              localizations.noLogsThisYear,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: komitColors.mutedText),
-            ),
-          )
+          KomoEmptyState(mood: KomoMood.sleepy, title: localizations.noLogsThisYear, mascotSize: AppSizes.mascotSmall)
         else ...[
           SectionTitle(localizations.objectiveDistribution),
           _ObjectiveDistributionChart(habit: habit, statistics: statistics),
@@ -157,7 +152,7 @@ class _ObjectiveDistributionChart extends StatelessWidget {
             child: PieChart(
               PieChartData(
                 centerSpaceRadius: _donutHoleRadius,
-                sectionsSpace: 2,
+                sectionsSpace: _donutSectionGap,
                 sections: [
                   for (final objective in loggedObjectives)
                     PieChartSectionData(
@@ -248,7 +243,7 @@ class _MonthlyActivityChart extends StatelessWidget {
                         toY: statistics.logCountByMonth[monthIndex].toDouble(),
                         color: colorScheme.primary,
                         width: _monthBarWidth,
-                        borderRadius: BorderRadius.circular(AppRadii.small / 2),
+                        borderRadius: BorderRadius.circular(AppRadii.gridCell),
                       ),
                     ],
                   ),

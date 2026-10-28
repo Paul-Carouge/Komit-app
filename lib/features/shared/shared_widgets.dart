@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/theme/app_motion.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
+import '../mascot/komo_empty_state.dart';
+import '../mascot/komo_mascot.dart';
 
 /// Renders the loading and error states of [value] the same way on every screen.
 class AsyncValueView<T> extends StatelessWidget {
@@ -15,12 +18,7 @@ class AsyncValueView<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return switch (value) {
       AsyncData(:final value) => builder(value),
-      AsyncError() => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.extraLarge),
-          child: Text(AppLocalizations.of(context).genericError, textAlign: TextAlign.center),
-        ),
-      ),
+      AsyncError() => KomoEmptyState(mood: KomoMood.sleepy, title: AppLocalizations.of(context).genericError),
       _ => Center(child: CircularProgressIndicator(semanticsLabel: AppLocalizations.of(context).loading)),
     };
   }
@@ -40,10 +38,56 @@ class HabitIconBadge extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: color.withValues(alpha: isDark ? 0.22 : 0.14),
-        borderRadius: BorderRadius.circular(AppRadii.small + AppSpacing.extraSmall),
+        color: color.withValues(alpha: isDark ? AppOpacity.badgeTintOnDark : AppOpacity.badgeTintOnLight),
+        borderRadius: BorderRadius.circular(AppRadii.badge),
       ),
-      child: Icon(icon, color: color, size: size * 0.55),
+      child: Icon(icon, color: color, size: size * AppSizes.iconToBadgeRatio),
+    );
+  }
+}
+
+/// A tappable card that sinks slightly while pressed, so every card answers the finger the same way.
+class PressableCard extends StatefulWidget {
+  const PressableCard({required this.onTap, required this.child, this.color, this.shape, this.gradient, super.key});
+
+  final VoidCallback onTap;
+  final Widget child;
+  final Color? color;
+  final ShapeBorder? shape;
+
+  /// Painted under the ink ripple, which a plain [Card.color] could not do with a gradient.
+  final Gradient? gradient;
+
+  @override
+  State<PressableCard> createState() => _PressableCardState();
+}
+
+class _PressableCardState extends State<PressableCard> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final gradient = widget.gradient;
+    final inkWell = InkWell(
+      onTap: widget.onTap,
+      onHighlightChanged: (isPressed) => setState(() => _isPressed = isPressed),
+      child: widget.child,
+    );
+    return AnimatedScale(
+      scale: _isPressed ? pressedScale : 1,
+      duration: motionAwareDuration(context, AppDurations.quick),
+      curve: AppCurves.standard,
+      child: Card(
+        color: widget.color,
+        shape: widget.shape,
+        clipBehavior: Clip.antiAlias,
+        child: gradient == null
+            ? inkWell
+            : Ink(
+                decoration: BoxDecoration(gradient: gradient),
+                child: inkWell,
+              ),
+      ),
     );
   }
 }

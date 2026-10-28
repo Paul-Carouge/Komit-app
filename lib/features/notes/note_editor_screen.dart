@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../core/haptics.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
@@ -70,8 +71,10 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
   Future<void> _saveAndClose() async {
     try {
       await _saveIfChanged();
+      unawaited(KomitHaptics.success());
       if (mounted) context.pop();
     } on Object {
+      unawaited(KomitHaptics.error());
       if (mounted) showMessageSnackBar(context, AppLocalizations.of(context).genericError);
     }
   }
@@ -90,6 +93,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
     );
     if (!isConfirmed || !mounted) return;
     await ref.read(noteRepositoryProvider).deleteNote(noteId);
+    unawaited(KomitHaptics.warning());
     _savedContent = _contentController.text;
     if (mounted) context.pop();
   }

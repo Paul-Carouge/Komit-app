@@ -96,8 +96,13 @@ class _ObjectiveButton extends StatelessWidget {
       child: OutlinedButton(
         style: OutlinedButton.styleFrom(
           minimumSize: const Size.fromHeight(AppSizes.minimumTouchTarget + AppSpacing.medium),
-          backgroundColor: isSelected ? color.withValues(alpha: 0.16) : colorScheme.surfaceContainerLow,
-          side: BorderSide(color: isSelected ? color : colorScheme.outlineVariant, width: isSelected ? 2 : 1),
+          backgroundColor: isSelected
+              ? color.withValues(alpha: AppOpacity.selectedTint)
+              : colorScheme.surfaceContainerLow,
+          side: BorderSide(
+            color: isSelected ? color : colorScheme.outlineVariant,
+            width: isSelected ? AppSizes.emphasisBorderWidth : AppSizes.hairline,
+          ),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.medium)),
           foregroundColor: colorScheme.onSurface,
         ),
@@ -107,12 +112,10 @@ class _ObjectiveButton extends StatelessWidget {
           children: [
             ColorDot(color: color),
             const SizedBox(width: AppSpacing.medium),
-            Flexible(
-              child: Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500)),
-            ),
+            Flexible(child: Text(title, style: Theme.of(context).textTheme.bodyLarge)),
             if (isSelected) ...[
               const SizedBox(width: AppSpacing.small),
-              Icon(LucideIcons.check, color: colorScheme.onSurface, size: AppSpacing.large + AppSpacing.extraSmall),
+              Icon(LucideIcons.check, color: colorScheme.onSurface, size: AppSizes.iconMedium),
             ],
           ],
         ),

@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/calendar_day.dart';
 import '../../core/current_calendar_day.dart';
+import '../../core/haptics.dart';
 import '../../core/habit_appearance.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/repositories/habit_repository.dart';
@@ -15,6 +15,8 @@ import '../../domain/habit_statistics.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
 import '../../router.dart';
+import '../mascot/komo_empty_state.dart';
+import '../mascot/komo_mascot.dart';
 import '../shared/shared_widgets.dart';
 import 'log_day_sheet.dart';
 import 'streak_cards.dart';
@@ -43,7 +45,7 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
         child: AsyncValueView(
           value: habit,
           builder: (habit) {
-            if (habit == null) return Center(child: Text(localizations.habitNotFound));
+            if (habit == null) return KomoEmptyState(mood: KomoMood.sleepy, title: localizations.habitNotFound);
             return AsyncValueView(
               value: objectiveIdByDay,
               builder: (objectiveIdByDay) => _buildContent(context, habit, objectiveIdByDay, today),
@@ -138,10 +140,6 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton.icon(
-                  style: TextButton.styleFrom(
-                    minimumSize: const Size(0, AppSizes.minimumTouchTarget),
-                    foregroundColor: KomitColors.of(context).accentText,
-                  ),
                   onPressed: () => _pickDayToLog(habit, objectiveIdByDay, firstYear: firstYear, today: today),
                   icon: const Icon(LucideIcons.calendarPlus),
                   label: Text(localizations.logAnotherDay),
@@ -198,11 +196,13 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
       switch (choice) {
         case LogDayChoiceObjective(:final objectiveId):
           await repository.logObjectiveForDay(habitId: habit.habit.id, objectiveId: objectiveId, day: day);
+          unawaited(KomitHaptics.success());
         case LogDayChoiceClear():
           await repository.clearLogForDay(habitId: habit.habit.id, day: day);
+          unawaited(KomitHaptics.warning());
       }
-      unawaited(HapticFeedback.selectionClick());
     } on Object {
+      unawaited(KomitHaptics.error());
       if (mounted) showMessageSnackBar(context, AppLocalizations.of(context).genericError);
     }
   }
@@ -212,7 +212,9 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
       context: context,
       builder: (context) => _YearPickerSheet(firstYear: firstYear, lastYear: lastYear, selectedYear: _selectedYear),
     );
-    if (chosenYear != null && mounted) setState(() => _selectedYear = chosenYear);
+    if (chosenYear == null || !mounted) return;
+    unawaited(KomitHaptics.selection());
+    setState(() => _selectedYear = chosenYear);
   }
 
   Future<void> _showMoreActions(HabitWithObjectives habit) async {
@@ -250,8 +252,10 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
     if (!isConfirmed || !mounted) return;
     try {
       await ref.read(habitRepositoryProvider).deleteHabit(habit.habit.id);
+      unawaited(KomitHaptics.warning());
       if (mounted) context.pop();
     } on Object {
+      unawaited(KomitHaptics.error());
       if (mounted) showMessageSnackBar(context, localizations.genericError);
     }
   }
@@ -276,7 +280,7 @@ class _YearChip extends StatelessWidget {
           children: [
             Text('$year', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(width: AppSpacing.extraSmall),
-            Icon(LucideIcons.chevronDown, size: AppSpacing.large, color: KomitColors.of(context).accentText),
+            Icon(LucideIcons.chevronDown, size: AppSizes.iconSmall, color: KomitColors.of(context).accentText),
           ],
         ),
         backgroundColor: colorScheme.surfaceContainerLowest,
@@ -319,6 +323,9 @@ class _YearPickerSheet extends StatelessWidget {
   }
 }
 
+/// The hero gradient fades slightly toward the text color, which keeps that text readable.
+const double _heroGradientForegroundBlend = 0.12;
+
 class _HabitHeroCard extends StatelessWidget {
   const _HabitHeroCard({required this.habit});
 
@@ -327,27 +334,26 @@ class _HabitHeroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final habitColor = Color(habit.habit.colorArgb);
-    // Picks black or white text depending on the habit color, so any color stays readable.
-    final foregroundColor = ThemeData.estimateBrightnessForColor(habitColor) == Brightness.dark
-        ? Colors.white
-        : Colors.black;
+    final foregroundColor = foregroundColorReadableOn(habitColor);
     final textTheme = Theme.of(context).textTheme;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.extraLarge),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppRadii.large),
-        gradient: LinearGradient(colors: [habitColor, Color.lerp(habitColor, Colors.white, 0.12)!]),
+        gradient: LinearGradient(
+          colors: [habitColor, Color.lerp(habitColor, foregroundColor, _heroGradientForegroundBlend)!],
+        ),
       ),
       child: Row(
         children: [
           Container(
-            width: AppSizes.minimumTouchTarget * 1.2,
-            height: AppSizes.minimumTouchTarget * 1.2,
+            width: AppSizes.heroBadge,
+            height: AppSizes.heroBadge,
             decoration: BoxDecoration(
-              color: foregroundColor.withValues(alpha: 0.15),
+              color: foregroundColor.withValues(alpha: AppOpacity.overlayOnColor),
               borderRadius: BorderRadius.circular(AppRadii.medium),
             ),
-            child: Icon(habitIconForName(habit.habit.iconName), color: foregroundColor, size: AppSpacing.huge),
+            child: Icon(habitIconForName(habit.habit.iconName), color: foregroundColor, size: AppSizes.iconHero),
           ),
           const SizedBox(width: AppSpacing.large),
           Expanded(

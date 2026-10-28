@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../core/haptics.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
@@ -39,7 +42,9 @@ class SettingsScreen extends ConsumerWidget {
             child: RadioGroup<ThemeMode>(
               groupValue: settings.themeMode,
               onChanged: (themeMode) {
-                if (themeMode != null) settingsController.updateThemeMode(themeMode);
+                if (themeMode == null) return;
+                unawaited(KomitHaptics.selection());
+                settingsController.updateThemeMode(themeMode);
               },
               child: Column(
                 children: [
@@ -65,7 +70,10 @@ class SettingsScreen extends ConsumerWidget {
               ButtonSegment(value: 'fr', label: Text('Français')),
             ],
             selected: {currentLanguageCode},
-            onSelectionChanged: (selection) => settingsController.updateLanguageCode(selection.single),
+            onSelectionChanged: (selection) {
+              unawaited(KomitHaptics.selection());
+              settingsController.updateLanguageCode(selection.single);
+            },
           ),
           SectionTitle(localizations.dataAndStorage),
           Card(

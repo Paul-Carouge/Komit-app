@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Brand colors, mirrored from lib/core/theme/app_theme.dart (_BrandColors and KomitColors). -->
+<resources>
+    <color name="komit_cream">#FFFBF6E5</color>
+    <color name="komit_launch_background">#FFFBF6E5</color>
+    <color name="komo_body">#FFF9A825</color>
+    <color name="komo_body_shade">#FFE08A00</color>
+    <color name="komo_face">#FF231A10</color>
+    <color name="komo_cheek">#FFFF7F6B</color>
+    <color name="komo_sprout">#FF4E8F35</color>
+</resources>

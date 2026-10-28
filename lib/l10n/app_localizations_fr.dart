@@ -338,14 +338,14 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get onboardingTitle => 'Des habitudes qui tiennent.';
+  String get onboardingTitle => 'Salut, moi c\'est Komo.';
 
   @override
   String get onboardingSubtitle =>
-      'Suis chaque journée avec tes propres objectifs et vois ton année d\'un coup d\'œil.';
+      'Je garde un œil sur tes habitudes. Un geste par jour, et ton année se remplit, case après case.';
 
   @override
-  String get onboardingNameLabel => 'Comment t\'appelles-tu ?';
+  String get onboardingNameLabel => 'Ton prénom';
 
   @override
   String get getStarted => 'Commencer';
@@ -380,4 +380,44 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get exportPrivacyNote => 'Le fichier exporté n\'est pas chiffré : garde-le dans un endroit privé.';
+
+  @override
+  String get onboardingNameTitle => 'Comment je t\'appelle ?';
+
+  @override
+  String get onboardingNameMessage => 'Ton prénom s\'affiche seulement sur ton accueil. Tu peux passer cette étape.';
+
+  @override
+  String get onboardingRemindersTitle => 'Un petit rappel le soir ?';
+
+  @override
+  String get onboardingRemindersMessage =>
+      'Quand tu ajoutes un rappel à une habitude, Komit t\'envoie une notification par jour, à l\'heure que tu choisis. Android te demande l\'autorisation juste après.';
+
+  @override
+  String get allowNotifications => 'Autoriser les notifications';
+
+  @override
+  String get continueAction => 'Continuer';
+
+  @override
+  String get skip => 'Passer';
+
+  @override
+  String onboardingStepProgress(int currentStep, int stepCount) {
+    return 'Étape $currentStep sur $stepCount';
+  }
+
+  @override
+  String get dashboardEmptyTitle => 'Ta première habitude t\'attend';
+
+  @override
+  String get dashboardEmptyMessage =>
+      'Choisis une chose à faire chaque jour, avec tes propres objectifs. Je m\'occupe du calendrier.';
+
+  @override
+  String get createFirstHabit => 'Créer une habitude';
+
+  @override
+  String get noNotesYetMessage => 'Note une idée, un ressenti ou une petite victoire. Tout reste ici.';
 }

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 13+ themed icon: Komo's silhouette with the face cut out; the launcher tints it. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="0.66"
+        android:scaleY="0.66"
+        android:translateX="21"
+        android:translateY="21">
+        <path
+            android:pathData="M50,37 Q50,30 51,25"
+            android:strokeWidth="3"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeLineCap="round" />
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M51,26 C54,17 62,14 68,15 C67,22 60,27 51,26 Z M49,28 C46,22 41,20 36,21 C37,26 42,29 49,28 Z" />
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:fillType="evenOdd"
+            android:pathData="M38,36 H62 A16,16 0 0 1 78,52 V70 A16,16 0 0 1 62,86 H38 A16,16 0 0 1 22,70 V52 A16,16 0 0 1 38,36 Z M34.7,59 a4.3,4.3 0 1,0 8.6,0 a4.3,4.3 0 1,0 -8.6,0 Z M56.7,59 a4.3,4.3 0 1,0 8.6,0 a4.3,4.3 0 1,0 -8.6,0 Z M45,66.3 Q50,73.6 55,66.3 Q50,68.4 45,66.3 Z" />
+    </group>
+</vector>

@@ -332,13 +332,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get onboardingTitle => 'Build habits that stick.';
+  String get onboardingTitle => 'Hi, I\'m Komo.';
 
   @override
-  String get onboardingSubtitle => 'Track every day with your own objectives, and see your year at a glance.';
+  String get onboardingSubtitle =>
+      'I keep your habits company. One tap a day, and your year fills up, square by square.';
 
   @override
-  String get onboardingNameLabel => 'What should we call you?';
+  String get onboardingNameLabel => 'Your first name';
 
   @override
   String get getStarted => 'Get started';
@@ -373,4 +374,44 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get exportPrivacyNote => 'The exported file is not encrypted: keep it somewhere private.';
+
+  @override
+  String get onboardingNameTitle => 'What should I call you?';
+
+  @override
+  String get onboardingNameMessage => 'Your first name only appears on your home screen. You can skip this step.';
+
+  @override
+  String get onboardingRemindersTitle => 'A gentle nudge in the evening?';
+
+  @override
+  String get onboardingRemindersMessage =>
+      'When you add a reminder to a habit, Komit sends one notification a day, at the time you choose. Android asks for your permission next.';
+
+  @override
+  String get allowNotifications => 'Allow notifications';
+
+  @override
+  String get continueAction => 'Continue';
+
+  @override
+  String get skip => 'Skip';
+
+  @override
+  String onboardingStepProgress(int currentStep, int stepCount) {
+    return 'Step $currentStep of $stepCount';
+  }
+
+  @override
+  String get dashboardEmptyTitle => 'Your first habit is waiting';
+
+  @override
+  String get dashboardEmptyMessage =>
+      'Pick something to do each day, with your own objectives. I\'ll take care of the calendar.';
+
+  @override
+  String get createFirstHabit => 'Create a habit';
+
+  @override
+  String get noNotesYetMessage => 'Write down an idea, a feeling or a small win. It stays right here.';
 }

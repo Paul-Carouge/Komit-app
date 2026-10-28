@@ -7,6 +7,9 @@ import '../../l10n/app_localizations.dart';
 
 const double _swatchSize = AppSizes.minimumTouchTarget;
 
+/// Pickers stop short of full height so the screen behind stays visible as context.
+const double _pickerSheetMaximumHeightFraction = 0.7;
+
 Future<int?> showColorPickerSheet(BuildContext context, {required int selectedColorArgb}) {
   // An imported color outside the palette stays selectable instead of silently disappearing.
   final colors = habitColorPaletteArgb.contains(selectedColorArgb)
@@ -31,16 +34,14 @@ Future<int?> showColorPickerSheet(BuildContext context, {required int selectedCo
                   color: Color(colorArgb),
                   shape: BoxShape.circle,
                   border: colorArgb == selectedColorArgb
-                      ? Border.all(color: Theme.of(context).colorScheme.onSurface, width: 3)
+                      ? Border.all(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          width: AppSizes.selectedSwatchBorderWidth,
+                        )
                       : null,
                 ),
                 child: colorArgb == selectedColorArgb
-                    ? Icon(
-                        LucideIcons.check,
-                        color: ThemeData.estimateBrightnessForColor(Color(colorArgb)) == Brightness.dark
-                            ? Colors.white
-                            : Colors.black,
-                      )
+                    ? Icon(LucideIcons.check, color: foregroundColorReadableOn(Color(colorArgb)))
                     : null,
               ),
             ),
@@ -65,7 +66,9 @@ Future<String?> showIconPickerSheet(BuildContext context, {required String selec
               isSelected: iconName == selectedIconName,
               style: IconButton.styleFrom(
                 minimumSize: const Size.square(_swatchSize),
-                backgroundColor: iconName == selectedIconName ? Color(colorArgb).withValues(alpha: 0.2) : null,
+                backgroundColor: iconName == selectedIconName
+                    ? Color(colorArgb).withValues(alpha: AppOpacity.selectedTint)
+                    : null,
               ),
               onPressed: () => Navigator.of(context).pop(iconName),
               icon: Icon(icon, color: iconName == selectedIconName ? Color(colorArgb) : colorScheme.onSurfaceVariant),
@@ -86,7 +89,7 @@ class _PickerSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.7),
+        constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * _pickerSheetMaximumHeightFraction),
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.screenGutter,

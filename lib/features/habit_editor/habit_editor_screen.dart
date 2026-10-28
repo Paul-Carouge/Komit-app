@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/habit_appearance.dart';
+import '../../core/haptics.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/database/app_database.dart';
 import '../../data/repositories/habit_repository.dart';
@@ -141,7 +144,7 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
                   children: [
                     Expanded(
                       child: _AppearanceTile(
-                        leading: ColorDot(color: Color(_colorArgb), size: AppSpacing.extraLarge),
+                        leading: ColorDot(color: Color(_colorArgb), size: AppSizes.colorDotLarge),
                         label: localizations.color,
                         onTap: _chooseColor,
                       ),
@@ -169,7 +172,6 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
                 SectionTitle(
                   localizations.objectives,
                   trailing: TextButton.icon(
-                    style: TextButton.styleFrom(foregroundColor: KomitColors.of(context).accentText),
                     onPressed: _addObjective,
                     icon: const Icon(LucideIcons.plus),
                     label: Text(localizations.addObjective),
@@ -229,6 +231,7 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
         if (!isConfirmed || !mounted) return;
       }
     }
+    unawaited(KomitHaptics.warning());
     setState(() => _objectives.remove(objective));
     objective.titleController.dispose();
   }
@@ -279,7 +282,10 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
     final localizations = AppLocalizations.of(context);
     final validationError = _findValidationError(localizations);
     setState(() => _validationMessage = validationError);
-    if (validationError != null) return;
+    if (validationError != null) {
+      unawaited(KomitHaptics.error());
+      return;
+    }
 
     setState(() => _isSaving = true);
     try {
@@ -308,8 +314,10 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
               ],
             ),
           );
+      unawaited(KomitHaptics.success());
       if (mounted) context.pop();
     } on Object {
+      unawaited(KomitHaptics.error());
       if (mounted) {
         setState(() => _isSaving = false);
         showMessageSnackBar(context, localizations.genericError);
@@ -383,7 +391,7 @@ class _ReminderCard extends StatelessWidget {
           ),
           if (formattedTime != null) ...[
             Divider(
-              height: 1,
+              height: AppSizes.hairline,
               indent: AppSpacing.large,
               endIndent: AppSpacing.large,
               color: colorScheme.outlineVariant,
@@ -439,7 +447,7 @@ class _ObjectiveRowEditor extends StatelessWidget {
               IconButton(
                 tooltip: localizations.chooseColor,
                 onPressed: onColorTapped,
-                icon: ColorDot(color: Color(objective.colorArgb), size: AppSpacing.large + AppSpacing.extraSmall),
+                icon: ColorDot(color: Color(objective.colorArgb), size: AppSizes.iconMedium),
               ),
               Expanded(
                 child: TextField(
