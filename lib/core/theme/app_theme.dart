@@ -141,8 +141,8 @@ abstract final class _BrandColors {
   static const Color amberShade = Color(0xFFE08A00);
   static const Color cream = Color(0xFFFBF6E5);
 
-  /// Warm near-black: keeps text and Komo's face in the same family as the cream paper.
-  static const Color ink = Color(0xFF231A10);
+  /// Near-black of the original Komit app, for text and Komo's face.
+  static const Color ink = Color(0xFF1A1A1A);
   static const Color nightSurface = Color(0xFF16140F);
   static const Color nightText = Color(0xFFF4EFE2);
   static const Color danger = Color(0xFFD32F2F);
@@ -249,37 +249,11 @@ final ThemeData darkAppTheme = _buildTheme(
   ),
 );
 
-/// Fraunces carries the headings (screen titles, greetings, big numbers); the platform sans
-/// keeps body text and labels highly legible.
-abstract final class _DisplayTypeface {
-  static const String family = 'Fraunces';
-
-  /// Maximum softness rounds the serifs, echoing Komo's soft corners.
-  static const double softness = 100;
-  static const double displayWeight = 620;
-  static const double headingWeight = 580;
-}
-
-/// Variable fonts ignore [TextStyle.fontWeight]; the weight and optical size are set as axes.
-/// The nominal weight stays normal so the engine never adds a synthetic bold on top.
-TextStyle? _displayTypefaceStyle(TextStyle? base, {required double weight}) => base?.copyWith(
-  fontFamily: _DisplayTypeface.family,
-  fontWeight: FontWeight.normal,
-  fontVariations: [
-    FontVariation.weight(weight),
-    const FontVariation('SOFT', _DisplayTypeface.softness),
-    FontVariation.opticalSize(base.fontSize ?? AppSpacing.extraLarge),
-  ],
-);
-
+/// Bold Roboto titles, like the original Komit app.
 TextTheme _buildTextTheme(TextTheme base) => base.copyWith(
-  displayLarge: _displayTypefaceStyle(base.displayLarge, weight: _DisplayTypeface.displayWeight),
-  displayMedium: _displayTypefaceStyle(base.displayMedium, weight: _DisplayTypeface.displayWeight),
-  displaySmall: _displayTypefaceStyle(base.displaySmall, weight: _DisplayTypeface.displayWeight),
-  headlineLarge: _displayTypefaceStyle(base.headlineLarge, weight: _DisplayTypeface.headingWeight),
-  headlineMedium: _displayTypefaceStyle(base.headlineMedium, weight: _DisplayTypeface.headingWeight),
-  headlineSmall: _displayTypefaceStyle(base.headlineSmall, weight: _DisplayTypeface.headingWeight),
-  titleLarge: _displayTypefaceStyle(base.titleLarge, weight: _DisplayTypeface.headingWeight),
+  headlineMedium: base.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
+  headlineSmall: base.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+  titleLarge: base.titleLarge?.copyWith(fontWeight: FontWeight.w700),
   titleMedium: base.titleMedium?.copyWith(fontWeight: FontWeight.w700),
   titleSmall: base.titleSmall?.copyWith(fontWeight: FontWeight.w700),
   labelLarge: base.labelLarge?.copyWith(fontWeight: FontWeight.w700),
