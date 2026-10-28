@@ -120,7 +120,7 @@ class _UpdateProgressDialog extends StatefulWidget {
 
 class _UpdateProgressDialogState extends State<_UpdateProgressDialog> {
   double _progress = 0;
-  String? _errorMessage;
+  AppUpdateFailureReason? _failureReason;
 
   @override
   void initState() {
@@ -140,17 +140,26 @@ class _UpdateProgressDialogState extends State<_UpdateProgressDialog> {
       if (mounted) Navigator.of(context).pop();
     } on Object catch (error) {
       developer.log('Update install failed', name: 'komit.update', error: error);
-      if (mounted) setState(() => _errorMessage = error.toString());
+      final reason = error is AppUpdateException ? error.reason : AppUpdateFailureReason.installFailed;
+      if (mounted) setState(() => _failureReason = reason);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
-    final errorMessage = _errorMessage;
+    final failureReason = _failureReason;
     return AlertDialog(
-      content: errorMessage != null
-          ? Text(localizations.updateFailed(errorMessage))
+      content: failureReason != null
+          ? Text(
+              localizations.updateFailed(switch (failureReason) {
+                AppUpdateFailureReason.installPermissionRequired => localizations.updateErrorInstallPermission,
+                AppUpdateFailureReason.network => localizations.updateErrorNetwork,
+                AppUpdateFailureReason.invalidRelease => localizations.updateErrorInvalidRelease,
+                AppUpdateFailureReason.corruptedDownload => localizations.updateErrorCorruptedDownload,
+                AppUpdateFailureReason.installFailed => localizations.updateErrorInstallFailed,
+              }),
+            )
           : Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -160,7 +169,7 @@ class _UpdateProgressDialogState extends State<_UpdateProgressDialog> {
               ],
             ),
       actions: [
-        if (errorMessage != null)
+        if (failureReason != null)
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: Text(MaterialLocalizations.of(context).closeButtonLabel),

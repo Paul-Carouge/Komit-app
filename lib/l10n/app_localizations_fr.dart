@@ -355,4 +355,29 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get loading => 'Chargement…';
+
+  @override
+  String get updateErrorInstallPermission =>
+      'autorise Komit à installer des applis dans les réglages qui viennent de s\'ouvrir, puis réessaie.';
+
+  @override
+  String get updateErrorNetwork => 'le téléchargement a été interrompu. Vérifie ta connexion et réessaie.';
+
+  @override
+  String get updateErrorInvalidRelease => 'cette version n\'est pas disponible à l\'installation.';
+
+  @override
+  String get updateErrorCorruptedDownload => 'le fichier téléchargé est endommagé. Réessaie.';
+
+  @override
+  String get updateErrorInstallFailed => 'Android a refusé l\'installation.';
+
+  @override
+  String get logAnotherDay => 'Noter un autre jour';
+
+  @override
+  String get habitNameTooLong => 'Le nom de l\'habitude est trop long.';
+
+  @override
+  String get exportPrivacyNote => 'Le fichier exporté n\'est pas chiffré : garde-le dans un endroit privé.';
 }

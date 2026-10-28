@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/calendar_day.dart';
+import '../../core/current_calendar_day.dart';
 import '../../core/habit_appearance.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/repositories/habit_repository.dart';
@@ -36,6 +36,7 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final habit = ref.watch(habitProvider(widget.habitId));
+    final today = ref.watch(currentCalendarDayProvider);
     final objectiveIdByDay = ref.watch(objectiveIdByDayForHabitProvider(widget.habitId));
     return Scaffold(
       body: SafeArea(
@@ -45,7 +46,7 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
             if (habit == null) return Center(child: Text(localizations.habitNotFound));
             return AsyncValueView(
               value: objectiveIdByDay,
-              builder: (objectiveIdByDay) => _buildContent(context, habit, objectiveIdByDay),
+              builder: (objectiveIdByDay) => _buildContent(context, habit, objectiveIdByDay, today),
             );
           },
         ),
@@ -53,9 +54,13 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
     );
   }
 
-  Widget _buildContent(BuildContext context, HabitWithObjectives habit, Map<CalendarDay, int> objectiveIdByDay) {
+  Widget _buildContent(
+    BuildContext context,
+    HabitWithObjectives habit,
+    Map<CalendarDay, int> objectiveIdByDay,
+    CalendarDay today,
+  ) {
     final localizations = AppLocalizations.of(context);
-    final today = CalendarDay.today();
     final streaks = computeStreakSummary(objectiveIdByDay.keys, today: today);
     final firstYear = [
       habit.habit.createdAt.year,
@@ -107,6 +112,8 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
                     ? FilledButton.tonalIcon(
                         style: FilledButton.styleFrom(
                           minimumSize: const Size(0, AppSizes.minimumTouchTarget),
+                          // Explicit, because the tonal default is the secondary (violet) container.
+                          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                           foregroundColor: KomitColors.of(context).accentText,
                         ),
                         onPressed: () => _openLogSheet(habit, today, objectiveIdByDay[today]),
@@ -125,6 +132,19 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
                     objectiveIdByDay: objectiveIdByDay,
                     onDayTapped: (day) => _openLogSheet(habit, day, objectiveIdByDay[day]),
                   ),
+                ),
+              ),
+              // Grid cells are below the 48 dp touch target size; this is the accessible equivalent.
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  style: TextButton.styleFrom(
+                    minimumSize: const Size(0, AppSizes.minimumTouchTarget),
+                    foregroundColor: KomitColors.of(context).accentText,
+                  ),
+                  onPressed: () => _pickDayToLog(habit, objectiveIdByDay, firstYear: firstYear, today: today),
+                  icon: const Icon(LucideIcons.calendarPlus),
+                  label: Text(localizations.logAnotherDay),
                 ),
               ),
               SectionTitle(localizations.objectivesLegend),
@@ -147,8 +167,31 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
     );
   }
 
+  Future<void> _pickDayToLog(
+    HabitWithObjectives habit,
+    Map<CalendarDay, int> objectiveIdByDay, {
+    required int firstYear,
+    required CalendarDay today,
+  }) async {
+    final pickedDate = await showDatePicker(
+      context: context,
+      firstDate: DateTime(firstYear),
+      lastDate: today.asLocalDate,
+      initialDate: today.asLocalDate,
+    );
+    if (pickedDate == null || !mounted) return;
+    final pickedDay = CalendarDay.fromDateTime(pickedDate);
+    await _openLogSheet(habit, pickedDay, objectiveIdByDay[pickedDay]);
+  }
+
   Future<void> _openLogSheet(HabitWithObjectives habit, CalendarDay day, int? currentObjectiveId) async {
-    final choice = await showLogDaySheet(context, habit: habit, day: day, currentObjectiveId: currentObjectiveId);
+    final choice = await showLogDaySheet(
+      context,
+      habit: habit,
+      day: day,
+      currentObjectiveId: currentObjectiveId,
+      canLogObjective: !day.isAfter(ref.read(currentCalendarDayProvider)),
+    );
     if (choice == null || !mounted) return;
     final repository = ref.read(habitRepositoryProvider);
     try {
@@ -205,8 +248,12 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
       confirmLabel: localizations.delete,
     );
     if (!isConfirmed || !mounted) return;
-    await ref.read(habitRepositoryProvider).deleteHabit(habit.habit.id);
-    if (mounted) context.pop();
+    try {
+      await ref.read(habitRepositoryProvider).deleteHabit(habit.habit.id);
+      if (mounted) context.pop();
+    } on Object {
+      if (mounted) showMessageSnackBar(context, localizations.genericError);
+    }
   }
 }
 
@@ -321,6 +368,3 @@ class _HabitHeroCard extends StatelessWidget {
     );
   }
 }
-
-String formatFullDate(BuildContext context, CalendarDay day) =>
-    DateFormat.yMd(Localizations.localeOf(context).toLanguageTag()).format(day.asLocalDate);

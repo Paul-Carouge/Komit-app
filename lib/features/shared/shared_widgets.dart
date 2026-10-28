@@ -9,7 +9,7 @@ class AsyncValueView<T> extends StatelessWidget {
   const AsyncValueView({required this.value, required this.builder, super.key});
 
   final AsyncValue<T> value;
-  final Widget Function(T data) builder;
+  final Widget Function(T value) builder;
 
   @override
   Widget build(BuildContext context) {

@@ -691,6 +691,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Loading…'**
   String get loading;
+
+  /// No description provided for @updateErrorInstallPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'allow Komit to install apps in the settings that just opened, then try again.'**
+  String get updateErrorInstallPermission;
+
+  /// No description provided for @updateErrorNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'the download was interrupted. Check your connection and try again.'**
+  String get updateErrorNetwork;
+
+  /// No description provided for @updateErrorInvalidRelease.
+  ///
+  /// In en, this message translates to:
+  /// **'this version is not available for installation.'**
+  String get updateErrorInvalidRelease;
+
+  /// No description provided for @updateErrorCorruptedDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'the downloaded file is damaged. Try again.'**
+  String get updateErrorCorruptedDownload;
+
+  /// No description provided for @updateErrorInstallFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Android refused the installation.'**
+  String get updateErrorInstallFailed;
+
+  /// No description provided for @logAnotherDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Log another day'**
+  String get logAnotherDay;
+
+  /// No description provided for @habitNameTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'The habit name is too long.'**
+  String get habitNameTooLong;
+
+  /// No description provided for @exportPrivacyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'The exported file is not encrypted: keep it somewhere private.'**
+  String get exportPrivacyNote;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

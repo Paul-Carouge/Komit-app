@@ -110,7 +110,8 @@ class YearlyGrid extends StatelessWidget {
           : komitColors.emptyCell,
       semanticLabel: '${fullDateFormat.format(day.asLocalDate)}: ${objective?.title ?? '-'}',
       // Future days cannot be logged: the old app allowed it and produced misleading streaks.
-      onTap: isFuture ? null : () => onDayTapped(day),
+      // An imported future log stays tappable so it can be cleared.
+      onTap: isFuture && objective == null ? null : () => onDayTapped(day),
     );
   }
 }

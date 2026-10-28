@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/calendar_day.dart';
+import 'core/current_calendar_day.dart';
 import 'data/database/app_database.dart';
 import 'data/repositories/backup_repository.dart';
 import 'data/repositories/habit_repository.dart';
@@ -64,7 +65,7 @@ final objectiveIdByDayForHabitProvider = StreamProvider.family<Map<CalendarDay, 
 const int dashboardRecentDayCount = 28;
 
 final recentLogsForAllHabitsProvider = StreamProvider((ref) {
-  final firstDay = CalendarDay.today().addDays(-(dashboardRecentDayCount - 1));
+  final firstDay = ref.watch(currentCalendarDayProvider).addDays(-(dashboardRecentDayCount - 1));
   return ref.watch(habitRepositoryProvider).watchObjectiveIdByDayForAllHabitsSince(firstDay);
 });
 

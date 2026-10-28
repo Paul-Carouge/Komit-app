@@ -2,13 +2,25 @@
   "@@locale": "en",
   "appTitle": "Komit",
   "greeting": "Hello, {name}!",
-  "@greeting": {"placeholders": {"name": {"type": "String"}}},
+  "@greeting": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "greetingWithoutName": "Hello!",
   "habitsTab": "Habits",
   "notesTab": "Notes",
   "settingsTooltip": "Settings",
   "lastActivity": "Last activity: {date}",
-  "@lastActivity": {"placeholders": {"date": {"type": "String"}}},
+  "@lastActivity": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "noActivityYet": "No activity yet",
   "newHabit": "New habit",
   "emptyHabitsMessage": "Create your first habit to start tracking.",
@@ -17,12 +29,24 @@
   "currentStreak": "Current streak",
   "bestStreak": "Best streak",
   "dayCount": "{count, plural, =1{1 day} other{{count} days}}",
-  "@dayCount": {"placeholders": {"count": {"type": "int"}}},
+  "@dayCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "yearlyProgress": "Yearly progress",
   "logToday": "Log today",
   "objectivesLegend": "Objectives",
   "logForDate": "Log for {date}",
-  "@logForDate": {"placeholders": {"date": {"type": "String"}}},
+  "@logForDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "clearLog": "Clear this day",
   "chooseYear": "Year",
   "statisticsTooltip": "Statistics",
@@ -30,13 +54,25 @@
   "editHabit": "Edit habit",
   "deleteHabit": "Delete habit",
   "deleteHabitConfirmation": "Delete \"{title}\" and all its history? This cannot be undone.",
-  "@deleteHabitConfirmation": {"placeholders": {"title": {"type": "String"}}},
+  "@deleteHabitConfirmation": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
   "delete": "Delete",
   "cancel": "Cancel",
   "save": "Save",
   "back": "Back",
   "statisticsTitle": "{year} statistics",
-  "@statisticsTitle": {"placeholders": {"year": {"type": "int"}}},
+  "@statisticsTitle": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
   "daysLogged": "Days logged",
   "objectiveDistribution": "Objective distribution",
   "monthlyActivity": "Monthly activity",
@@ -49,7 +85,13 @@
   "icon": "Icon",
   "dailyReminder": "Daily reminder",
   "reminderEnabledAt": "Enabled at {time}",
-  "@reminderEnabledAt": {"placeholders": {"time": {"type": "String"}}},
+  "@reminderEnabledAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "reminderDisabled": "Disabled",
   "reminderTime": "Reminder time",
   "objectives": "Objectives",
@@ -58,7 +100,13 @@
   "removeObjective": "Remove objective",
   "reorderObjective": "Drag to reorder",
   "removeObjectiveWithLogsConfirmation": "{count, plural, =1{1 logged day uses this objective. It will be deleted when you save.} other{{count} logged days use this objective. They will be deleted when you save.}}",
-  "@removeObjectiveWithLogsConfirmation": {"placeholders": {"count": {"type": "int"}}},
+  "@removeObjectiveWithLogsConfirmation": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "remove": "Remove",
   "habitNameRequired": "Give your habit a name.",
   "objectiveRequired": "Add at least one objective.",
@@ -66,7 +114,13 @@
   "chooseColor": "Choose a color",
   "chooseIcon": "Choose an icon",
   "reminderNotificationTitle": "{habit}",
-  "@reminderNotificationTitle": {"placeholders": {"habit": {"type": "String"}}},
+  "@reminderNotificationTitle": {
+    "placeholders": {
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
   "reminderNotificationBody": "How did it go today? Log it in Komit.",
   "reminderChannelName": "Habit reminders",
   "notificationsDenied": "Notifications are disabled for Komit. Enable them in system settings to get reminders.",
@@ -88,32 +142,88 @@
   "importData": "Import data",
   "importConfirmationTitle": "Replace all data?",
   "importConfirmationMessage": "This file contains {habits} habits, {logs} logged days and {notes} notes. Everything currently in the app will be replaced.",
-  "@importConfirmationMessage": {"placeholders": {"habits": {"type": "int"}, "logs": {"type": "int"}, "notes": {"type": "int"}}},
+  "@importConfirmationMessage": {
+    "placeholders": {
+      "habits": {
+        "type": "int"
+      },
+      "logs": {
+        "type": "int"
+      },
+      "notes": {
+        "type": "int"
+      }
+    }
+  },
   "replace": "Replace",
   "importSucceeded": "Import complete: {logs} logged days restored.",
-  "@importSucceeded": {"placeholders": {"logs": {"type": "int"}}},
+  "@importSucceeded": {
+    "placeholders": {
+      "logs": {
+        "type": "int"
+      }
+    }
+  },
   "importFailed": "This file could not be imported: {reason}",
-  "@importFailed": {"placeholders": {"reason": {"type": "String"}}},
+  "@importFailed": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
   "exportFailed": "Export failed. Please try again.",
   "updates": "Updates",
   "checkForUpdates": "Check for updates",
   "upToDate": "Komit is up to date.",
   "updateCheckFailed": "Could not check for updates. Check your connection.",
   "updateAvailableTitle": "Komit {version} is available",
-  "@updateAvailableTitle": {"placeholders": {"version": {"type": "String"}}},
+  "@updateAvailableTitle": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   "whatsNew": "What's new",
   "later": "Later",
   "installUpdate": "Install",
   "downloadingUpdate": "Downloading update… {percent}%",
-  "@downloadingUpdate": {"placeholders": {"percent": {"type": "int"}}},
+  "@downloadingUpdate": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "updateFailed": "The update could not be installed: {reason}",
-  "@updateFailed": {"placeholders": {"reason": {"type": "String"}}},
+  "@updateFailed": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
   "versionLabel": "Komit v{version}",
-  "@versionLabel": {"placeholders": {"version": {"type": "String"}}},
+  "@versionLabel": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   "onboardingTitle": "Build habits that stick.",
   "onboardingSubtitle": "Track every day with your own objectives, and see your year at a glance.",
   "onboardingNameLabel": "What should we call you?",
   "getStarted": "Get started",
   "restoreFromBackup": "Restore from a backup",
-  "loading": "Loading…"
+  "loading": "Loading…",
+  "updateErrorInstallPermission": "allow Komit to install apps in the settings that just opened, then try again.",
+  "updateErrorNetwork": "the download was interrupted. Check your connection and try again.",
+  "updateErrorInvalidRelease": "this version is not available for installation.",
+  "updateErrorCorruptedDownload": "the downloaded file is damaged. Try again.",
+  "updateErrorInstallFailed": "Android refused the installation.",
+  "logAnotherDay": "Log another day",
+  "habitNameTooLong": "The habit name is too long.",
+  "exportPrivacyNote": "The exported file is not encrypted: keep it somewhere private."
 }

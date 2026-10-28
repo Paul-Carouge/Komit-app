@@ -61,6 +61,24 @@ Decisions are recorded in [`docs/adr/`](docs/adr).
 Releases are APKs published on GitHub Releases; the app checks the latest release at
 launch and can install it after verifying its SHA-256.
 
+### Verify a downloaded APK
+
+Official APKs are signed with this certificate (SHA-256):
+
+```
+7B:86:00:AA:80:99:47:6F:8B:1D:C4:29:05:79:38:1D:24:68:AF:51:5E:32:6B:7B:07:4E:3C:4B:5E:6B:F9:FD
+```
+
+```sh
+apksigner verify --print-certs komit-vX.Y.Z.apk
+```
+
+### Privacy
+
+Komit has no account and no analytics. At each launch it asks
+`api.github.com` for the latest release, which exposes the device IP address to GitHub.
+Exported backups are plain JSON: keep them somewhere private.
+
 ### Release signing
 
 Every release must be signed with the same key, otherwise Android refuses the update.

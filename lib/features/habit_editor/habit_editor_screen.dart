@@ -263,7 +263,10 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
   }
 
   String? _findValidationError(AppLocalizations localizations) {
-    if (_titleController.text.trim().isEmpty) return localizations.habitNameRequired;
+    final title = _titleController.text.trim();
+    if (title.isEmpty) return localizations.habitNameRequired;
+    // The field counts characters as displayed; the database counts UTF-16 units (an emoji counts twice).
+    if (title.length > maximumHabitTitleLength) return localizations.habitNameTooLong;
     if (_objectives.isEmpty) return localizations.objectiveRequired;
     final objectiveTitles = _objectives.map((objective) => objective.titleController.text.trim()).toList();
     final hasEmptyOrDuplicateTitle =
@@ -280,8 +283,8 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
 
     setState(() => _isSaving = true);
     try {
-      final isReminderNewlyEnabled = _reminderMinuteOfDay != null && _initialReminderMinuteOfDay == null;
-      if (isReminderNewlyEnabled) {
+      // Asked on every save with a reminder: the permission may have been revoked since.
+      if (_reminderMinuteOfDay != null) {
         final isNotificationAllowed = await ref.read(reminderSchedulerProvider).requestPermission();
         if (!isNotificationAllowed && mounted) showMessageSnackBar(context, localizations.notificationsDenied);
       }

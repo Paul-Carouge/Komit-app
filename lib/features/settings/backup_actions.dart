@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
+import 'dart:isolate';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -44,7 +45,9 @@ Future<bool> importBackupFromUserChosenFile(BuildContext context, WidgetRef ref)
     if (await pickedFile.xFile.length() > _maximumBackupFileSizeBytes) {
       throw const InvalidBackupException('file too large');
     }
-    snapshot = decodeBackupSnapshotFromJson(await pickedFile.xFile.readAsString());
+    final jsonText = await pickedFile.xFile.readAsString();
+    // Decoding and validating a large file must not freeze the UI.
+    snapshot = await Isolate.run(() => decodeBackupSnapshotFromJson(jsonText));
   } on InvalidBackupException catch (error) {
     if (context.mounted) showMessageSnackBar(context, localizations.importFailed(error.message));
     return false;
@@ -69,10 +72,17 @@ Future<bool> importBackupFromUserChosenFile(BuildContext context, WidgetRef ref)
       await ref.read(settingsControllerProvider.notifier).updateUserName(snapshot.userName);
     }
     if (context.mounted) showMessageSnackBar(context, localizations.importSucceeded(snapshot.logCount));
-    return true;
   } on Object catch (error) {
     developer.log('Backup import failed, database rolled back', name: 'komit.backup', error: error);
     if (context.mounted) showMessageSnackBar(context, localizations.importFailed(localizations.genericError));
     return false;
   }
+
+  // Imported reminders would otherwise be scheduled but silently never shown.
+  final hasImportedReminders = snapshot.habits.any((habit) => habit.reminderMinuteOfDay != null);
+  if (hasImportedReminders) {
+    final isNotificationAllowed = await ref.read(reminderSchedulerProvider).requestPermission();
+    if (!isNotificationAllowed && context.mounted) showMessageSnackBar(context, localizations.notificationsDenied);
+  }
+  return true;
 }

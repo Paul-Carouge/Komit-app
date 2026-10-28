@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -31,6 +30,9 @@ GoRouter buildAppRouter(WidgetRef ref) {
   return GoRouter(
     initialLocation: AppRoutes.habits,
     redirect: (context, state) {
+      // Every path parameter in Komit is an integer id or year; anything else is a malformed link.
+      final hasMalformedParameter = state.pathParameters.values.any((value) => int.tryParse(value) == null);
+      if (hasMalformedParameter) return AppRoutes.habits;
       final isOnboardingComplete = ref.read(settingsControllerProvider).isOnboardingComplete;
       final isOnOnboarding = state.matchedLocation == AppRoutes.onboarding;
       if (!isOnboardingComplete && !isOnOnboarding) return AppRoutes.onboarding;
@@ -54,48 +56,29 @@ GoRouter buildAppRouter(WidgetRef ref) {
       GoRoute(path: AppRoutes.newHabit, builder: (context, state) => const HabitEditorScreen(habitId: null)),
       GoRoute(
         path: '/habit/:habitId',
-        builder: (context, state) =>
-            _withValidIntParameters(state, ['habitId'], (ids) => HabitDetailsScreen(habitId: ids[0])),
+        builder: (context, state) => HabitDetailsScreen(habitId: _integerPathParameter(state, 'habitId')),
         routes: [
           GoRoute(
             path: 'edit',
-            builder: (context, state) =>
-                _withValidIntParameters(state, ['habitId'], (ids) => HabitEditorScreen(habitId: ids[0])),
+            builder: (context, state) => HabitEditorScreen(habitId: _integerPathParameter(state, 'habitId')),
           ),
           GoRoute(
             path: 'statistics/:year',
-            builder: (context, state) => _withValidIntParameters(state, [
-              'habitId',
-              'year',
-            ], (ids) => HabitStatisticsScreen(habitId: ids[0], year: ids[1])),
+            builder: (context, state) => HabitStatisticsScreen(
+              habitId: _integerPathParameter(state, 'habitId'),
+              year: _integerPathParameter(state, 'year'),
+            ),
           ),
         ],
       ),
       GoRoute(path: AppRoutes.newNote, builder: (context, state) => const NoteEditorScreen(noteId: null)),
       GoRoute(
         path: '/note/:noteId',
-        builder: (context, state) =>
-            _withValidIntParameters(state, ['noteId'], (ids) => NoteEditorScreen(noteId: ids[0])),
+        builder: (context, state) => NoteEditorScreen(noteId: _integerPathParameter(state, 'noteId')),
       ),
     ],
   );
 }
 
-/// Path parameters come from outside the app (deep links), so a malformed one goes back home.
-Widget _withValidIntParameters(GoRouterState state, List<String> names, Widget Function(List<int> ids) build) {
-  final ids = [for (final name in names) int.tryParse(state.pathParameters[name] ?? '')];
-  if (ids.contains(null)) return const _RedirectHome();
-  return build(ids.cast<int>());
-}
-
-class _RedirectHome extends StatelessWidget {
-  const _RedirectHome();
-
-  @override
-  Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (context.mounted) context.go(AppRoutes.habits);
-    });
-    return const SizedBox.shrink();
-  }
-}
+/// Safe because the top-level redirect sends any non-integer path parameter back home.
+int _integerPathParameter(GoRouterState state, String name) => int.parse(state.pathParameters[name]!);

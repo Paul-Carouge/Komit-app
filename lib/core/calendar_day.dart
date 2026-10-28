@@ -10,8 +10,6 @@ extension type const CalendarDay(int daysSinceEpoch) implements Object {
   factory CalendarDay.fromDateTime(DateTime dateTime) =>
       CalendarDay.fromDate(dateTime.year, dateTime.month, dateTime.day);
 
-  factory CalendarDay.today() => CalendarDay.fromDateTime(DateTime.now());
-
   DateTime get asUtcDate =>
       DateTime.fromMillisecondsSinceEpoch(daysSinceEpoch * Duration.millisecondsPerDay, isUtc: true);
 

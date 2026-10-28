@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/calendar_day.dart';
+import '../../core/current_calendar_day.dart';
 import '../../core/habit_appearance.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/repositories/habit_repository.dart';
@@ -83,7 +84,7 @@ class _HabitCardGrid extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final recentLogsByHabitId = ref.watch(recentLogsForAllHabitsProvider).value ?? const {};
     final lastLoggedDayByHabitId = ref.watch(lastLoggedDayByHabitIdProvider).value ?? const {};
-    final today = CalendarDay.today();
+    final today = ref.watch(currentCalendarDayProvider);
     return SliverPadding(
       padding: const EdgeInsets.fromLTRB(AppSpacing.screenGutter, 0, AppSpacing.screenGutter, AppSpacing.extraLarge),
       sliver: SliverGrid.builder(
@@ -128,9 +129,12 @@ class _HabitCard extends StatelessWidget {
     final komitColors = KomitColors.of(context);
     final textTheme = Theme.of(context).textTheme;
     final dateFormat = DateFormat.MMMd(Localizations.localeOf(context).toLanguageTag());
-    final lastActivityText = lastLoggedDay == null
+    final lastLoggedDateText = lastLoggedDay == null ? null : dateFormat.format(lastLoggedDay!.asLocalDate);
+    // Cards are narrow: show the bare date next to the history icon, and the full sentence to screen readers.
+    final lastActivityText = lastLoggedDateText ?? localizations.noActivityYet;
+    final lastActivitySemanticLabel = lastLoggedDateText == null
         ? localizations.noActivityYet
-        : localizations.lastActivity(dateFormat.format(lastLoggedDay!.asLocalDate));
+        : localizations.lastActivity(lastLoggedDateText);
     final firstDay = today.addDays(-(dashboardRecentDayCount - 1));
     final cells = [
       for (var offset = 0; offset < dashboardRecentDayCount; offset++)
@@ -164,18 +168,22 @@ class _HabitCard extends StatelessWidget {
                 child: DayGrid(columnCount: _daysPerGridRow, cells: cells),
               ),
               const Spacer(),
-              Row(
-                children: [
-                  Icon(LucideIcons.history, size: textTheme.bodySmall?.fontSize, color: komitColors.mutedText),
-                  const SizedBox(width: AppSpacing.extraSmall),
-                  Expanded(
-                    child: Text(
-                      lastActivityText,
-                      style: textTheme.bodySmall?.copyWith(color: komitColors.mutedText),
-                      overflow: TextOverflow.ellipsis,
+              Semantics(
+                label: lastActivitySemanticLabel,
+                excludeSemantics: true,
+                child: Row(
+                  children: [
+                    Icon(LucideIcons.history, size: textTheme.bodySmall?.fontSize, color: komitColors.mutedText),
+                    const SizedBox(width: AppSpacing.extraSmall),
+                    Expanded(
+                      child: Text(
+                        lastActivityText,
+                        style: textTheme.bodySmall?.copyWith(color: komitColors.mutedText),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
