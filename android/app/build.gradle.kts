@@ -1,4 +1,6 @@
+import com.android.build.api.artifact.SingleArtifact
 import java.util.Properties
+import javax.xml.parsers.DocumentBuilderFactory
 
 plugins {
     id("com.android.application")
@@ -60,6 +62,75 @@ android {
             signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
+        }
+    }
+}
+
+/**
+ * Every permission the release APK may request. A new one, often pulled in by a plugin's
+ * manifest, fails the release build until it is reviewed here and explained on the in-app
+ * privacy screen.
+ */
+fun releaseManifestAllowedPermissions(applicationId: String): Set<String> =
+    setOf(
+        "android.permission.INTERNET",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.REQUEST_INSTALL_PACKAGES",
+        "android.permission.VIBRATE",
+        // Declared by androidx.core so that only this app can send its dynamic broadcasts.
+        "$applicationId.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
+    )
+
+/** Fails when the merged release manifest requests an unlisted permission or lost its backup rules. */
+abstract class VerifyReleaseManifestTask : DefaultTask() {
+    @get:InputFile
+    abstract val mergedManifest: RegularFileProperty
+
+    @get:Input
+    abstract val allowedPermissions: SetProperty<String>
+
+    @TaskAction
+    fun verify() {
+        val androidNamespace = "http://schemas.android.com/apk/res/android"
+        val document =
+            DocumentBuilderFactory
+                .newInstance()
+                .apply { isNamespaceAware = true }
+                .newDocumentBuilder()
+                .parse(mergedManifest.get().asFile)
+        val requestedPermissions =
+            listOf("uses-permission", "uses-permission-sdk-23").flatMap { tagName ->
+                val nodes = document.getElementsByTagName(tagName)
+                (0 until nodes.length).map { index ->
+                    (nodes.item(index) as org.w3c.dom.Element).getAttributeNS(androidNamespace, "name")
+                }
+            }
+        val unexpectedPermissions = requestedPermissions.toSet() - allowedPermissions.get()
+        if (unexpectedPermissions.isNotEmpty()) {
+            throw GradleException(
+                "The release manifest requests permissions outside the allowlist: $unexpectedPermissions. " +
+                    "Review them, then add them to releaseManifestAllowedPermissions in app/build.gradle.kts.",
+            )
+        }
+        val application = document.getElementsByTagName("application").item(0) as org.w3c.dom.Element
+        for (backupAttribute in listOf("allowBackup", "fullBackupContent", "dataExtractionRules")) {
+            if (application.getAttributeNS(androidNamespace, backupAttribute).isEmpty()) {
+                throw GradleException("The release manifest lost android:$backupAttribute; see docs/adr/0005.")
+            }
+        }
+    }
+}
+
+androidComponents {
+    onVariants(selector().withBuildType("release")) { variant ->
+        val verifyTask =
+            tasks.register<VerifyReleaseManifestTask>("verifyReleaseManifest") {
+                mergedManifest.set(variant.artifacts.get(SingleArtifact.MERGED_MANIFEST))
+                allowedPermissions.set(variant.applicationId.map(::releaseManifestAllowedPermissions))
+            }
+        tasks.matching { it.name in setOf("assembleRelease", "bundleRelease", "check") }.configureEach {
+            dependsOn(verifyTask)
         }
     }
 }
