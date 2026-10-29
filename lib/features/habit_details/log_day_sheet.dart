@@ -1,11 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/calendar_day.dart';
+import '../../core/current_calendar_day.dart';
 import '../../core/date_formatting.dart';
+import '../../core/haptics.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/repositories/habit_repository.dart';
 import '../../l10n/app_localizations.dart';
+import '../../providers.dart';
 import '../shared/shared_widgets.dart';
 
 sealed class LogDayChoice {
@@ -20,6 +26,38 @@ class LogDayChoiceObjective extends LogDayChoice {
 
 class LogDayChoiceClear extends LogDayChoice {
   const LogDayChoiceClear();
+}
+
+/// Opens the sheet for [day], then saves or clears the chosen log with matching haptics.
+Future<void> logDayFromSheet(
+  BuildContext context,
+  WidgetRef ref, {
+  required HabitWithObjectives habit,
+  required CalendarDay day,
+  required int? currentObjectiveId,
+}) async {
+  final choice = await showLogDaySheet(
+    context,
+    habit: habit,
+    day: day,
+    currentObjectiveId: currentObjectiveId,
+    canLogObjective: !day.isAfter(ref.read(currentCalendarDayProvider)),
+  );
+  if (choice == null || !context.mounted) return;
+  final repository = ref.read(habitRepositoryProvider);
+  try {
+    switch (choice) {
+      case LogDayChoiceObjective(:final objectiveId):
+        await repository.logObjectiveForDay(habitId: habit.habit.id, objectiveId: objectiveId, day: day);
+        unawaited(KomitHaptics.success());
+      case LogDayChoiceClear():
+        await repository.clearLogForDay(habitId: habit.habit.id, day: day);
+        unawaited(KomitHaptics.warning());
+    }
+  } on Object {
+    unawaited(KomitHaptics.error());
+    if (context.mounted) showMessageSnackBar(context, AppLocalizations.of(context).genericError);
+  }
 }
 
 /// Returns null when dismissed.

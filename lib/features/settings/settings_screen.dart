@@ -38,7 +38,8 @@ class SettingsScreen extends ConsumerWidget {
             onSubmitted: settingsController.updateUserName,
           ),
           SectionTitle(localizations.appearance),
-          Card(
+          SoftCard(
+            padding: EdgeInsets.zero,
             child: RadioGroup<ThemeMode>(
               groupValue: settings.themeMode,
               onChanged: (themeMode) {
@@ -76,7 +77,8 @@ class SettingsScreen extends ConsumerWidget {
             },
           ),
           SectionTitle(localizations.dataAndStorage),
-          Card(
+          SoftCard(
+            padding: EdgeInsets.zero,
             child: Column(
               children: [
                 ListTile(
@@ -96,7 +98,8 @@ class SettingsScreen extends ConsumerWidget {
           ),
           if (ref.watch(appUpdateServiceProvider).isSupported) ...[
             SectionTitle(localizations.updates),
-            Card(
+            SoftCard(
+              padding: EdgeInsets.zero,
               child: ListTile(
                 leading: HabitIconBadge(icon: LucideIcons.refreshCw, color: colorScheme.primary),
                 title: Text(localizations.checkForUpdates),

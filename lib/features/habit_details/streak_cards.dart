@@ -69,7 +69,11 @@ class _StreakCard extends StatelessWidget {
     return MergeSemantics(
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.large),
-        decoration: BoxDecoration(color: backgroundColor, borderRadius: BorderRadius.circular(AppRadii.tile)),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(AppRadii.tile),
+          boxShadow: AppShadows.card(KomitColors.of(context).cardShadow),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

@@ -124,7 +124,8 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
                       )
                     : null,
               ),
-              Card(
+              SoftCard(
+                padding: EdgeInsets.zero,
                 child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.medium),
                   child: YearlyGrid(
@@ -182,30 +183,8 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
     await _openLogSheet(habit, pickedDay, objectiveIdByDay[pickedDay]);
   }
 
-  Future<void> _openLogSheet(HabitWithObjectives habit, CalendarDay day, int? currentObjectiveId) async {
-    final choice = await showLogDaySheet(
-      context,
-      habit: habit,
-      day: day,
-      currentObjectiveId: currentObjectiveId,
-      canLogObjective: !day.isAfter(ref.read(currentCalendarDayProvider)),
-    );
-    if (choice == null || !mounted) return;
-    final repository = ref.read(habitRepositoryProvider);
-    try {
-      switch (choice) {
-        case LogDayChoiceObjective(:final objectiveId):
-          await repository.logObjectiveForDay(habitId: habit.habit.id, objectiveId: objectiveId, day: day);
-          unawaited(KomitHaptics.success());
-        case LogDayChoiceClear():
-          await repository.clearLogForDay(habitId: habit.habit.id, day: day);
-          unawaited(KomitHaptics.warning());
-      }
-    } on Object {
-      unawaited(KomitHaptics.error());
-      if (mounted) showMessageSnackBar(context, AppLocalizations.of(context).genericError);
-    }
-  }
+  Future<void> _openLogSheet(HabitWithObjectives habit, CalendarDay day, int? currentObjectiveId) =>
+      logDayFromSheet(context, ref, habit: habit, day: day, currentObjectiveId: currentObjectiveId);
 
   Future<void> _chooseYear({required int firstYear, required int lastYear}) async {
     final chosenYear = await showModalBottomSheet<int>(

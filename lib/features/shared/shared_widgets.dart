@@ -122,6 +122,7 @@ class SoftCard extends StatelessWidget {
     return DecoratedBox(
       decoration: ShapeDecoration(shape: shape, shadows: AppShadows.card(KomitColors.of(context).cardShadow)),
       child: Card(
+        clipBehavior: Clip.antiAlias,
         child: Padding(padding: padding, child: child),
       ),
     );

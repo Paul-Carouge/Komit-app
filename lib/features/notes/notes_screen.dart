@@ -25,89 +25,74 @@ class NotesScreen extends ConsumerWidget {
     final notes = ref.watch(notesProvider);
     final dateFormat = DateFormat.yMMMd(Localizations.localeOf(context).toLanguageTag()).add_Hm();
     return Scaffold(
-      body: SafeArea(
-        bottom: false,
-        child: CustomScrollView(
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(
+      body: CustomScrollView(
+        slivers: [
+          LargeTitleSliverAppBar(
+            title: localizations.secondBrain,
+            leading: const SizedBox.shrink(),
+            actions: [
+              IconButton(
+                tooltip: localizations.settingsTooltip,
+                onPressed: () => context.push(AppRoutes.settings),
+                icon: const Icon(LucideIcons.settings),
+              ),
+              const SizedBox(width: AppSpacing.small),
+            ],
+          ),
+          const SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenGutter),
+            sliver: SliverToBoxAdapter(child: _NewNoteBanner()),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenGutter),
+            sliver: SliverToBoxAdapter(child: SectionTitle(localizations.myNotes)),
+          ),
+          switch (notes) {
+            AsyncData(value: final notes) when notes.isEmpty => SliverToBoxAdapter(
+              child: KomoEmptyState(
+                mood: KomoMood.idle,
+                title: localizations.noNotesYet,
+                message: localizations.noNotesYetMessage,
+              ),
+            ),
+            AsyncData(value: final notes) => SliverPadding(
+              // The bottom inset is the frosted navigation bar the list scrolls under.
+              padding: EdgeInsets.fromLTRB(
                 AppSpacing.screenGutter,
-                AppSpacing.extraLarge,
-                AppSpacing.small,
-                AppSpacing.large,
+                0,
+                AppSpacing.screenGutter,
+                AppSpacing.extraLarge + MediaQuery.paddingOf(context).bottom,
               ),
-              sliver: SliverToBoxAdapter(
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Semantics(
-                        header: true,
-                        child: Text(localizations.secondBrain, style: textTheme.headlineSmall),
+              sliver: SliverList.separated(
+                itemCount: notes.length,
+                separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.medium),
+                itemBuilder: (context, index) {
+                  final note = notes[index];
+                  return PressableCard(
+                    onTap: () => context.push(AppRoutes.noteEditor(note.id)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSpacing.large),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            dateFormat.format(note.updatedAt),
+                            style: textTheme.labelMedium?.copyWith(color: komitColors.mutedText),
+                          ),
+                          const SizedBox(height: AppSpacing.small),
+                          Text(note.content, maxLines: _notePreviewMaximumLines, overflow: TextOverflow.ellipsis),
+                        ],
                       ),
                     ),
-                    IconButton(
-                      tooltip: localizations.settingsTooltip,
-                      onPressed: () => context.push(AppRoutes.settings),
-                      icon: const Icon(LucideIcons.settings),
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
-            const SliverPadding(
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenGutter),
-              sliver: SliverToBoxAdapter(child: _NewNoteBanner()),
+            _ => SliverToBoxAdapter(
+              child: AsyncValueView(value: notes, builder: (_) => const SizedBox()),
             ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenGutter),
-              sliver: SliverToBoxAdapter(child: SectionTitle(localizations.myNotes)),
-            ),
-            switch (notes) {
-              AsyncData(value: final notes) when notes.isEmpty => SliverToBoxAdapter(
-                child: KomoEmptyState(
-                  mood: KomoMood.idle,
-                  title: localizations.noNotesYet,
-                  message: localizations.noNotesYetMessage,
-                ),
-              ),
-              AsyncData(value: final notes) => SliverPadding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.screenGutter,
-                  0,
-                  AppSpacing.screenGutter,
-                  AppSpacing.extraLarge,
-                ),
-                sliver: SliverList.separated(
-                  itemCount: notes.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.medium),
-                  itemBuilder: (context, index) {
-                    final note = notes[index];
-                    return PressableCard(
-                      onTap: () => context.push(AppRoutes.noteEditor(note.id)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(AppSpacing.large),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              dateFormat.format(note.updatedAt),
-                              style: textTheme.labelMedium?.copyWith(color: komitColors.mutedText),
-                            ),
-                            const SizedBox(height: AppSpacing.small),
-                            Text(note.content, maxLines: _notePreviewMaximumLines, overflow: TextOverflow.ellipsis),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              _ => SliverToBoxAdapter(
-                child: AsyncValueView(value: notes, builder: (_) => const SizedBox()),
-              ),
-            },
-          ],
-        ),
+          },
+        ],
       ),
     );
   }

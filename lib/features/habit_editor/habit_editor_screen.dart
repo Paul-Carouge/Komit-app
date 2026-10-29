@@ -335,8 +335,8 @@ class _AppearanceTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
+    return SoftCard(
+      padding: EdgeInsets.zero,
       child: InkWell(
         onTap: onTap,
         child: Padding(
@@ -376,7 +376,8 @@ class _ReminderCard extends StatelessWidget {
             ),
             alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context),
           );
-    return Card(
+    return SoftCard(
+      padding: EdgeInsets.zero,
       child: Column(
         children: [
           SwitchListTile(
@@ -429,7 +430,8 @@ class _ObjectiveRowEditor extends StatelessWidget {
     final komitColors = KomitColors.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.small),
-      child: Card(
+      child: SoftCard(
+        padding: EdgeInsets.zero,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.small, vertical: AppSpacing.extraSmall),
           child: Row(
