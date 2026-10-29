@@ -108,6 +108,17 @@ void main() {
     ),
   );
 
+  test('the last logged day is the latest log, and a habit never logged is left out', () async {
+    final loggedHabitId = await saveHabitWithOneObjective('Logged');
+    await saveHabitWithOneObjective('Never logged');
+    final objectiveId = (await repository.watchHabitWithObjectives(loggedHabitId).first)!.objectives.single.id;
+
+    await repository.logObjectiveForDay(habitId: loggedHabitId, objectiveId: objectiveId, day: day.addDays(1));
+    await repository.logObjectiveForDay(habitId: loggedHabitId, objectiveId: objectiveId, day: day);
+
+    expect(await repository.watchLastLoggedDayByHabitId().first, {loggedHabitId: day.addDays(1)});
+  });
+
   group('logObjectiveForDay invariants', () {
     test('throws InvalidLogException for a day after today and writes nothing', () async {
       final habitId = await saveHabitWithOneObjective('Running');
