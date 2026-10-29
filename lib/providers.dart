@@ -16,7 +16,9 @@ final appDatabaseProvider = Provider<AppDatabase>((ref) => throw UnimplementedEr
 final settingsRepositoryProvider = Provider<SettingsRepository>((ref) => throw UnimplementedError('Override in main'));
 final reminderSchedulerProvider = Provider<ReminderScheduler>((ref) => throw UnimplementedError('Override in main'));
 
-final habitRepositoryProvider = Provider((ref) => HabitRepository(ref.watch(appDatabaseProvider)));
+final habitRepositoryProvider = Provider(
+  (ref) => HabitRepository(ref.watch(appDatabaseProvider), now: ref.watch(clockProvider)),
+);
 final noteRepositoryProvider = Provider((ref) => NoteRepository(ref.watch(appDatabaseProvider)));
 final backupRepositoryProvider = Provider((ref) => BackupRepository(ref.watch(appDatabaseProvider)));
 final appUpdateServiceProvider = Provider((ref) => AppUpdateService());
@@ -51,9 +53,7 @@ class SettingsController extends Notifier<AppSettings> {
 
 final settingsControllerProvider = NotifierProvider<SettingsController, AppSettings>(SettingsController.new);
 
-final allHabitsWithObjectivesProvider = StreamProvider(
-  (ref) => ref.watch(habitRepositoryProvider).watchAllHabitsWithObjectives(),
-);
+final activeHabitsProvider = StreamProvider((ref) => ref.watch(habitRepositoryProvider).watchActiveHabits());
 
 final habitWithObjectivesProvider = StreamProvider.family<HabitWithObjectives?, int>(
   (ref, habitId) => ref.watch(habitRepositoryProvider).watchHabitWithObjectives(habitId),

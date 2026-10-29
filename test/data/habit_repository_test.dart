@@ -8,10 +8,12 @@ void main() {
   late AppDatabase database;
   late HabitRepository repository;
   final day = CalendarDay.fromDate(2026, 5, 1);
+  // "Now" is the end of the day after [day], so both can be logged.
+  final now = DateTime(2026, 5, 2, 23, 59);
 
   setUp(() {
     database = AppDatabase(NativeDatabase.memory());
-    repository = HabitRepository(database);
+    repository = HabitRepository(database, now: () => now);
   });
   tearDown(() => database.close());
 
@@ -92,5 +94,77 @@ void main() {
 
     await repository.clearLogForDay(habitId: habitId, day: day);
     expect(await repository.watchObjectiveIdByDayForHabit(habitId).first, isEmpty);
+  });
+
+  Future<int> saveHabitWithOneObjective(String title) => repository.saveHabit(
+    HabitDraft(
+      id: null,
+      title: title,
+      description: '',
+      colorArgb: 1,
+      iconName: 'pill',
+      reminderMinuteOfDay: null,
+      objectives: const [ObjectiveDraft(id: null, title: 'Yes', colorArgb: 1)],
+    ),
+  );
+
+  group('logObjectiveForDay invariants', () {
+    test('throws InvalidLogException for a day after today and writes nothing', () async {
+      final habitId = await saveHabitWithOneObjective('Running');
+      final objective = (await repository.watchHabitWithObjectives(habitId).first)!.objectives.single;
+
+      await expectLater(
+        repository.logObjectiveForDay(habitId: habitId, objectiveId: objective.id, day: day.addDays(2)),
+        throwsA(isA<InvalidLogException>()),
+      );
+      expect(await repository.watchObjectiveIdByDayForHabit(habitId).first, isEmpty);
+
+      await repository.logObjectiveForDay(habitId: habitId, objectiveId: objective.id, day: day);
+      expect(await repository.watchObjectiveIdByDayForHabit(habitId).first, {day: objective.id});
+    });
+
+    test('throws InvalidLogException for an objective of another habit', () async {
+      final runningId = await saveHabitWithOneObjective('Running');
+      final readingId = await saveHabitWithOneObjective('Reading');
+      final readingObjective = (await repository.watchHabitWithObjectives(readingId).first)!.objectives.single;
+
+      await expectLater(
+        repository.logObjectiveForDay(habitId: runningId, objectiveId: readingObjective.id, day: day),
+        throwsA(isA<InvalidLogException>()),
+      );
+      expect(await repository.watchObjectiveIdByDayForHabit(runningId).first, isEmpty);
+    });
+  });
+
+  test('reorderHabits persists the new order', () async {
+    final firstId = await saveHabitWithOneObjective('A');
+    final secondId = await saveHabitWithOneObjective('B');
+    final thirdId = await saveHabitWithOneObjective('C');
+
+    await repository.reorderHabits([thirdId, firstId, secondId]);
+
+    final habits = await repository.watchActiveHabits().first;
+    expect(habits.map((habit) => habit.habit.id), [thirdId, firstId, secondId]);
+  });
+
+  test('archiving moves a habit out of the active list and back, keeping its logs', () async {
+    final runningId = await saveHabitWithOneObjective('Running');
+    final readingId = await saveHabitWithOneObjective('Reading');
+    final objective = (await repository.watchHabitWithObjectives(runningId).first)!.objectives.single;
+    await repository.logObjectiveForDay(habitId: runningId, objectiveId: objective.id, day: day);
+
+    await repository.archiveHabit(runningId);
+    expect((await repository.watchActiveHabits().first).map((habit) => habit.habit.id), [readingId]);
+    final archived = await repository.watchArchivedHabits().first;
+    expect(archived.single.habit.archivedAt, now);
+    expect(await repository.watchObjectiveIdByDayForHabit(runningId).first, {day: objective.id});
+
+    await repository.unarchiveHabit(runningId);
+    expect(await repository.watchArchivedHabits().first, isEmpty);
+    expect((await repository.watchActiveHabits().first).map((habit) => habit.habit.id), [runningId, readingId]);
+  });
+
+  test('watchHabitWithObjectives returns null for an unknown habit', () async {
+    expect(await repository.watchHabitWithObjectives(42).first, isNull);
   });
 }

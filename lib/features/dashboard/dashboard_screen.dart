@@ -30,7 +30,7 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final localizations = AppLocalizations.of(context);
     final userName = ref.watch(settingsControllerProvider.select((settings) => settings.userName));
-    final habits = ref.watch(allHabitsWithObjectivesProvider);
+    final habits = ref.watch(activeHabitsProvider);
     final hasHabits = habits.value?.isNotEmpty ?? false;
     return Scaffold(
       body: CustomScrollView(
@@ -82,7 +82,7 @@ class _DashboardKomo extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final today = ref.watch(currentCalendarDayProvider);
-    final habits = ref.watch(allHabitsWithObjectivesProvider).value ?? const [];
+    final habits = ref.watch(activeHabitsProvider).value ?? const [];
     final recentLogsByHabitId = ref.watch(recentObjectiveIdByDayByHabitIdProvider).value ?? const {};
     final isEveryHabitLoggedToday =
         habits.isNotEmpty && habits.every((habit) => recentLogsByHabitId[habit.habit.id]?.containsKey(today) ?? false);

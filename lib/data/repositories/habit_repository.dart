@@ -54,20 +54,44 @@ class ObjectiveDraft {
   final int colorArgb;
 }
 
+/// Thrown when a log would break an invariant the UI is expected to enforce.
+class InvalidLogException implements Exception {
+  const InvalidLogException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => 'InvalidLogException: $message';
+}
+
 class HabitRepository {
-  HabitRepository(this._database);
+  /// [now] is injectable so tests control what "today" is.
+  HabitRepository(this._database, {this._now = DateTime.now});
 
   final AppDatabase _database;
+  final DateTime Function() _now;
 
-  Stream<List<HabitWithObjectives>> watchAllHabitsWithObjectives() {
+  /// Habits not archived, in the user-defined order.
+  Stream<List<HabitWithObjectives>> watchActiveHabits() =>
+      _watchHabitsWithObjectives(_database.habits.archivedAt.isNull());
+
+  Stream<List<HabitWithObjectives>> watchArchivedHabits() =>
+      _watchHabitsWithObjectives(_database.habits.archivedAt.isNotNull());
+
+  Stream<HabitWithObjectives?> watchHabitWithObjectives(int habitId) =>
+      _watchHabitsWithObjectives(_database.habits.id.equals(habitId)).map((habits) => habits.firstOrNull);
+
+  Stream<List<HabitWithObjectives>> _watchHabitsWithObjectives(Expression<bool> habitFilter) {
     final query =
         _database.select(_database.habits).join([
-          innerJoin(_database.objectives, _database.objectives.habitId.equalsExp(_database.habits.id)),
-        ])..orderBy([
-          OrderingTerm.asc(_database.habits.sortOrder),
-          OrderingTerm.asc(_database.habits.id),
-          OrderingTerm.asc(_database.objectives.sortOrder),
-        ]);
+            innerJoin(_database.objectives, _database.objectives.habitId.equalsExp(_database.habits.id)),
+          ])
+          ..where(habitFilter)
+          ..orderBy([
+            OrderingTerm.asc(_database.habits.sortOrder),
+            OrderingTerm.asc(_database.habits.id),
+            OrderingTerm.asc(_database.objectives.sortOrder),
+          ]);
     return query.watch().map((rows) {
       final objectivesByHabitId = <int, List<ObjectiveRow>>{};
       final habitsInOrder = <HabitRow>[];
@@ -82,10 +106,6 @@ class HabitRepository {
       return [for (final habit in habitsInOrder) HabitWithObjectives(habit, objectivesByHabitId[habit.id]!)];
     });
   }
-
-  Stream<HabitWithObjectives?> watchHabitWithObjectives(int habitId) => watchAllHabitsWithObjectives().map(
-    (habits) => habits.where((candidate) => candidate.habit.id == habitId).firstOrNull,
-  );
 
   /// Every logged day of [habitId], mapped to the chosen objective id.
   Stream<Map<CalendarDay, int>> watchObjectiveIdByDayForHabit(int habitId) {
@@ -136,7 +156,7 @@ class HabitRepository {
         final nextSortOrder = await _nextHabitSortOrder();
         habitId = await _database
             .into(_database.habits)
-            .insert(habitColumns.copyWith(createdAt: Value(DateTime.now()), sortOrder: Value(nextSortOrder)));
+            .insert(habitColumns.copyWith(createdAt: Value(_now()), sortOrder: Value(nextSortOrder)));
       }
 
       final keptObjectiveIds = [for (final objective in draft.objectives) ?objective.id];
@@ -174,6 +194,26 @@ class HabitRepository {
     return (row.read(maximumSortOrder) ?? -1) + 1;
   }
 
+  /// Persists [habitIdsInOrder] as the dashboard order, atomically.
+  Future<void> reorderHabits(List<int> habitIdsInOrder) {
+    return _database.transaction(() async {
+      for (final (sortOrder, habitId) in habitIdsInOrder.indexed) {
+        await (_database.update(
+          _database.habits,
+        )..where((habit) => habit.id.equals(habitId))).write(HabitsCompanion(sortOrder: Value(sortOrder)));
+      }
+    });
+  }
+
+  /// Hides the habit from the dashboard and its reminders; its logs are kept.
+  Future<void> archiveHabit(int habitId) => _writeArchivedAt(habitId, _now());
+
+  Future<void> unarchiveHabit(int habitId) => _writeArchivedAt(habitId, null);
+
+  Future<void> _writeArchivedAt(int habitId, DateTime? archivedAt) => (_database.update(
+    _database.habits,
+  )..where((habit) => habit.id.equals(habitId))).write(HabitsCompanion(archivedAt: Value(archivedAt)));
+
   Future<void> deleteHabit(int habitId) =>
       (_database.delete(_database.habits)..where((habit) => habit.id.equals(habitId))).go();
 
@@ -185,16 +225,29 @@ class HabitRepository {
     return (await query.getSingle()).read(logCount)!;
   }
 
+  /// Throws [InvalidLogException] when [day] is after today or [objectiveId] is not one of
+  /// [habitId]'s objectives; the foreign keys alone would accept both.
   Future<void> logObjectiveForDay({required int habitId, required int objectiveId, required CalendarDay day}) {
-    return _database
-        .into(_database.habitLogs)
-        .insert(
-          HabitLogsCompanion.insert(habitId: habitId, objectiveId: objectiveId, day: day.daysSinceEpoch),
-          onConflict: DoUpdate(
-            (_) => HabitLogsCompanion(objectiveId: Value(objectiveId)),
-            target: [_database.habitLogs.habitId, _database.habitLogs.day],
-          ),
-        );
+    if (day.isAfter(CalendarDay.fromDateTime(_now()))) {
+      return Future.error(const InvalidLogException('cannot log a future day'));
+    }
+    return _database.transaction(() async {
+      final objective = await (_database.select(
+        _database.objectives,
+      )..where((objective) => objective.id.equals(objectiveId) & objective.habitId.equals(habitId))).getSingleOrNull();
+      if (objective == null) {
+        throw InvalidLogException('objective $objectiveId does not belong to habit $habitId');
+      }
+      await _database
+          .into(_database.habitLogs)
+          .insert(
+            HabitLogsCompanion.insert(habitId: habitId, objectiveId: objectiveId, day: day.daysSinceEpoch),
+            onConflict: DoUpdate(
+              (_) => HabitLogsCompanion(objectiveId: Value(objectiveId)),
+              target: [_database.habitLogs.habitId, _database.habitLogs.day],
+            ),
+          );
+    });
   }
 
   Future<void> clearLogForDay({required int habitId, required CalendarDay day}) {

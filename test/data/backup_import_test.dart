@@ -419,7 +419,7 @@ void main() {
       // The v2 defaults (every objective a success, every day scheduled) keep the v1 streaks.
       final habitRepository = HabitRepository(database);
       final realToday = CalendarDay.fromDateTime(DateTime.now());
-      for (final habit in await habitRepository.watchAllHabitsWithObjectives().first) {
+      for (final habit in await habitRepository.watchActiveHabits().first) {
         final objectiveIdByDay = await habitRepository.watchObjectiveIdByDayForHabit(habit.habit.id).first;
         final everyLoggedDayStreak = computeStreakSummary(
           objectiveIdByDay,
