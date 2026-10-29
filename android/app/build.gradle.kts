@@ -125,6 +125,14 @@ abstract class VerifyReleaseManifestTask : DefaultTask() {
 
 androidComponents {
     onVariants(selector().withBuildType("release")) { variant ->
+        // Releases target 64-bit ARM phones only (docs/adr/0002), so plugins' native libraries for
+        // other ABIs would only add weight. An abiFilters entry cannot do this: AGP merges it with
+        // the list the Flutter plugin sets on defaultConfig. Debug builds keep every ABI for emulators.
+        variant.packaging.jniLibs.excludes.addAll(
+            "lib/armeabi-v7a/**",
+            "lib/x86/**",
+            "lib/x86_64/**",
+        )
         val verifyTask =
             tasks.register<VerifyReleaseManifestTask>("verifyReleaseManifest") {
                 mergedManifest.set(variant.artifacts.get(SingleArtifact.MERGED_MANIFEST))
