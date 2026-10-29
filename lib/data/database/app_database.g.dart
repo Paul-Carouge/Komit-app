@@ -86,6 +86,36 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _scheduledWeekdayMaskMeta = const VerificationMeta('scheduledWeekdayMask');
+  @override
+  late final GeneratedColumn<int> scheduledWeekdayMask = GeneratedColumn<int>(
+    'scheduled_weekday_mask',
+    aliasedName,
+    false,
+    check: () => ComparableExpr(scheduledWeekdayMask).isBetweenValues(1, everyWeekdayMask),
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0x7F),
+  );
+  static const VerificationMeta _targetDaysPerWeekMeta = const VerificationMeta('targetDaysPerWeek');
+  @override
+  late final GeneratedColumn<int> targetDaysPerWeek = GeneratedColumn<int>(
+    'target_days_per_week',
+    aliasedName,
+    true,
+    check: () => ComparableExpr(targetDaysPerWeek).isBetweenValues(minimumTargetDaysPerWeek, maximumTargetDaysPerWeek),
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _archivedAtMeta = const VerificationMeta('archivedAt');
+  @override
+  late final GeneratedColumn<DateTime> archivedAt = GeneratedColumn<DateTime>(
+    'archived_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -96,6 +126,9 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
     reminderMinuteOfDay,
     sortOrder,
     createdAt,
+    scheduledWeekdayMask,
+    targetDaysPerWeek,
+    archivedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -141,6 +174,21 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
+    if (data.containsKey('scheduled_weekday_mask')) {
+      context.handle(
+        _scheduledWeekdayMaskMeta,
+        scheduledWeekdayMask.isAcceptableOrUnknown(data['scheduled_weekday_mask']!, _scheduledWeekdayMaskMeta),
+      );
+    }
+    if (data.containsKey('target_days_per_week')) {
+      context.handle(
+        _targetDaysPerWeekMeta,
+        targetDaysPerWeek.isAcceptableOrUnknown(data['target_days_per_week']!, _targetDaysPerWeekMeta),
+      );
+    }
+    if (data.containsKey('archived_at')) {
+      context.handle(_archivedAtMeta, archivedAt.isAcceptableOrUnknown(data['archived_at']!, _archivedAtMeta));
+    }
     return context;
   }
 
@@ -161,6 +209,15 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
       ),
       sortOrder: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}sort_order'])!,
       createdAt: attachedDatabase.typeMapping.read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      scheduledWeekdayMask: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}scheduled_weekday_mask'],
+      )!,
+      targetDaysPerWeek: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}target_days_per_week'],
+      ),
+      archivedAt: attachedDatabase.typeMapping.read(DriftSqlType.dateTime, data['${effectivePrefix}archived_at']),
     );
   }
 
@@ -181,6 +238,13 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
   final int? reminderMinuteOfDay;
   final int sortOrder;
   final DateTime createdAt;
+  final int scheduledWeekdayMask;
+
+  /// Null for a daily habit; otherwise the habit succeeds on weeks with this many success days.
+  final int? targetDaysPerWeek;
+
+  /// Null while the habit is active.
+  final DateTime? archivedAt;
   const HabitRow({
     required this.id,
     required this.title,
@@ -190,6 +254,9 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     this.reminderMinuteOfDay,
     required this.sortOrder,
     required this.createdAt,
+    required this.scheduledWeekdayMask,
+    this.targetDaysPerWeek,
+    this.archivedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -204,6 +271,13 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     }
     map['sort_order'] = Variable<int>(sortOrder);
     map['created_at'] = Variable<DateTime>(createdAt);
+    map['scheduled_weekday_mask'] = Variable<int>(scheduledWeekdayMask);
+    if (!nullToAbsent || targetDaysPerWeek != null) {
+      map['target_days_per_week'] = Variable<int>(targetDaysPerWeek);
+    }
+    if (!nullToAbsent || archivedAt != null) {
+      map['archived_at'] = Variable<DateTime>(archivedAt);
+    }
     return map;
   }
 
@@ -219,6 +293,9 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
           : Value(reminderMinuteOfDay),
       sortOrder: Value(sortOrder),
       createdAt: Value(createdAt),
+      scheduledWeekdayMask: Value(scheduledWeekdayMask),
+      targetDaysPerWeek: targetDaysPerWeek == null && nullToAbsent ? const Value.absent() : Value(targetDaysPerWeek),
+      archivedAt: archivedAt == null && nullToAbsent ? const Value.absent() : Value(archivedAt),
     );
   }
 
@@ -233,6 +310,9 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
       reminderMinuteOfDay: serializer.fromJson<int?>(json['reminderMinuteOfDay']),
       sortOrder: serializer.fromJson<int>(json['sortOrder']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      scheduledWeekdayMask: serializer.fromJson<int>(json['scheduledWeekdayMask']),
+      targetDaysPerWeek: serializer.fromJson<int?>(json['targetDaysPerWeek']),
+      archivedAt: serializer.fromJson<DateTime?>(json['archivedAt']),
     );
   }
   @override
@@ -247,6 +327,9 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
       'reminderMinuteOfDay': serializer.toJson<int?>(reminderMinuteOfDay),
       'sortOrder': serializer.toJson<int>(sortOrder),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'scheduledWeekdayMask': serializer.toJson<int>(scheduledWeekdayMask),
+      'targetDaysPerWeek': serializer.toJson<int?>(targetDaysPerWeek),
+      'archivedAt': serializer.toJson<DateTime?>(archivedAt),
     };
   }
 
@@ -259,6 +342,9 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     Value<int?> reminderMinuteOfDay = const Value.absent(),
     int? sortOrder,
     DateTime? createdAt,
+    int? scheduledWeekdayMask,
+    Value<int?> targetDaysPerWeek = const Value.absent(),
+    Value<DateTime?> archivedAt = const Value.absent(),
   }) => HabitRow(
     id: id ?? this.id,
     title: title ?? this.title,
@@ -268,6 +354,9 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     reminderMinuteOfDay: reminderMinuteOfDay.present ? reminderMinuteOfDay.value : this.reminderMinuteOfDay,
     sortOrder: sortOrder ?? this.sortOrder,
     createdAt: createdAt ?? this.createdAt,
+    scheduledWeekdayMask: scheduledWeekdayMask ?? this.scheduledWeekdayMask,
+    targetDaysPerWeek: targetDaysPerWeek.present ? targetDaysPerWeek.value : this.targetDaysPerWeek,
+    archivedAt: archivedAt.present ? archivedAt.value : this.archivedAt,
   );
   HabitRow copyWithCompanion(HabitsCompanion data) {
     return HabitRow(
@@ -279,6 +368,11 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
       reminderMinuteOfDay: data.reminderMinuteOfDay.present ? data.reminderMinuteOfDay.value : this.reminderMinuteOfDay,
       sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      scheduledWeekdayMask: data.scheduledWeekdayMask.present
+          ? data.scheduledWeekdayMask.value
+          : this.scheduledWeekdayMask,
+      targetDaysPerWeek: data.targetDaysPerWeek.present ? data.targetDaysPerWeek.value : this.targetDaysPerWeek,
+      archivedAt: data.archivedAt.present ? data.archivedAt.value : this.archivedAt,
     );
   }
 
@@ -292,14 +386,28 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
           ..write('iconName: $iconName, ')
           ..write('reminderMinuteOfDay: $reminderMinuteOfDay, ')
           ..write('sortOrder: $sortOrder, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('scheduledWeekdayMask: $scheduledWeekdayMask, ')
+          ..write('targetDaysPerWeek: $targetDaysPerWeek, ')
+          ..write('archivedAt: $archivedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, title, description, colorArgb, iconName, reminderMinuteOfDay, sortOrder, createdAt);
+  int get hashCode => Object.hash(
+    id,
+    title,
+    description,
+    colorArgb,
+    iconName,
+    reminderMinuteOfDay,
+    sortOrder,
+    createdAt,
+    scheduledWeekdayMask,
+    targetDaysPerWeek,
+    archivedAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -311,7 +419,10 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
           other.iconName == this.iconName &&
           other.reminderMinuteOfDay == this.reminderMinuteOfDay &&
           other.sortOrder == this.sortOrder &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.scheduledWeekdayMask == this.scheduledWeekdayMask &&
+          other.targetDaysPerWeek == this.targetDaysPerWeek &&
+          other.archivedAt == this.archivedAt);
 }
 
 class HabitsCompanion extends UpdateCompanion<HabitRow> {
@@ -323,6 +434,9 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
   final Value<int?> reminderMinuteOfDay;
   final Value<int> sortOrder;
   final Value<DateTime> createdAt;
+  final Value<int> scheduledWeekdayMask;
+  final Value<int?> targetDaysPerWeek;
+  final Value<DateTime?> archivedAt;
   const HabitsCompanion({
     this.id = const Value.absent(),
     this.title = const Value.absent(),
@@ -332,6 +446,9 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     this.reminderMinuteOfDay = const Value.absent(),
     this.sortOrder = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.scheduledWeekdayMask = const Value.absent(),
+    this.targetDaysPerWeek = const Value.absent(),
+    this.archivedAt = const Value.absent(),
   });
   HabitsCompanion.insert({
     this.id = const Value.absent(),
@@ -342,6 +459,9 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     this.reminderMinuteOfDay = const Value.absent(),
     this.sortOrder = const Value.absent(),
     required DateTime createdAt,
+    this.scheduledWeekdayMask = const Value.absent(),
+    this.targetDaysPerWeek = const Value.absent(),
+    this.archivedAt = const Value.absent(),
   }) : title = Value(title),
        colorArgb = Value(colorArgb),
        iconName = Value(iconName),
@@ -355,6 +475,9 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     Expression<int>? reminderMinuteOfDay,
     Expression<int>? sortOrder,
     Expression<DateTime>? createdAt,
+    Expression<int>? scheduledWeekdayMask,
+    Expression<int>? targetDaysPerWeek,
+    Expression<DateTime>? archivedAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -365,6 +488,9 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
       if (reminderMinuteOfDay != null) 'reminder_minute_of_day': reminderMinuteOfDay,
       if (sortOrder != null) 'sort_order': sortOrder,
       if (createdAt != null) 'created_at': createdAt,
+      if (scheduledWeekdayMask != null) 'scheduled_weekday_mask': scheduledWeekdayMask,
+      if (targetDaysPerWeek != null) 'target_days_per_week': targetDaysPerWeek,
+      if (archivedAt != null) 'archived_at': archivedAt,
     });
   }
 
@@ -377,6 +503,9 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     Value<int?>? reminderMinuteOfDay,
     Value<int>? sortOrder,
     Value<DateTime>? createdAt,
+    Value<int>? scheduledWeekdayMask,
+    Value<int?>? targetDaysPerWeek,
+    Value<DateTime?>? archivedAt,
   }) {
     return HabitsCompanion(
       id: id ?? this.id,
@@ -387,6 +516,9 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
       reminderMinuteOfDay: reminderMinuteOfDay ?? this.reminderMinuteOfDay,
       sortOrder: sortOrder ?? this.sortOrder,
       createdAt: createdAt ?? this.createdAt,
+      scheduledWeekdayMask: scheduledWeekdayMask ?? this.scheduledWeekdayMask,
+      targetDaysPerWeek: targetDaysPerWeek ?? this.targetDaysPerWeek,
+      archivedAt: archivedAt ?? this.archivedAt,
     );
   }
 
@@ -417,6 +549,15 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (scheduledWeekdayMask.present) {
+      map['scheduled_weekday_mask'] = Variable<int>(scheduledWeekdayMask.value);
+    }
+    if (targetDaysPerWeek.present) {
+      map['target_days_per_week'] = Variable<int>(targetDaysPerWeek.value);
+    }
+    if (archivedAt.present) {
+      map['archived_at'] = Variable<DateTime>(archivedAt.value);
+    }
     return map;
   }
 
@@ -430,7 +571,10 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
           ..write('iconName: $iconName, ')
           ..write('reminderMinuteOfDay: $reminderMinuteOfDay, ')
           ..write('sortOrder: $sortOrder, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('scheduledWeekdayMask: $scheduledWeekdayMask, ')
+          ..write('targetDaysPerWeek: $targetDaysPerWeek, ')
+          ..write('archivedAt: $archivedAt')
           ..write(')'))
         .toString();
   }
@@ -490,8 +634,19 @@ class $ObjectivesTable extends Objectives with TableInfo<$ObjectivesTable, Objec
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _countsAsSuccessMeta = const VerificationMeta('countsAsSuccess');
   @override
-  List<GeneratedColumn> get $columns => [id, habitId, title, colorArgb, sortOrder];
+  late final GeneratedColumn<bool> countsAsSuccess = GeneratedColumn<bool>(
+    'counts_as_success',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('CHECK ("counts_as_success" IN (0, 1))'),
+    defaultValue: const Constant(true),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, habitId, title, colorArgb, sortOrder, countsAsSuccess];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -524,6 +679,12 @@ class $ObjectivesTable extends Objectives with TableInfo<$ObjectivesTable, Objec
     } else if (isInserting) {
       context.missing(_sortOrderMeta);
     }
+    if (data.containsKey('counts_as_success')) {
+      context.handle(
+        _countsAsSuccessMeta,
+        countsAsSuccess.isAcceptableOrUnknown(data['counts_as_success']!, _countsAsSuccessMeta),
+      );
+    }
     return context;
   }
 
@@ -542,6 +703,10 @@ class $ObjectivesTable extends Objectives with TableInfo<$ObjectivesTable, Objec
       title: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}title'])!,
       colorArgb: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}color_argb'])!,
       sortOrder: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}sort_order'])!,
+      countsAsSuccess: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}counts_as_success'],
+      )!,
     );
   }
 
@@ -557,12 +722,16 @@ class ObjectiveRow extends DataClass implements Insertable<ObjectiveRow> {
   final String title;
   final int colorArgb;
   final int sortOrder;
+
+  /// False for outcomes such as "Skipped" that are logged but must not extend a streak.
+  final bool countsAsSuccess;
   const ObjectiveRow({
     required this.id,
     required this.habitId,
     required this.title,
     required this.colorArgb,
     required this.sortOrder,
+    required this.countsAsSuccess,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -572,6 +741,7 @@ class ObjectiveRow extends DataClass implements Insertable<ObjectiveRow> {
     map['title'] = Variable<String>(title);
     map['color_argb'] = Variable<int>(colorArgb);
     map['sort_order'] = Variable<int>(sortOrder);
+    map['counts_as_success'] = Variable<bool>(countsAsSuccess);
     return map;
   }
 
@@ -582,6 +752,7 @@ class ObjectiveRow extends DataClass implements Insertable<ObjectiveRow> {
       title: Value(title),
       colorArgb: Value(colorArgb),
       sortOrder: Value(sortOrder),
+      countsAsSuccess: Value(countsAsSuccess),
     );
   }
 
@@ -593,6 +764,7 @@ class ObjectiveRow extends DataClass implements Insertable<ObjectiveRow> {
       title: serializer.fromJson<String>(json['title']),
       colorArgb: serializer.fromJson<int>(json['colorArgb']),
       sortOrder: serializer.fromJson<int>(json['sortOrder']),
+      countsAsSuccess: serializer.fromJson<bool>(json['countsAsSuccess']),
     );
   }
   @override
@@ -604,15 +776,24 @@ class ObjectiveRow extends DataClass implements Insertable<ObjectiveRow> {
       'title': serializer.toJson<String>(title),
       'colorArgb': serializer.toJson<int>(colorArgb),
       'sortOrder': serializer.toJson<int>(sortOrder),
+      'countsAsSuccess': serializer.toJson<bool>(countsAsSuccess),
     };
   }
 
-  ObjectiveRow copyWith({int? id, int? habitId, String? title, int? colorArgb, int? sortOrder}) => ObjectiveRow(
+  ObjectiveRow copyWith({
+    int? id,
+    int? habitId,
+    String? title,
+    int? colorArgb,
+    int? sortOrder,
+    bool? countsAsSuccess,
+  }) => ObjectiveRow(
     id: id ?? this.id,
     habitId: habitId ?? this.habitId,
     title: title ?? this.title,
     colorArgb: colorArgb ?? this.colorArgb,
     sortOrder: sortOrder ?? this.sortOrder,
+    countsAsSuccess: countsAsSuccess ?? this.countsAsSuccess,
   );
   ObjectiveRow copyWithCompanion(ObjectivesCompanion data) {
     return ObjectiveRow(
@@ -621,6 +802,7 @@ class ObjectiveRow extends DataClass implements Insertable<ObjectiveRow> {
       title: data.title.present ? data.title.value : this.title,
       colorArgb: data.colorArgb.present ? data.colorArgb.value : this.colorArgb,
       sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+      countsAsSuccess: data.countsAsSuccess.present ? data.countsAsSuccess.value : this.countsAsSuccess,
     );
   }
 
@@ -631,13 +813,14 @@ class ObjectiveRow extends DataClass implements Insertable<ObjectiveRow> {
           ..write('habitId: $habitId, ')
           ..write('title: $title, ')
           ..write('colorArgb: $colorArgb, ')
-          ..write('sortOrder: $sortOrder')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('countsAsSuccess: $countsAsSuccess')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, habitId, title, colorArgb, sortOrder);
+  int get hashCode => Object.hash(id, habitId, title, colorArgb, sortOrder, countsAsSuccess);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -646,7 +829,8 @@ class ObjectiveRow extends DataClass implements Insertable<ObjectiveRow> {
           other.habitId == this.habitId &&
           other.title == this.title &&
           other.colorArgb == this.colorArgb &&
-          other.sortOrder == this.sortOrder);
+          other.sortOrder == this.sortOrder &&
+          other.countsAsSuccess == this.countsAsSuccess);
 }
 
 class ObjectivesCompanion extends UpdateCompanion<ObjectiveRow> {
@@ -655,12 +839,14 @@ class ObjectivesCompanion extends UpdateCompanion<ObjectiveRow> {
   final Value<String> title;
   final Value<int> colorArgb;
   final Value<int> sortOrder;
+  final Value<bool> countsAsSuccess;
   const ObjectivesCompanion({
     this.id = const Value.absent(),
     this.habitId = const Value.absent(),
     this.title = const Value.absent(),
     this.colorArgb = const Value.absent(),
     this.sortOrder = const Value.absent(),
+    this.countsAsSuccess = const Value.absent(),
   });
   ObjectivesCompanion.insert({
     this.id = const Value.absent(),
@@ -668,6 +854,7 @@ class ObjectivesCompanion extends UpdateCompanion<ObjectiveRow> {
     required String title,
     required int colorArgb,
     required int sortOrder,
+    this.countsAsSuccess = const Value.absent(),
   }) : habitId = Value(habitId),
        title = Value(title),
        colorArgb = Value(colorArgb),
@@ -678,6 +865,7 @@ class ObjectivesCompanion extends UpdateCompanion<ObjectiveRow> {
     Expression<String>? title,
     Expression<int>? colorArgb,
     Expression<int>? sortOrder,
+    Expression<bool>? countsAsSuccess,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -685,6 +873,7 @@ class ObjectivesCompanion extends UpdateCompanion<ObjectiveRow> {
       if (title != null) 'title': title,
       if (colorArgb != null) 'color_argb': colorArgb,
       if (sortOrder != null) 'sort_order': sortOrder,
+      if (countsAsSuccess != null) 'counts_as_success': countsAsSuccess,
     });
   }
 
@@ -694,6 +883,7 @@ class ObjectivesCompanion extends UpdateCompanion<ObjectiveRow> {
     Value<String>? title,
     Value<int>? colorArgb,
     Value<int>? sortOrder,
+    Value<bool>? countsAsSuccess,
   }) {
     return ObjectivesCompanion(
       id: id ?? this.id,
@@ -701,6 +891,7 @@ class ObjectivesCompanion extends UpdateCompanion<ObjectiveRow> {
       title: title ?? this.title,
       colorArgb: colorArgb ?? this.colorArgb,
       sortOrder: sortOrder ?? this.sortOrder,
+      countsAsSuccess: countsAsSuccess ?? this.countsAsSuccess,
     );
   }
 
@@ -722,6 +913,9 @@ class ObjectivesCompanion extends UpdateCompanion<ObjectiveRow> {
     if (sortOrder.present) {
       map['sort_order'] = Variable<int>(sortOrder.value);
     }
+    if (countsAsSuccess.present) {
+      map['counts_as_success'] = Variable<bool>(countsAsSuccess.value);
+    }
     return map;
   }
 
@@ -732,7 +926,8 @@ class ObjectivesCompanion extends UpdateCompanion<ObjectiveRow> {
           ..write('habitId: $habitId, ')
           ..write('title: $title, ')
           ..write('colorArgb: $colorArgb, ')
-          ..write('sortOrder: $sortOrder')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('countsAsSuccess: $countsAsSuccess')
           ..write(')'))
         .toString();
   }
@@ -1252,10 +1447,21 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $HabitLogsTable habitLogs = $HabitLogsTable(this);
   late final $NotesTable notes = $NotesTable(this);
   late final Index habitLogsDay = Index('habit_logs_day', 'CREATE INDEX habit_logs_day ON habit_logs (day)');
+  late final Index habitLogsObjective = Index(
+    'habit_logs_objective',
+    'CREATE INDEX habit_logs_objective ON habit_logs (objective_id)',
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables => allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [habits, objectives, habitLogs, notes, habitLogsDay];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+    habits,
+    objectives,
+    habitLogs,
+    notes,
+    habitLogsDay,
+    habitLogsObjective,
+  ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
     WritePropagation(
@@ -1282,6 +1488,9 @@ typedef $$HabitsTableCreateCompanionBuilder = HabitsCompanion Function({
   Value<int?> reminderMinuteOfDay,
   Value<int> sortOrder,
   required DateTime createdAt,
+  Value<int> scheduledWeekdayMask,
+  Value<int?> targetDaysPerWeek,
+  Value<DateTime?> archivedAt,
 });
 typedef $$HabitsTableUpdateCompanionBuilder = HabitsCompanion Function({
   Value<int> id,
@@ -1292,6 +1501,9 @@ typedef $$HabitsTableUpdateCompanionBuilder = HabitsCompanion Function({
   Value<int?> reminderMinuteOfDay,
   Value<int> sortOrder,
   Value<DateTime> createdAt,
+  Value<int> scheduledWeekdayMask,
+  Value<int?> targetDaysPerWeek,
+  Value<DateTime?> archivedAt,
 });
 
 final class $$HabitsTableReferences extends BaseReferences<_$AppDatabase, $HabitsTable, HabitRow> {
@@ -1354,6 +1566,15 @@ class $$HabitsTableFilterComposer extends Composer<_$AppDatabase, $HabitsTable> 
 
   ColumnFilters<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get scheduledWeekdayMask =>
+      $composableBuilder(column: $table.scheduledWeekdayMask, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get targetDaysPerWeek =>
+      $composableBuilder(column: $table.targetDaysPerWeek, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get archivedAt =>
+      $composableBuilder(column: $table.archivedAt, builder: (column) => ColumnFilters(column));
 
   Expression<bool> objectivesRefs(Expression<bool> Function($$ObjectivesTableFilterComposer f) f) {
     final $$ObjectivesTableFilterComposer composer = $composerBuilder(
@@ -1422,6 +1643,15 @@ class $$HabitsTableOrderingComposer extends Composer<_$AppDatabase, $HabitsTable
 
   ColumnOrderings<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get scheduledWeekdayMask =>
+      $composableBuilder(column: $table.scheduledWeekdayMask, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get targetDaysPerWeek =>
+      $composableBuilder(column: $table.targetDaysPerWeek, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get archivedAt =>
+      $composableBuilder(column: $table.archivedAt, builder: (column) => ColumnOrderings(column));
 }
 
 class $$HabitsTableAnnotationComposer extends Composer<_$AppDatabase, $HabitsTable> {
@@ -1449,6 +1679,15 @@ class $$HabitsTableAnnotationComposer extends Composer<_$AppDatabase, $HabitsTab
   GeneratedColumn<int> get sortOrder => $composableBuilder(column: $table.sortOrder, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt => $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<int> get scheduledWeekdayMask =>
+      $composableBuilder(column: $table.scheduledWeekdayMask, builder: (column) => column);
+
+  GeneratedColumn<int> get targetDaysPerWeek =>
+      $composableBuilder(column: $table.targetDaysPerWeek, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get archivedAt =>
+      $composableBuilder(column: $table.archivedAt, builder: (column) => column);
 
   Expression<T> objectivesRefs<T extends Object>(Expression<T> Function($$ObjectivesTableAnnotationComposer a) f) {
     final $$ObjectivesTableAnnotationComposer composer = $composerBuilder(
@@ -1520,6 +1759,9 @@ class $$HabitsTableTableManager
                 Value<int?> reminderMinuteOfDay = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<int> scheduledWeekdayMask = const Value.absent(),
+                Value<int?> targetDaysPerWeek = const Value.absent(),
+                Value<DateTime?> archivedAt = const Value.absent(),
               }) => HabitsCompanion(
                 id: id,
                 title: title,
@@ -1529,6 +1771,9 @@ class $$HabitsTableTableManager
                 reminderMinuteOfDay: reminderMinuteOfDay,
                 sortOrder: sortOrder,
                 createdAt: createdAt,
+                scheduledWeekdayMask: scheduledWeekdayMask,
+                targetDaysPerWeek: targetDaysPerWeek,
+                archivedAt: archivedAt,
               ),
           createCompanionCallback:
               ({
@@ -1540,6 +1785,9 @@ class $$HabitsTableTableManager
                 Value<int?> reminderMinuteOfDay = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
                 required DateTime createdAt,
+                Value<int> scheduledWeekdayMask = const Value.absent(),
+                Value<int?> targetDaysPerWeek = const Value.absent(),
+                Value<DateTime?> archivedAt = const Value.absent(),
               }) => HabitsCompanion.insert(
                 id: id,
                 title: title,
@@ -1549,6 +1797,9 @@ class $$HabitsTableTableManager
                 reminderMinuteOfDay: reminderMinuteOfDay,
                 sortOrder: sortOrder,
                 createdAt: createdAt,
+                scheduledWeekdayMask: scheduledWeekdayMask,
+                targetDaysPerWeek: targetDaysPerWeek,
+                archivedAt: archivedAt,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable<$HabitsTable, HabitRow>(table), $$HabitsTableReferences(db, table, e)))
@@ -1606,6 +1857,7 @@ typedef $$ObjectivesTableCreateCompanionBuilder = ObjectivesCompanion Function({
   required String title,
   required int colorArgb,
   required int sortOrder,
+  Value<bool> countsAsSuccess,
 });
 typedef $$ObjectivesTableUpdateCompanionBuilder = ObjectivesCompanion Function({
   Value<int> id,
@@ -1613,6 +1865,7 @@ typedef $$ObjectivesTableUpdateCompanionBuilder = ObjectivesCompanion Function({
   Value<String> title,
   Value<int> colorArgb,
   Value<int> sortOrder,
+  Value<bool> countsAsSuccess,
 });
 
 final class $$ObjectivesTableReferences extends BaseReferences<_$AppDatabase, $ObjectivesTable, ObjectiveRow> {
@@ -1661,6 +1914,9 @@ class $$ObjectivesTableFilterComposer extends Composer<_$AppDatabase, $Objective
 
   ColumnFilters<int> get sortOrder =>
       $composableBuilder(column: $table.sortOrder, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get countsAsSuccess =>
+      $composableBuilder(column: $table.countsAsSuccess, builder: (column) => ColumnFilters(column));
 
   $$HabitsTableFilterComposer get habitId {
     final $$HabitsTableFilterComposer composer = $composerBuilder(
@@ -1718,6 +1974,9 @@ class $$ObjectivesTableOrderingComposer extends Composer<_$AppDatabase, $Objecti
   ColumnOrderings<int> get sortOrder =>
       $composableBuilder(column: $table.sortOrder, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<bool> get countsAsSuccess =>
+      $composableBuilder(column: $table.countsAsSuccess, builder: (column) => ColumnOrderings(column));
+
   $$HabitsTableOrderingComposer get habitId {
     final $$HabitsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -1752,6 +2011,9 @@ class $$ObjectivesTableAnnotationComposer extends Composer<_$AppDatabase, $Objec
   GeneratedColumn<int> get colorArgb => $composableBuilder(column: $table.colorArgb, builder: (column) => column);
 
   GeneratedColumn<int> get sortOrder => $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+
+  GeneratedColumn<bool> get countsAsSuccess =>
+      $composableBuilder(column: $table.countsAsSuccess, builder: (column) => column);
 
   $$HabitsTableAnnotationComposer get habitId {
     final $$HabitsTableAnnotationComposer composer = $composerBuilder(
@@ -1813,13 +2075,22 @@ class $$ObjectivesTableTableManager
           createFilteringComposer: () => $$ObjectivesTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () => $$ObjectivesTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () => $$ObjectivesTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            Value<int> habitId = const Value.absent(),
-            Value<String> title = const Value.absent(),
-            Value<int> colorArgb = const Value.absent(),
-            Value<int> sortOrder = const Value.absent(),
-          }) => ObjectivesCompanion(id: id, habitId: habitId, title: title, colorArgb: colorArgb, sortOrder: sortOrder),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> habitId = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<int> colorArgb = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<bool> countsAsSuccess = const Value.absent(),
+              }) => ObjectivesCompanion(
+                id: id,
+                habitId: habitId,
+                title: title,
+                colorArgb: colorArgb,
+                sortOrder: sortOrder,
+                countsAsSuccess: countsAsSuccess,
+              ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
@@ -1827,12 +2098,14 @@ class $$ObjectivesTableTableManager
                 required String title,
                 required int colorArgb,
                 required int sortOrder,
+                Value<bool> countsAsSuccess = const Value.absent(),
               }) => ObjectivesCompanion.insert(
                 id: id,
                 habitId: habitId,
                 title: title,
                 colorArgb: colorArgb,
                 sortOrder: sortOrder,
+                countsAsSuccess: countsAsSuccess,
               ),
           withReferenceMapper: (p0) => p0
               .map(

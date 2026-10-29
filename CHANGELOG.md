@@ -18,6 +18,8 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
 - A freshly logged day pops into its square; cards gently sink when you press them.
 
 ### Changed
+- The database now uses a safer journal mode, ready for logging from notifications and
+  widgets. Your existing habits, logs and notes are kept as they are.
 - Headings use a new rounded serif typeface, and text colors are slightly warmer.
 - Focused text fields, their labels and the cursor use a darker amber that is easier to see.
 - Messages appear in a floating bar at the bottom of the screen.
