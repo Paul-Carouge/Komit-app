@@ -7,11 +7,13 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/app_logger.dart';
+import '../core/calendar_day.dart';
 import '../data/database/app_database.dart';
 import '../data/repositories/habit_repository.dart';
 import '../data/repositories/settings_repository.dart';
 import '../domain/reminder_planning.dart';
 import '../l10n/app_localizations.dart';
+import 'home_widget_service.dart';
 import 'reminder_scheduler.dart';
 
 /// The Android receiver that starts [rebuildRemindersAfterSystemEvent] waits for this call
@@ -63,6 +65,54 @@ Future<void> rebuildRemindersAfterSystemEvent() async {
   } finally {
     await _reminderRebuildChannel.invokeMethod<void>('finished');
   }
+}
+
+/// The TodayWidgetProvider.kt engine waits for this call to stop (see HeadlessDartRunner.kt).
+const MethodChannel _homeWidgetBackgroundChannel = MethodChannel('com.paulcarouge.komit/home_widget');
+
+/// Started by TodayWidgetProvider.kt in a headless engine. With a habit id in [arguments] (a
+/// tap on a row's button) it logs that habit's first objective today, as one tap on the
+/// dashboard does; with none (a new day began) it only writes today's checklist again.
+@pragma('vm:entry-point')
+Future<void> updateHomeWidgetInBackground(List<String> arguments) async {
+  WidgetsFlutterBinding.ensureInitialized();
+  DartPluginRegistrant.ensureInitialized();
+  try {
+    await _runWithDatabase(event: 'home_widget_background_failed', (repository, localizations) async {
+      final today = CalendarDay.fromDateTime(DateTime.now());
+      final habitIdToLog = arguments.isEmpty ? null : int.tryParse(arguments.first);
+      if (habitIdToLog != null) {
+        await _logFirstObjectiveTodayUnlessLogged(repository, habitId: habitIdToLog, today: today);
+      }
+      // Saved even when nothing was logged, so the widget drops its optimistic check mark, and
+      // before the reminders, so the widget is right even if rebuilding them fails.
+      await saveTodayWidgetSnapshot(
+        encodeTodayWidgetSnapshot(
+          habits: await repository.watchActiveHabits().first,
+          objectiveIdByDayByHabitId: await repository.watchObjectiveIdByDayForAllHabitsSince(today).first,
+          today: today,
+        ),
+      );
+      // Dismisses today's reminder of the logged habit and refreshes the streaks of the others.
+      if (habitIdToLog != null) await _backgroundReminderScheduler.rebuildReminders(repository, localizations);
+    });
+  } finally {
+    await _homeWidgetBackgroundChannel.invokeMethod<void>('finished');
+  }
+}
+
+/// A widget showing an old state may send a tap for a habit since archived, deleted or logged
+/// in the app: those are left as they are rather than overwritten.
+Future<void> _logFirstObjectiveTodayUnlessLogged(
+  HabitRepository repository, {
+  required int habitId,
+  required CalendarDay today,
+}) async {
+  final habit = await repository.watchHabitWithObjectives(habitId).first;
+  if (habit == null || habit.habit.archivedAt != null || habit.objectives.isEmpty) return;
+  final objectiveIdByDay = await repository.watchObjectiveIdByDayForHabit(habitId).first;
+  if (objectiveIdByDay.containsKey(today)) return;
+  await repository.logObjectiveForDay(habitId: habitId, objectiveId: habit.objectives.first.id, day: today);
 }
 
 /// Opens the database through [AppDatabase], which shares the app's connection when it runs

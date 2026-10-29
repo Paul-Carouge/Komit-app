@@ -3,4 +3,10 @@
 <resources>
     <!-- darkAppTheme colorScheme.surface. -->
     <color name="komit_surface">#FF0F0E0D</color>
+    <!-- "Today" home-screen widget. -->
+    <color name="widget_surface">#FF1F1D1B</color>
+    <color name="widget_on_surface">#FFF2EFEA</color>
+    <color name="widget_on_surface_variant">#FFCAC5BD</color>
+    <color name="widget_accent_container">#FF4D2A08</color>
+    <color name="widget_on_accent_container">#FFFFDCC0</color>
 </resources>

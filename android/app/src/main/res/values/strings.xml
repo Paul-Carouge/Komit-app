@@ -1,7 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Texts Android shows outside Flutter: the launcher shortcuts.
+<!-- Texts Android shows outside Flutter: the "Today" widget and the launcher shortcuts.
      French in values-fr; the app's own texts are in lib/l10n. -->
 <resources>
+    <string name="widget_today_title">Today</string>
+    <string name="widget_description">Today\'s habits, logged with one tap</string>
+    <string name="widget_open_komit_to_refresh">Open Komit to show today\'s habits</string>
+    <string name="widget_nothing_planned_today">Nothing planned today</string>
+    <string name="widget_more_habits">%1$d more in Komit</string>
+    <string name="widget_progress" translatable="false">%1$d/%2$d</string>
+    <!-- Chosen by the number of habits scheduled today. -->
+    <plurals name="widget_progress_description">
+        <item quantity="one">%1$d of %2$d habit done today</item>
+        <item quantity="other">%1$d of %2$d habits done today</item>
+    </plurals>
+    <string name="widget_log_habit">Log %1$s today</string>
+    <string name="widget_habit_done">%1$s, done today. Open Komit to change it</string>
     <string name="shortcut_new_habit_short">New habit</string>
     <string name="shortcut_new_habit_long">Create a new habit</string>
     <string name="shortcut_today_short">Today</string>

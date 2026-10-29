@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- White so the row tints it in the habit's color. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <stroke android:width="@dimen/widget_log_ring_stroke" android:color="#FFFFFFFF" />
+</shape>

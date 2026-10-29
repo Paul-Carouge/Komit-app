@@ -68,6 +68,10 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
   month and count when you touch a bar.
 - Long-press Komit's icon for two shortcuts: "New habit" opens the habit editor and
   "Today" opens today's habits.
+- A "Today" widget for the home screen lists the habits planned today. Tap a habit's
+  round button to log it with its first objective, without opening the app; tap the
+  title to open Komit. It follows dark mode and, on Android 12 and later, your wallpaper
+  colors. It never appears on the lock screen and holds only habit names and colors.
 
 ### Changed
 - Screens slide in and out again, with Android's back gesture preview: an update of the

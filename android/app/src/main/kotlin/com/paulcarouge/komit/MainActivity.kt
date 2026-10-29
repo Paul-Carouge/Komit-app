@@ -78,6 +78,14 @@ class MainActivity : FlutterActivity() {
                     }
                 }
             }
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, HOME_WIDGET_CHANNEL)
+            .setMethodCallHandler { call, result ->
+                if (call.method == SAVE_SNAPSHOT_METHOD) {
+                    saveTodayWidgetSnapshot(call.arguments as? String, result)
+                } else {
+                    result.notImplemented()
+                }
+            }
         initialLaunchDestination = intent.launchDestination()
         launchDestinationChannel =
             MethodChannel(flutterEngine.dartExecutor.binaryMessenger, LAUNCH_DESTINATION_CHANNEL).apply {
@@ -101,6 +109,22 @@ class MainActivity : FlutterActivity() {
 
     private fun Intent.launchDestination(): LaunchDestination? =
         LaunchDestination.fromIntentAction(action, getStringExtra(DESTINATION_EXTRA))
+
+    /** File I/O stays off the main thread; the widget redraws from what was saved. */
+    private fun saveTodayWidgetSnapshot(
+        json: String?,
+        result: MethodChannel.Result,
+    ) {
+        if (json == null) {
+            result.error("invalid_arguments", "saveSnapshot expects the snapshot JSON", null)
+            return
+        }
+        backgroundExecutor.execute {
+            val isSaved = TodayWidgetSnapshotStore.save(applicationContext, json)
+            if (isSaved) refreshTodayWidgets(applicationContext)
+            runOnUiThread { result.success(isSaved) }
+        }
+    }
 
     override fun onDestroy() {
         UpdateInstallStatusReceiver.onInstallFailed = null

@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="widget_today_title">Aujourd\'hui</string>
+    <string name="widget_description">Les habitudes du jour, cochées d\'un geste</string>
+    <string name="widget_open_komit_to_refresh">Ouvrez Komit pour afficher les habitudes du jour</string>
+    <string name="widget_nothing_planned_today">Rien de prévu aujourd\'hui</string>
+    <string name="widget_more_habits">%1$d de plus dans Komit</string>
+    <!-- Chosen by the number of habits scheduled today. -->
+    <plurals name="widget_progress_description">
+        <item quantity="one">%1$d habitude sur %2$d faite aujourd\'hui</item>
+        <item quantity="many">%1$d habitudes sur %2$d faites aujourd\'hui</item>
+        <item quantity="other">%1$d habitudes sur %2$d faites aujourd\'hui</item>
+    </plurals>
+    <string name="widget_log_habit">Noter %1$s aujourd\'hui</string>
+    <string name="widget_habit_done">%1$s, fait aujourd\'hui. Ouvrez Komit pour le modifier</string>
     <string name="shortcut_new_habit_short">Nouvelle habitude</string>
     <string name="shortcut_new_habit_long">Créer une nouvelle habitude</string>
     <string name="shortcut_today_short">Aujourd\'hui</string>

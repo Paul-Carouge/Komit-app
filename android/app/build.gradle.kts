@@ -77,4 +77,6 @@ flutter {
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
     testImplementation("org.testng:testng:7.10.2")
+    // Android's org.json is a stub on the JVM; this is the reference implementation (public domain).
+    testImplementation("org.json:json:20240303")
 }

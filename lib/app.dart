@@ -12,6 +12,7 @@ import 'features/splash/splash_handoff.dart';
 import 'l10n/app_localizations.dart';
 import 'providers.dart';
 import 'router.dart';
+import 'services/home_widget_service.dart';
 import 'services/launch_destination.dart';
 
 class KomitApp extends ConsumerStatefulWidget {
@@ -81,7 +82,9 @@ class _KomitAppState extends ConsumerState<KomitApp> {
       builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
         // Screens without an app bar still get transparent bars with readable icons.
         value: systemUiOverlayStyleFor(Theme.of(context).brightness),
-        child: SplashHandoff(child: _ReminderSynchronizer(child: child!)),
+        child: SplashHandoff(
+          child: _ReminderSynchronizer(child: _HomeWidgetSynchronizer(child: child!)),
+        ),
       ),
     );
   }
@@ -144,6 +147,45 @@ class _ReminderSynchronizerState extends ConsumerState<_ReminderSynchronizer> {
     if (habits != null && recentLogs != null && inputs != _lastSynchronizedInputs) {
       _lastSynchronizedInputs = inputs;
       _rebuildReminders();
+    }
+    return widget.child;
+  }
+}
+
+/// Keeps the "Today" home-screen widget equal to the database: after every habit or log
+/// change and at midnight. Writes only when the checklist changed, so editing a note costs nothing.
+class _HomeWidgetSynchronizer extends ConsumerStatefulWidget {
+  const _HomeWidgetSynchronizer({required this.child});
+
+  final Widget child;
+
+  @override
+  ConsumerState<_HomeWidgetSynchronizer> createState() => _HomeWidgetSynchronizerState();
+}
+
+class _HomeWidgetSynchronizerState extends ConsumerState<_HomeWidgetSynchronizer> {
+  String? _lastSavedSnapshotJson;
+
+  @override
+  Widget build(BuildContext context) {
+    final habits = ref.watch(activeHabitsProvider).value;
+    final recentLogs = ref.watch(recentObjectiveIdByDayByHabitIdProvider).value;
+    if (habits != null && recentLogs != null) {
+      final snapshotJson = encodeTodayWidgetSnapshot(
+        habits: habits,
+        objectiveIdByDayByHabitId: recentLogs,
+        today: ref.watch(currentCalendarDayProvider),
+      );
+      if (snapshotJson != _lastSavedSnapshotJson) {
+        _lastSavedSnapshotJson = snapshotJson;
+        unawaited(
+          saveTodayWidgetSnapshot(snapshotJson).catchError(
+            (Object error, StackTrace stackTrace) => ref
+                .read(appLoggerProvider)
+                .logError(event: 'home_widget_save_failed', error: error, stackTrace: stackTrace),
+          ),
+        );
+      }
     }
     return widget.child;
   }

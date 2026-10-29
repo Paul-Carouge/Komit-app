@@ -7,4 +7,10 @@
     <color name="komit_launch_background">#FFFF8C1A</color>
     <!-- lightAppTheme colorScheme.surface: the window behind Flutter matches the first screen. -->
     <color name="komit_surface">#FFF6F4F1</color>
+    <!-- "Today" home-screen widget: the app's card, text and orange container colors. -->
+    <color name="widget_surface">#FFFFFFFF</color>
+    <color name="widget_on_surface">#FF1A1A1A</color>
+    <color name="widget_on_surface_variant">#FF5E5A54</color>
+    <color name="widget_accent_container">#FFFFE7D1</color>
+    <color name="widget_on_accent_container">#FF5A2D00</color>
 </resources>
