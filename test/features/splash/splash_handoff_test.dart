@@ -6,13 +6,19 @@ import 'package:komit/features/splash/splash_handoff.dart';
 
 const String _firstScreenText = 'first screen';
 
-Widget _app({required bool areAnimationsDisabled}) => MaterialApp(
+Widget _app({required bool areAnimationsDisabled, bool isFirstScreenReady = true}) => MaterialApp(
   theme: lightAppTheme,
   home: MediaQuery(
     data: MediaQueryData(disableAnimations: areAnimationsDisabled),
-    child: const SplashHandoff(child: Text(_firstScreenText)),
+    child: SplashHandoff(isFirstScreenReady: isFirstScreenReady, child: const Text(_firstScreenText)),
   ),
 );
+
+/// How opaque the splash face is: 1 while it fully hides the first screen.
+double _splashOpacity(WidgetTester tester) => tester
+    .widget<FadeTransition>(find.ancestor(of: _splashLayer, matching: find.byType(FadeTransition)).first)
+    .opacity
+    .value;
 
 /// The orange layer repeating the Android splash.
 Finder get _splashLayer => find.byWidgetPredicate(
@@ -38,5 +44,27 @@ void main() {
 
     expect(_splashLayer, findsNothing);
     expect(find.text(_firstScreenText), findsOneWidget);
+  });
+
+  testWidgets('the splash face waits for the first screen\'s data, then fades', (tester) async {
+    const dataLoadDuration = Duration(milliseconds: 300);
+    await tester.pumpWidget(_app(areAnimationsDisabled: false, isFirstScreenReady: false));
+    await tester.pump(dataLoadDuration);
+    // Before, the fade started on the first frame: at 300 ms the splash was 3 % opaque and the
+    // loading screen showed through.
+    expect(_splashOpacity(tester), 1);
+
+    await tester.pumpWidget(_app(areAnimationsDisabled: false));
+    await tester.pumpAndSettle();
+    expect(_splashLayer, findsNothing);
+  });
+
+  testWidgets('a first screen that never loads still shows after the longest hold', (tester) async {
+    await tester.pumpWidget(_app(areAnimationsDisabled: false, isFirstScreenReady: false));
+
+    await tester.pump(maximumSplashHoldDuration);
+    await tester.pumpAndSettle();
+
+    expect(_splashLayer, findsNothing);
   });
 }

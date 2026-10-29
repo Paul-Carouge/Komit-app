@@ -84,6 +84,7 @@ class _KomitAppState extends ConsumerState<KomitApp> {
         // Screens without an app bar still get transparent bars with readable icons.
         value: systemUiOverlayStyleFor(Theme.of(context).brightness),
         child: SplashHandoff(
+          isFirstScreenReady: ref.watch(activeHabitsProvider.select((habits) => habits.hasValue || habits.hasError)),
           child: _ReminderSynchronizer(
             child: _HomeWidgetSynchronizer(
               child: _DailyAutomaticBackupScheduler(child: AppLockGate(child: child!)),

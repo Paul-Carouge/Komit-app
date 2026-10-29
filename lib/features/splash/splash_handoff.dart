@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_motion.dart';
@@ -19,14 +21,22 @@ abstract final class _SplashEyeGeometry {
 /// Komo's eyes grow by this share while the splash fades, as if the app opened toward the user.
 const double _eyeGrowthDuringHandoff = 0.12;
 
+/// The longest the splash face waits for the first screen's data before fading anyway.
+const Duration maximumSplashHoldDuration = Duration(milliseconds: 800);
+
 /// The Android splash shows Komo's face: the orange screen and its two pill eyes. The first
 /// Flutter frame repeats it exactly, then fades it away over the first screen, so the app
 /// appears out of Komo instead of cutting from orange to the page.
 ///
+/// The face stays until [isFirstScreenReady], at most [maximumSplashHoldDuration], so the fade
+/// reveals the loaded first screen instead of its loading state.
+///
 /// Skipped when the system removes animations: the first screen then shows at once.
 class SplashHandoff extends StatefulWidget {
-  const SplashHandoff({required this.child, super.key});
+  const SplashHandoff({required this.isFirstScreenReady, required this.child, super.key});
 
+  /// True once the first screen has its data (or its error) to show.
+  final bool isFirstScreenReady;
   final Widget child;
 
   @override
@@ -37,6 +47,7 @@ class _SplashHandoffState extends State<SplashHandoff> with SingleTickerProvider
   late final AnimationController _controller = AnimationController(vsync: this, duration: AppDurations.splashHandoff);
   bool _isHandoffDone = false;
   bool _hasStarted = false;
+  Timer? _maximumHoldTimer;
 
   @override
   void didChangeDependencies() {
@@ -47,6 +58,23 @@ class _SplashHandoffState extends State<SplashHandoff> with SingleTickerProvider
       _isHandoffDone = true;
       return;
     }
+    if (widget.isFirstScreenReady) {
+      _startFade();
+    } else {
+      // A slow first query must never keep the app hidden behind Komo.
+      _maximumHoldTimer = Timer(maximumSplashHoldDuration, _startFade);
+    }
+  }
+
+  @override
+  void didUpdateWidget(SplashHandoff oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isFirstScreenReady && !oldWidget.isFirstScreenReady) _startFade();
+  }
+
+  void _startFade() {
+    _maximumHoldTimer?.cancel();
+    if (_isHandoffDone || _controller.isAnimating || _controller.isCompleted) return;
     _controller.forward().whenComplete(() {
       if (mounted) setState(() => _isHandoffDone = true);
     });
@@ -54,6 +82,7 @@ class _SplashHandoffState extends State<SplashHandoff> with SingleTickerProvider
 
   @override
   void dispose() {
+    _maximumHoldTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }

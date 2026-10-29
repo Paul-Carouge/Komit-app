@@ -93,8 +93,10 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
   from Settings → Privacy & security or from the last welcome step.
 
 ### Changed
-- A smaller download: the app is about 1.6 MB lighter (25.6 MB to 24.0 MB), since it now
-  only carries the icons it shows and the native code for 64-bit phones.
+- A smaller download: the app is 3 MB lighter (25.6 MB to 22.6 MB), since it now only
+  carries the icons it shows, the native code for 64-bit phones and no debug symbols.
+- A cleaner start: Komo's face stays until your habits are loaded (at most 0.8 s), so it
+  fades straight onto them instead of onto a loading screen.
 - Screens slide in and out again, with Android's back gesture preview: an update of the
   navigation library had silently turned every screen transition off.
 - Komo next to the home screen greeting no longer moves on its own; it hops when the last
