@@ -271,4 +271,34 @@ void main() {
     }
     await environment.dispose(tester);
   });
+
+  testWidgets('the app bar blurs only once the list scrolls under it', (tester) async {
+    final environment = await KomitTestEnvironment.create(tester, additionalHabitTitles: ['Drink water', 'Stretch']);
+    await pumpKomitApp(tester, environment, theme: lightAppTheme);
+    int countBackdropFilterLayers() {
+      var count = 0;
+      void visit(Layer layer) {
+        if (layer is BackdropFilterLayer) count++;
+        if (layer is ContainerLayer) {
+          for (Layer? child = layer.firstChild; child != null; child = child.nextSibling) {
+            visit(child);
+          }
+        }
+      }
+
+      visit(tester.binding.renderViews.first.debugLayer!);
+      return count;
+    }
+
+    final backdropFilterCountAtTop = countBackdropFilterLayers();
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -400));
+    await tester.pumpAndSettle();
+    final backdropFilterCountScrolled = countBackdropFilterLayers();
+    printOnFailure('Backdrop filters at top: $backdropFilterCountAtTop, scrolled: $backdropFilterCountScrolled');
+
+    // At the top only the navigation bar has content under it.
+    expect(backdropFilterCountAtTop, 1);
+    expect(backdropFilterCountScrolled, 2);
+    await environment.dispose(tester);
+  });
 }

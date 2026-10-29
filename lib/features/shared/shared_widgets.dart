@@ -291,6 +291,10 @@ class SoftCard extends StatelessWidget {
 }
 
 /// Blurs whatever scrolls behind [child], like iOS bars, with a translucent page-colored veil.
+///
+/// In an app bar's flexible space, the blur only runs once content scrolls under the bar: a
+/// full-screen-wide blur over the plain page background costs GPU time every frame and shows
+/// nothing.
 class FrostedGlass extends StatelessWidget {
   const FrostedGlass({required this.child, super.key});
 
@@ -299,9 +303,13 @@ class FrostedGlass extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final surface = Theme.of(context).colorScheme.surface;
+    final isContentScrolledUnder =
+        context.dependOnInheritedWidgetOfExactType<FlexibleSpaceBarSettings>()?.isScrolledUnder ?? true;
     return ClipRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: AppBlur.frostedSigma, sigmaY: AppBlur.frostedSigma),
+        // Disabled rather than removed, so the bar's content keeps its state when the blur toggles.
+        enabled: isContentScrolledUnder,
         child: ColoredBox(
           color: surface.withValues(alpha: AppOpacity.frostedSurface),
           child: child,
