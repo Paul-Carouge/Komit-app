@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 
 import 'core/theme/app_theme.dart';
 import 'core/current_calendar_day.dart';
+import 'features/app_lock/app_lock_gate.dart';
 import 'features/splash/splash_handoff.dart';
 import 'l10n/app_localizations.dart';
 import 'providers.dart';
@@ -84,7 +85,9 @@ class _KomitAppState extends ConsumerState<KomitApp> {
         value: systemUiOverlayStyleFor(Theme.of(context).brightness),
         child: SplashHandoff(
           child: _ReminderSynchronizer(
-            child: _HomeWidgetSynchronizer(child: _DailyAutomaticBackupScheduler(child: child!)),
+            child: _HomeWidgetSynchronizer(
+              child: _DailyAutomaticBackupScheduler(child: AppLockGate(child: child!)),
+            ),
           ),
         ),
       ),

@@ -13,6 +13,7 @@ import 'domain/achievements.dart';
 import 'domain/habit_history.dart';
 import 'domain/habit_statistics.dart';
 import 'domain/weekly_recap.dart';
+import 'services/app_lock_service.dart';
 import 'services/app_update_service.dart';
 import 'services/automatic_backup_service.dart';
 import 'services/backup_encryption_service.dart';
@@ -43,6 +44,11 @@ final automaticBackupsProvider = FutureProvider.autoDispose(
   (ref) => ref.watch(automaticBackupServiceProvider).listBackupsNewestFirst(),
 );
 final backupEncryptionServiceProvider = Provider((ref) => BackupEncryptionService());
+final appLockServiceProvider = Provider((ref) => AppLockService());
+
+/// Whether the phone has a screen lock; invalidated when the app resumes, since the user may
+/// have just set one up in the system settings.
+final canUseAppLockProvider = FutureProvider((ref) => ref.watch(appLockServiceProvider).canAuthenticate());
 final appUpdateServiceProvider = Provider((ref) => AppUpdateService());
 final notificationPermissionServiceProvider = Provider(
   (ref) => NotificationPermissionService(ref.watch(reminderSchedulerProvider)),
@@ -82,6 +88,16 @@ class SettingsController extends Notifier<AppSettings> {
 
   Future<void> recordExport(DateTime exportedAt) async {
     await _repository.saveLastExportAt(exportedAt);
+    state = _repository.readSettings();
+  }
+
+  Future<void> updateAppLockEnabled({required bool isEnabled}) async {
+    await _repository.saveAppLockEnabled(isEnabled: isEnabled);
+    state = _repository.readSettings();
+  }
+
+  Future<void> updateScreenContentHidden({required bool isHidden}) async {
+    await _repository.saveScreenContentHidden(isHidden: isHidden);
     state = _repository.readSettings();
   }
 

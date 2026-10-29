@@ -19,6 +19,7 @@ import 'package:komit/data/repositories/settings_repository.dart';
 import 'package:komit/l10n/app_localizations.dart';
 import 'package:komit/providers.dart';
 import 'package:komit/router.dart';
+import 'package:komit/services/app_lock_service.dart';
 import 'package:komit/services/notification_permission_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -164,6 +165,7 @@ Future<GoRouter> pumpKomitApp(
   required ThemeData theme,
   String location = AppRoutes.habits,
   NotificationPermissionService? notificationPermissionService,
+  AppLockService? appLockService,
   double textScaleFactor = 1,
   Size logicalSize = compactPhoneLogicalSize,
   DateTime? now,
@@ -184,6 +186,7 @@ Future<GoRouter> pumpKomitApp(
         notificationPermissionServiceProvider.overrideWithValue(
           notificationPermissionService ?? FakeNotificationPermissionService(),
         ),
+        if (appLockService != null) appLockServiceProvider.overrideWithValue(appLockService),
       ],
       child: _KomitTestApp(theme: theme, onRouterCreated: (createdRouter) => router = createdRouter),
     ),

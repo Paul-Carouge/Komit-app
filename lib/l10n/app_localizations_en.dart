@@ -980,4 +980,45 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get unlock => 'Unlock';
+
+  @override
+  String get privacyAndSecurity => 'Privacy & security';
+
+  @override
+  String get appLockSetting => 'Lock Komit';
+
+  @override
+  String get appLockSettingDescription =>
+      'Ask for your fingerprint, face or screen lock when Komit opens and after a minute away.';
+
+  @override
+  String get appLockUnavailable => 'Set up a screen lock in your phone\'s settings to use this.';
+
+  @override
+  String get hideScreenContentSetting => 'Hide from screenshots';
+
+  @override
+  String get hideScreenContentSettingDescription =>
+      'Blocks screenshots and screen recordings, and blanks Komit in recent apps.';
+
+  @override
+  String get appLockTitle => 'Komit is locked';
+
+  @override
+  String get appLockMessage => 'Komo is keeping your habits safe while you were away.';
+
+  @override
+  String get appLockCancelled => 'Unlocking was cancelled. Your habits stay hidden until you unlock.';
+
+  @override
+  String get appLockFailed => 'Komit could not be unlocked. Wait a moment, then try again.';
+
+  @override
+  String get appLockPromptTitle => 'Unlock Komit';
+
+  @override
+  String get appLockPromptSubtitle => 'Use your fingerprint, face or screen lock';
+
+  @override
+  String get tryAgain => 'Try again';
 }

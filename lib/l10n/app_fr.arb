@@ -267,5 +267,18 @@
   "passphrasesDoNotMatch": "Les deux phrases secrètes sont différentes.",
   "wrongBackupPassphrase": "Phrase secrète incorrecte, ou fichier endommagé.",
   "encryptAndExport": "Chiffrer et exporter",
-  "unlock": "Déverrouiller"
+  "unlock": "Déverrouiller",
+  "privacyAndSecurity": "Confidentialité et sécurité",
+  "appLockSetting": "Verrouiller Komit",
+  "appLockSettingDescription": "Demander votre empreinte, votre visage ou le verrouillage de l'écran à l'ouverture de Komit et après une minute d'absence.",
+  "appLockUnavailable": "Configurez un verrouillage de l'écran dans les réglages du téléphone pour l'utiliser.",
+  "hideScreenContentSetting": "Masquer des captures d'écran",
+  "hideScreenContentSettingDescription": "Bloque les captures et enregistrements d'écran, et masque Komit dans les applications récentes.",
+  "appLockTitle": "Komit est verrouillé",
+  "appLockMessage": "Komo garde vos habitudes à l'abri pendant votre absence.",
+  "appLockCancelled": "Le déverrouillage a été annulé. Vos habitudes restent masquées jusqu'au déverrouillage.",
+  "appLockFailed": "Komit n'a pas pu être déverrouillé. Patientez un instant, puis réessayez.",
+  "appLockPromptTitle": "Déverrouiller Komit",
+  "appLockPromptSubtitle": "Utilisez votre empreinte, votre visage ou le verrouillage de l'écran",
+  "tryAgain": "Réessayer"
 }

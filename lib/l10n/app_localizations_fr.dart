@@ -995,4 +995,47 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get unlock => 'Déverrouiller';
+
+  @override
+  String get privacyAndSecurity => 'Confidentialité et sécurité';
+
+  @override
+  String get appLockSetting => 'Verrouiller Komit';
+
+  @override
+  String get appLockSettingDescription =>
+      'Demander votre empreinte, votre visage ou le verrouillage de l\'écran à l\'ouverture de Komit et après une minute d\'absence.';
+
+  @override
+  String get appLockUnavailable =>
+      'Configurez un verrouillage de l\'écran dans les réglages du téléphone pour l\'utiliser.';
+
+  @override
+  String get hideScreenContentSetting => 'Masquer des captures d\'écran';
+
+  @override
+  String get hideScreenContentSettingDescription =>
+      'Bloque les captures et enregistrements d\'écran, et masque Komit dans les applications récentes.';
+
+  @override
+  String get appLockTitle => 'Komit est verrouillé';
+
+  @override
+  String get appLockMessage => 'Komo garde vos habitudes à l\'abri pendant votre absence.';
+
+  @override
+  String get appLockCancelled =>
+      'Le déverrouillage a été annulé. Vos habitudes restent masquées jusqu\'au déverrouillage.';
+
+  @override
+  String get appLockFailed => 'Komit n\'a pas pu être déverrouillé. Patientez un instant, puis réessayez.';
+
+  @override
+  String get appLockPromptTitle => 'Déverrouiller Komit';
+
+  @override
+  String get appLockPromptSubtitle => 'Utilisez votre empreinte, votre visage ou le verrouillage de l\'écran';
+
+  @override
+  String get tryAgain => 'Réessayer';
 }

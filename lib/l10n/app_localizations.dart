@@ -1699,6 +1699,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unlock'**
   String get unlock;
+
+  /// No description provided for @privacyAndSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy & security'**
+  String get privacyAndSecurity;
+
+  /// No description provided for @appLockSetting.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock Komit'**
+  String get appLockSetting;
+
+  /// No description provided for @appLockSettingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask for your fingerprint, face or screen lock when Komit opens and after a minute away.'**
+  String get appLockSettingDescription;
+
+  /// No description provided for @appLockUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up a screen lock in your phone\'s settings to use this.'**
+  String get appLockUnavailable;
+
+  /// No description provided for @hideScreenContentSetting.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide from screenshots'**
+  String get hideScreenContentSetting;
+
+  /// No description provided for @hideScreenContentSettingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocks screenshots and screen recordings, and blanks Komit in recent apps.'**
+  String get hideScreenContentSettingDescription;
+
+  /// No description provided for @appLockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Komit is locked'**
+  String get appLockTitle;
+
+  /// No description provided for @appLockMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Komo is keeping your habits safe while you were away.'**
+  String get appLockMessage;
+
+  /// No description provided for @appLockCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlocking was cancelled. Your habits stay hidden until you unlock.'**
+  String get appLockCancelled;
+
+  /// No description provided for @appLockFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Komit could not be unlocked. Wait a moment, then try again.'**
+  String get appLockFailed;
+
+  /// No description provided for @appLockPromptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Komit'**
+  String get appLockPromptTitle;
+
+  /// No description provided for @appLockPromptSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use your fingerprint, face or screen lock'**
+  String get appLockPromptSubtitle;
+
+  /// No description provided for @tryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get tryAgain;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

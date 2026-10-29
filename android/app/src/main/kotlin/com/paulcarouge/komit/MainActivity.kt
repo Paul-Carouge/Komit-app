@@ -27,6 +27,7 @@ private val SHA256_HEX_PATTERN = Regex("^[0-9a-f]{64}$")
 class MainActivity : FlutterActivity() {
     private val backgroundExecutor = Executors.newSingleThreadExecutor()
     private var launchDestinationChannel: MethodChannel? = null
+    private val appLock = AppLock(this)
 
     /** Taken once by Dart, so a configuration change never opens the same screen again. */
     private var initialLaunchDestination: LaunchDestination? = null
@@ -96,6 +97,7 @@ class MainActivity : FlutterActivity() {
                     else -> result.notImplemented()
                 }
             }
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, APP_LOCK_CHANNEL).setMethodCallHandler(appLock::handle)
         initialLaunchDestination = intent.launchDestination()
         launchDestinationChannel =
             MethodChannel(flutterEngine.dartExecutor.binaryMessenger, LAUNCH_DESTINATION_CHANNEL).apply {
@@ -108,6 +110,18 @@ class MainActivity : FlutterActivity() {
                     }
                 }
             }
+    }
+
+    @Deprecated("Needed for the device credential confirmation before Android 11")
+    override fun onActivityResult(
+        requestCode: Int,
+        resultCode: Int,
+        data: Intent?,
+    ) {
+        if (!appLock.onActivityResult(requestCode, resultCode)) {
+            @Suppress("DEPRECATION")
+            super.onActivityResult(requestCode, resultCode, data)
+        }
     }
 
     override fun onNewIntent(intent: Intent) {

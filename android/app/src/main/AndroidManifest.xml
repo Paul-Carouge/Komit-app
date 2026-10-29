@@ -4,6 +4,8 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <!-- In-app updates: the app installs new versions of itself from GitHub Releases. -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- Optional app lock: fingerprint or face through the system prompt. Granted at install, no dialog. -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     <!-- Backups never reach the cloud, only a new phone; see docs/adr/0005. Every permission
          of the merged manifest must be listed in build.gradle.kts (releaseManifestAllowedPermissions). -->
     <application

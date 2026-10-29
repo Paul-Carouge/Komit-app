@@ -83,6 +83,11 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
 - Export with a passphrase: Settings → Data & storage can now save an encrypted file that
   only opens with the passphrase you choose. Importing such a file asks for it. Plain
   exports stay the default, since a forgotten passphrase cannot be recovered.
+- Lock Komit (Settings → Privacy & security): Komit then asks for your fingerprint, face or
+  screen lock when it opens and after a minute away, with a sleepy Komo guarding the
+  screen. Recent apps shows a blank card for Komit on Android 13 and later. The option is
+  greyed out, with an explanation, until the phone has a screen lock.
+- "Hide from screenshots" blocks screenshots and screen recordings of Komit.
 
 ### Changed
 - Screens slide in and out again, with Android's back gesture preview: an update of the

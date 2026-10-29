@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -12,6 +13,7 @@ import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
 import '../shared/shared_widgets.dart';
 import '../updates/update_prompt.dart';
+import '../../services/app_lock_service.dart';
 import '../../services/notification_permission_service.dart';
 import 'automatic_backups_sheet.dart';
 import 'backup_actions.dart';
@@ -93,6 +95,8 @@ class SettingsScreen extends ConsumerWidget {
                 ),
                 SectionTitle(localizations.notifications),
                 const _NotificationSettingsCard(),
+                SectionTitle(localizations.privacyAndSecurity),
+                const _PrivacyAndSecurityCard(),
                 SectionTitle(localizations.dataAndStorage),
                 const _DataAndStorageCard(),
                 if (ref.watch(appUpdateServiceProvider).isSupported) ...[
@@ -168,6 +172,79 @@ Future<void> _openReleasesPage(BuildContext context, WidgetRef ref) async {
       ref.read(appLoggerProvider).logError(event: 'releases_page_failed', error: error, stackTrace: stackTrace),
     );
     if (context.mounted) showMessageSnackBar(context, AppLocalizations.of(context).settingsUnavailable);
+  }
+}
+
+/// The app lock and screen protection toggles.
+class _PrivacyAndSecurityCard extends ConsumerWidget {
+  const _PrivacyAndSecurityCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final localizations = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final komitColors = KomitColors.of(context);
+    final settings = ref.watch(settingsControllerProvider);
+    final settingsController = ref.read(settingsControllerProvider.notifier);
+    // Unknown while loading or on failure: the toggle stays usable only once a lock is confirmed.
+    final canUseAppLock = ref.watch(canUseAppLockProvider).value ?? false;
+    final isAppLockToggleEnabled = canUseAppLock || settings.isAppLockEnabled;
+    return SoftCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        children: [
+          SwitchListTile(
+            secondary: HabitIconBadge(icon: LucideIcons.lockKeyhole, color: colorScheme.primary),
+            title: Text(localizations.appLockSetting),
+            subtitle: Text(
+              isAppLockToggleEnabled ? localizations.appLockSettingDescription : localizations.appLockUnavailable,
+            ),
+            value: settings.isAppLockEnabled,
+            onChanged: isAppLockToggleEnabled
+                ? (isEnabled) => _changeAppLock(context, ref, isEnabled: isEnabled)
+                : null,
+          ),
+          SwitchListTile(
+            secondary: HabitIconBadge(icon: LucideIcons.eyeOff, color: komitColors.mutedText),
+            title: Text(localizations.hideScreenContentSetting),
+            subtitle: Text(localizations.hideScreenContentSettingDescription),
+            value: settings.isScreenContentHidden,
+            onChanged: (isHidden) {
+              unawaited(KomitHaptics.selection());
+              settingsController.updateScreenContentHidden(isHidden: isHidden);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Turning the lock on asks to unlock once, so nobody locks themselves out of a lock that
+  /// does not work on their phone.
+  Future<void> _changeAppLock(BuildContext context, WidgetRef ref, {required bool isEnabled}) async {
+    final localizations = AppLocalizations.of(context);
+    final settingsController = ref.read(settingsControllerProvider.notifier);
+    if (!isEnabled) {
+      unawaited(KomitHaptics.selection());
+      await settingsController.updateAppLockEnabled(isEnabled: false);
+      return;
+    }
+    final AppLockAuthenticationResult result;
+    try {
+      result = await ref
+          .read(appLockServiceProvider)
+          .authenticate(title: localizations.appLockSetting, subtitle: localizations.appLockPromptSubtitle);
+    } on PlatformException catch (error, stackTrace) {
+      unawaited(ref.read(appLoggerProvider).logError(event: 'app_lock_failed', error: error, stackTrace: stackTrace));
+      if (context.mounted) showMessageSnackBar(context, localizations.appLockFailed);
+      return;
+    }
+    if (result == AppLockAuthenticationResult.succeeded) {
+      unawaited(KomitHaptics.success());
+      await settingsController.updateAppLockEnabled(isEnabled: true);
+    } else if (result == AppLockAuthenticationResult.unavailable) {
+      ref.invalidate(canUseAppLockProvider);
+    }
   }
 }
 

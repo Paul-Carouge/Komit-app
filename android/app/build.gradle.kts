@@ -78,6 +78,7 @@ fun releaseManifestAllowedPermissions(applicationId: String): Set<String> =
         "android.permission.RECEIVE_BOOT_COMPLETED",
         "android.permission.REQUEST_INSTALL_PACKAGES",
         "android.permission.VIBRATE",
+        "android.permission.USE_BIOMETRIC",
         // Declared by androidx.core so that only this app can send its dynamic broadcasts.
         "$applicationId.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
     )
