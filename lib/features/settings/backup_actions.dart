@@ -19,9 +19,6 @@ import '../../services/backup_encryption_service.dart';
 import '../shared/shared_widgets.dart';
 import 'backup_passphrase_dialog.dart';
 
-/// Guards against loading an unrelated huge file in memory; real backups are a few hundred KB.
-const int _maximumBackupFileSizeBytes = 20 * 1024 * 1024;
-
 /// Returns true when the user saved the file. With a [passphrase] the file is encrypted.
 Future<bool> exportBackupToUserChosenFile(BuildContext context, WidgetRef ref, {String? passphrase}) async {
   final localizations = AppLocalizations.of(context);
@@ -62,7 +59,7 @@ Future<bool> importBackupFromUserChosenFile(BuildContext context, WidgetRef ref)
   try {
     final pickedFile = await FilePicker.pickFile();
     if (pickedFile == null) return false;
-    if (await pickedFile.xFile.length() > _maximumBackupFileSizeBytes) {
+    if (await pickedFile.xFile.length() > maximumBackupFileSizeBytes) {
       throw const InvalidBackupException('file too large');
     }
     fileContent = await pickedFile.xFile.readAsString();

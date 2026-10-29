@@ -10,6 +10,10 @@ const int currentBackupFormatVersion = 2;
 /// Versions written by the first Komit app (Isar based) have no `format` key.
 const int legacyBackupFormatVersion = 1;
 
+/// Guards against loading an unrelated huge file in memory. Real backups are a few hundred KB,
+/// and 50 habits logged daily for ten years export to about 4 MB (test/data/large_dataset_test.dart).
+const int maximumBackupFileSizeBytes = 20 * 1024 * 1024;
+
 String encodeBackupSnapshotToJson(BackupSnapshot snapshot, {required DateTime exportedAt}) {
   return const JsonEncoder.withIndent(' ').convert({
     'format': backupFormatName,
