@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -54,34 +55,54 @@ GoRouter buildAppRouter(WidgetRef ref) {
           ),
         ],
       ),
-      GoRoute(path: AppRoutes.settings, builder: (context, state) => const SettingsScreen()),
-      GoRoute(path: AppRoutes.archivedHabits, builder: (context, state) => const ArchivedHabitsScreen()),
-      GoRoute(path: AppRoutes.newHabit, builder: (context, state) => const HabitEditorScreen(habitId: null)),
+      GoRoute(path: AppRoutes.settings, pageBuilder: (context, state) => _materialPage(state, const SettingsScreen())),
+      GoRoute(
+        path: AppRoutes.archivedHabits,
+        pageBuilder: (context, state) => _materialPage(state, const ArchivedHabitsScreen()),
+      ),
+      GoRoute(
+        path: AppRoutes.newHabit,
+        pageBuilder: (context, state) => _materialPage(state, const HabitEditorScreen(habitId: null)),
+      ),
       GoRoute(
         path: '/habit/:habitId',
-        builder: (context, state) => HabitDetailsScreen(habitId: _integerPathParameter(state, 'habitId')),
+        pageBuilder: (context, state) =>
+            _materialPage(state, HabitDetailsScreen(habitId: _integerPathParameter(state, 'habitId'))),
         routes: [
           GoRoute(
             path: 'edit',
-            builder: (context, state) => HabitEditorScreen(habitId: _integerPathParameter(state, 'habitId')),
+            pageBuilder: (context, state) =>
+                _materialPage(state, HabitEditorScreen(habitId: _integerPathParameter(state, 'habitId'))),
           ),
           GoRoute(
             path: 'statistics/:year',
-            builder: (context, state) => HabitStatisticsScreen(
-              habitId: _integerPathParameter(state, 'habitId'),
-              year: _integerPathParameter(state, 'year'),
+            pageBuilder: (context, state) => _materialPage(
+              state,
+              HabitStatisticsScreen(
+                habitId: _integerPathParameter(state, 'habitId'),
+                year: _integerPathParameter(state, 'year'),
+              ),
             ),
           ),
         ],
       ),
-      GoRoute(path: AppRoutes.newNote, builder: (context, state) => const NoteEditorScreen(noteId: null)),
+      GoRoute(
+        path: AppRoutes.newNote,
+        pageBuilder: (context, state) => _materialPage(state, const NoteEditorScreen(noteId: null)),
+      ),
       GoRoute(
         path: '/note/:noteId',
-        builder: (context, state) => NoteEditorScreen(noteId: _integerPathParameter(state, 'noteId')),
+        pageBuilder: (context, state) =>
+            _materialPage(state, NoteEditorScreen(noteId: _integerPathParameter(state, 'noteId'))),
       ),
     ],
   );
 }
+
+/// go_router 18 looks for the `material_ui` package's MaterialApp; Komit uses Flutter's, so
+/// without an explicit page every pushed screen would appear without a transition, without the
+/// predictive back animation and without hero flights.
+Page<void> _materialPage(GoRouterState state, Widget screen) => MaterialPage(key: state.pageKey, child: screen);
 
 /// Safe because the top-level redirect sends any non-integer path parameter back home.
 int _integerPathParameter(GoRouterState state, String name) => int.parse(state.pathParameters[name]!);
