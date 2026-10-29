@@ -115,7 +115,7 @@ class _StatisticsContent extends StatelessWidget {
               child: Row(
                 children: [
                   HabitIconBadge(
-                    icon: LucideIcons.trophy,
+                    icon: LucideIcons.calendarCheck,
                     color: komitColors.onHighlightContainer,
                     size: AppSizes.heroBadge,
                   ),
@@ -128,12 +128,9 @@ class _StatisticsContent extends StatelessWidget {
                           localizations.daysLogged,
                           style: textTheme.bodyLarge?.copyWith(color: komitColors.onHighlightContainer),
                         ),
-                        Text(
-                          '${statistics.totalLogCount}',
-                          style: textTheme.displaySmall?.copyWith(
-                            color: komitColors.onHighlightContainer,
-                            fontFeatures: const [FontFeature.tabularFigures()],
-                          ),
+                        AnimatedCount(
+                          value: statistics.totalLogCount,
+                          style: textTheme.displaySmall?.copyWith(color: komitColors.onHighlightContainer),
                         ),
                       ],
                     ),
@@ -150,7 +147,12 @@ class _StatisticsContent extends StatelessWidget {
             SectionTitle(localizations.objectiveDistribution),
             _ObjectiveDistributionChart(habit: habit, statistics: statistics),
             SectionTitle(localizations.monthlyActivity),
-            _MonthlyActivityChart(statistics: statistics, year: year),
+            _MonthlyActivityChart(
+              statistics: statistics,
+              year: year,
+              habitColor: Color(habit.habit.colorArgb),
+              currentMonth: today.year == year ? today.asUtcDate.month : null,
+            ),
           ],
         ],
       ),
@@ -217,16 +219,30 @@ class _ObjectiveDistributionChart extends StatelessWidget {
   }
 }
 
+/// The busiest possible month, so bars of different years compare at the same scale.
+const double _monthlyChartMaximumY = 31;
+
 class _MonthlyActivityChart extends StatelessWidget {
-  const _MonthlyActivityChart({required this.statistics, required this.year});
+  const _MonthlyActivityChart({
+    required this.statistics,
+    required this.year,
+    required this.habitColor,
+    required this.currentMonth,
+  });
 
   final YearStatistics statistics;
   final int year;
+  final Color habitColor;
+
+  /// 1 to 12 when [year] is this year: that month's column is highlighted. Null otherwise.
+  final int? currentMonth;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final komitColors = KomitColors.of(context);
+    final localizations = AppLocalizations.of(context);
     final monthFormat = DateFormat('MMMMM', Localizations.localeOf(context).toLanguageTag());
     final fullMonthFormat = DateFormat.MMMM(Localizations.localeOf(context).toLanguageTag());
     final summary = [
@@ -240,10 +256,21 @@ class _MonthlyActivityChart extends StatelessWidget {
           height: _chartHeight,
           child: BarChart(
             BarChartData(
-              maxY: 31,
+              maxY: _monthlyChartMaximumY,
               gridData: const FlGridData(show: false),
               borderData: FlBorderData(show: false),
-              barTouchData: const BarTouchData(enabled: false),
+              // Touching a bar shows its month and count; the summary above tells screen readers.
+              barTouchData: BarTouchData(
+                touchTooltipData: BarTouchTooltipData(
+                  getTooltipColor: (_) => colorScheme.inverseSurface,
+                  tooltipBorderRadius: BorderRadius.circular(AppRadii.small),
+                  getTooltipItem: (group, groupIndex, rod, rodIndex) => BarTooltipItem(
+                    '${fullMonthFormat.format(DateTime(year, group.x + 1))}\n'
+                    '${localizations.dayCount(rod.toY.round())}',
+                    textTheme.labelMedium!.copyWith(color: colorScheme.onInverseSurface),
+                  ),
+                ),
+              ),
               titlesData: FlTitlesData(
                 leftTitles: const AxisTitles(),
                 rightTitles: const AxisTitles(),
@@ -251,13 +278,19 @@ class _MonthlyActivityChart extends StatelessWidget {
                 bottomTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
-                    getTitlesWidget: (value, meta) => Padding(
-                      padding: const EdgeInsets.only(top: AppSpacing.small),
-                      child: Text(
-                        monthFormat.format(DateTime(year, value.toInt() + 1)),
-                        style: TextStyle(color: komitColors.mutedText),
-                      ),
-                    ),
+                    getTitlesWidget: (value, meta) {
+                      final isCurrentMonth = value.toInt() + 1 == currentMonth;
+                      return Padding(
+                        padding: const EdgeInsets.only(top: AppSpacing.small),
+                        child: Text(
+                          monthFormat.format(DateTime(year, value.toInt() + 1)),
+                          style: textTheme.labelMedium?.copyWith(
+                            color: isCurrentMonth ? colorScheme.onSurface : komitColors.mutedText,
+                            fontWeight: isCurrentMonth ? FontWeight.w800 : null,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
@@ -268,9 +301,15 @@ class _MonthlyActivityChart extends StatelessWidget {
                     barRods: [
                       BarChartRodData(
                         toY: statistics.logCountByMonth[monthIndex].toDouble(),
-                        color: colorScheme.primary,
+                        color: habitColor,
                         width: _monthBarWidth,
                         borderRadius: BorderRadius.circular(AppRadii.gridCell),
+                        // The current month stands on a full-height track: where the year is now.
+                        backDrawRodData: BackgroundBarChartRodData(
+                          show: monthIndex + 1 == currentMonth,
+                          toY: _monthlyChartMaximumY,
+                          color: komitColors.emptyCell,
+                        ),
                       ),
                     ],
                   ),

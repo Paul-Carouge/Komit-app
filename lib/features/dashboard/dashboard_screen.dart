@@ -26,6 +26,8 @@ import '../habit_details/log_day_sheet.dart';
 import '../mascot/komo_empty_state.dart';
 import '../mascot/komo_mascot.dart';
 import '../shared/day_grid.dart';
+import '../shared/entrance_animation.dart';
+import '../shared/habit_icon_hero.dart';
 import '../shared/shared_widgets.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -136,7 +138,16 @@ class _TodayHeader extends ConsumerWidget {
         excludeSemantics: true,
         child: Row(
           children: [
-            KomoMascot(mood: isEverythingDone ? KomoMood.happy : KomoMood.idle, size: AppSizes.mascotSmall),
+            // Komo appears with today's mood once known, so loading never reads as a mood change.
+            if (progress == null)
+              const SizedBox.square(dimension: AppSizes.mascotSmall)
+            else
+              KomoMascot(
+                mood: isEverythingDone ? KomoMood.happy : KomoMood.idle,
+                size: AppSizes.mascotSmall,
+                animationBudget: AppDurations.mascotHeaderAnimationBudget,
+                isAnimatedOnMount: false,
+              ),
             const SizedBox(width: AppSpacing.medium),
             Expanded(
               child: Column(
@@ -238,6 +249,8 @@ class _ReorderableHabitListState extends ConsumerState<_ReorderableHabitList> {
   /// never jumps back to its old place for a frame.
   List<HabitWithObjectives>? _droppedOrder;
 
+  final ListEntranceChoreographer _entranceChoreographer = ListEntranceChoreographer();
+
   @override
   void didUpdateWidget(_ReorderableHabitList oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -269,6 +282,7 @@ class _ReorderableHabitListState extends ConsumerState<_ReorderableHabitList> {
     final recentLogsByHabitId = ref.watch(recentObjectiveIdByDayByHabitIdProvider).value ?? const {};
     final lastLoggedDayByHabitId = ref.watch(lastLoggedDayByHabitIdProvider).value ?? const {};
     final today = ref.watch(currentCalendarDayProvider);
+    _entranceChoreographer.updateRowIds(habits.map((habit) => habit.habit.id));
     return SliverReorderableList(
       itemCount: habits.length,
       onReorderStart: (_) => unawaited(KomitHaptics.lift()),
@@ -279,15 +293,18 @@ class _ReorderableHabitListState extends ConsumerState<_ReorderableHabitList> {
         return ReorderableDelayedDragStartListener(
           key: ValueKey(habit.habit.id),
           index: index,
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.medium),
-            child: _HabitRow(
-              habit: habit,
-              today: today,
-              recentObjectiveIdByDay: recentLogsByHabitId[habit.habit.id] ?? const {},
-              lastLoggedDay: lastLoggedDayByHabitId[habit.habit.id],
-              onMoveUp: index == 0 ? null : () => _move(habits, index, index - 1),
-              onMoveDown: index == habits.length - 1 ? null : () => _move(habits, index, index + 1),
+          child: RowEntranceAnimation(
+            entrance: _entranceChoreographer.entranceFor(habit.habit.id, index),
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.medium),
+              child: _HabitRow(
+                habit: habit,
+                today: today,
+                recentObjectiveIdByDay: recentLogsByHabitId[habit.habit.id] ?? const {},
+                lastLoggedDay: lastLoggedDayByHabitId[habit.habit.id],
+                onMoveUp: index == 0 ? null : () => _move(habits, index, index - 1),
+                onMoveDown: index == habits.length - 1 ? null : () => _move(habits, index, index + 1),
+              ),
             ),
           ),
         );
@@ -379,7 +396,11 @@ class _HabitRow extends ConsumerWidget {
           children: [
             Row(
               children: [
-                HabitIconBadge(icon: habitIconForName(habit.habit.iconName), color: Color(habit.habit.colorArgb)),
+                HabitIconHero(
+                  habitId: habit.habit.id,
+                  icon: habitIconForName(habit.habit.iconName),
+                  look: HabitIconLook.onCard(context, Color(habit.habit.colorArgb)),
+                ),
                 const SizedBox(width: AppSpacing.medium),
                 Expanded(
                   child: Semantics(

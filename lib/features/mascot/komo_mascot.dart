@@ -12,17 +12,30 @@ export 'komo_mood.dart';
 
 /// Komo, Komit's mascot: an orange rounded square with two pill eyes, like the app icon.
 ///
-/// It plays its [mood] animation for [AppDurations.mascotAnimationBudget], then rests, so a
+/// It plays its [mood] animation for [animationBudget], then rests, so a
 /// screen left open stops drawing frames. Tapping Komo plays it again. With system animations
 /// turned off, Komo is drawn in its resting pose and never animates.
 ///
 /// Decorative by default; give a [semanticLabel] only when Komo carries meaning on its own.
 class KomoMascot extends StatefulWidget {
-  const KomoMascot({required this.mood, this.size = AppSizes.mascotMedium, this.semanticLabel, super.key});
+  const KomoMascot({
+    required this.mood,
+    this.size = AppSizes.mascotMedium,
+    this.semanticLabel,
+    this.animationBudget = AppDurations.mascotAnimationBudget,
+    this.isAnimatedOnMount = true,
+    super.key,
+  });
 
   final KomoMood mood;
   final double size;
   final String? semanticLabel;
+
+  /// How long each mood animation plays; at least one cycle.
+  final Duration animationBudget;
+
+  /// False for Komo next to content the user reads: it then moves only on a mood change or a tap.
+  final bool isAnimatedOnMount;
 
   @override
   State<KomoMascot> createState() => _KomoMascotState();
@@ -39,7 +52,9 @@ class _KomoMascotState extends State<KomoMascot> with SingleTickerProviderStateM
     super.didChangeDependencies();
     final isMotionReduced = MediaQuery.disableAnimationsOf(context);
     if (isMotionReduced == _isMotionReduced) return;
+    final isFirstResolution = _isMotionReduced == null;
     _isMotionReduced = isMotionReduced;
+    if (isFirstResolution && !widget.isAnimatedOnMount) return;
     _playMoodAnimation();
   }
 
@@ -57,7 +72,7 @@ class _KomoMascotState extends State<KomoMascot> with SingleTickerProviderStateM
       _controller.value = 0;
       return;
     }
-    final cycleCount = AppDurations.mascotAnimationBudget.inMilliseconds ~/ widget.mood.cycleDuration.inMilliseconds;
+    final cycleCount = widget.animationBudget.inMilliseconds ~/ widget.mood.cycleDuration.inMilliseconds;
     // Every pose is periodic, so ending on a cycle boundary lands on the resting pose.
     unawaited(_controller.repeat(count: cycleCount < 1 ? 1 : cycleCount));
   }

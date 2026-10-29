@@ -5,11 +5,13 @@ import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../data/database/app_database.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
 import '../../router.dart';
 import '../mascot/komo_empty_state.dart';
 import '../mascot/komo_mascot.dart';
+import '../shared/entrance_animation.dart';
 import '../shared/shared_widgets.dart';
 
 const int _notePreviewMaximumLines = 4;
@@ -20,10 +22,7 @@ class NotesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final localizations = AppLocalizations.of(context);
-    final komitColors = KomitColors.of(context);
-    final textTheme = Theme.of(context).textTheme;
     final notes = ref.watch(notesProvider);
-    final dateFormat = DateFormat.yMMMd(Localizations.localeOf(context).toLanguageTag()).add_Hm();
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -61,30 +60,7 @@ class NotesScreen extends ConsumerWidget {
                 AppSpacing.screenGutter,
                 AppSpacing.extraLarge + MediaQuery.paddingOf(context).bottom,
               ),
-              sliver: SliverList.separated(
-                itemCount: notes.length,
-                separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.medium),
-                itemBuilder: (context, index) {
-                  final note = notes[index];
-                  return PressableCard(
-                    onTap: () => context.push(AppRoutes.noteEditor(note.id)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppSpacing.large),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            dateFormat.format(note.updatedAt),
-                            style: textTheme.labelMedium?.copyWith(color: komitColors.mutedText),
-                          ),
-                          const SizedBox(height: AppSpacing.small),
-                          Text(note.content, maxLines: _notePreviewMaximumLines, overflow: TextOverflow.ellipsis),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
+              sliver: _NoteList(notes: notes),
             ),
             _ => SliverToBoxAdapter(
               child: AsyncValueView(value: notes, retryProvider: notesProvider, builder: (_) => const SizedBox()),
@@ -92,6 +68,58 @@ class NotesScreen extends ConsumerWidget {
           },
         ],
       ),
+    );
+  }
+}
+
+class _NoteList extends StatefulWidget {
+  const _NoteList({required this.notes});
+
+  final List<NoteRow> notes;
+
+  @override
+  State<_NoteList> createState() => _NoteListState();
+}
+
+class _NoteListState extends State<_NoteList> {
+  final ListEntranceChoreographer _entranceChoreographer = ListEntranceChoreographer();
+
+  @override
+  Widget build(BuildContext context) {
+    final komitColors = KomitColors.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    final dateFormat = DateFormat.yMMMd(Localizations.localeOf(context).toLanguageTag()).add_Hm();
+    final notes = widget.notes;
+    _entranceChoreographer.updateRowIds(notes.map((note) => note.id));
+    return SliverList.builder(
+      itemCount: notes.length,
+      itemBuilder: (context, index) {
+        final note = notes[index];
+        return RowEntranceAnimation(
+          key: ValueKey(note.id),
+          entrance: _entranceChoreographer.entranceFor(note.id, index),
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.medium),
+            child: PressableCard(
+              onTap: () => context.push(AppRoutes.noteEditor(note.id)),
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.large),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      dateFormat.format(note.updatedAt),
+                      style: textTheme.labelMedium?.copyWith(color: komitColors.mutedText),
+                    ),
+                    const SizedBox(height: AppSpacing.small),
+                    Text(note.content, maxLines: _notePreviewMaximumLines, overflow: TextOverflow.ellipsis),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

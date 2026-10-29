@@ -4,6 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/app_theme.dart';
 import '../../domain/habit_statistics.dart';
 import '../../l10n/app_localizations.dart';
+import '../shared/shared_widgets.dart';
 
 class StreakCards extends StatelessWidget {
   const StreakCards({required this.streaks, super.key});
@@ -27,7 +28,8 @@ class StreakCards extends StatelessWidget {
             child: _StreakCard(
               icon: LucideIcons.flame,
               label: localizations.currentStreak,
-              value: formatStreakLength(streaks.currentStreakLength),
+              value: streaks.currentStreakLength,
+              formatValue: formatStreakLength,
               backgroundColor: colorScheme.primaryContainer,
               accentColor: komitColors.accentText,
               valueColor: komitColors.accentText,
@@ -38,7 +40,8 @@ class StreakCards extends StatelessWidget {
             child: _StreakCard(
               icon: LucideIcons.trophy,
               label: localizations.bestStreak,
-              value: formatStreakLength(streaks.bestStreakLength),
+              value: streaks.bestStreakLength,
+              formatValue: formatStreakLength,
               backgroundColor: colorScheme.surfaceContainerLow,
               accentColor: komitColors.mutedText,
               valueColor: colorScheme.onSurface,
@@ -55,6 +58,7 @@ class _StreakCard extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.value,
+    required this.formatValue,
     required this.backgroundColor,
     required this.accentColor,
     required this.valueColor,
@@ -62,7 +66,8 @@ class _StreakCard extends StatelessWidget {
 
   final IconData icon;
   final String label;
-  final String value;
+  final int value;
+  final String Function(int count) formatValue;
   final Color backgroundColor;
   final Color accentColor;
   final Color valueColor;
@@ -91,12 +96,10 @@ class _StreakCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.small),
-            Text(
-              value,
-              style: textTheme.headlineSmall?.copyWith(
-                color: valueColor,
-                fontFeatures: const [FontFeature.tabularFigures()],
-              ),
+            AnimatedCount(
+              value: value,
+              format: formatValue,
+              style: textTheme.headlineSmall?.copyWith(color: valueColor),
             ),
           ],
         ),

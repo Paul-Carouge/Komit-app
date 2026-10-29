@@ -422,6 +422,34 @@ InputDecoration borderlessInlineInputDecoration({required String hintText}) => I
   focusedBorder: InputBorder.none,
 );
 
+/// A number that counts up to [value] when it first appears and to each new value after, in
+/// tabular figures so the digits do not jiggle. Screen readers only hear the final value.
+class AnimatedCount extends StatelessWidget {
+  const AnimatedCount({required this.value, required this.style, this.format, super.key});
+
+  final int value;
+  final TextStyle? style;
+
+  /// Turns the number into text, e.g. "12 days"; the bare number by default.
+  final String Function(int count)? format;
+
+  @override
+  Widget build(BuildContext context) {
+    final format = this.format ?? (count) => '$count';
+    return Semantics(
+      label: format(value),
+      excludeSemantics: true,
+      child: TweenAnimationBuilder<int>(
+        tween: IntTween(begin: 0, end: value),
+        duration: motionAwareDuration(context, AppDurations.counter),
+        curve: AppCurves.standard,
+        builder: (context, count, _) =>
+            Text(format(count), style: style?.copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
+      ),
+    );
+  }
+}
+
 class ColorDot extends StatelessWidget {
   const ColorDot({required this.color, this.size = AppSizes.colorDot, super.key});
 

@@ -19,6 +19,7 @@ import '../../router.dart';
 import '../archived_habits/archived_habits_screen.dart';
 import '../mascot/komo_empty_state.dart';
 import '../mascot/komo_mascot.dart';
+import '../shared/habit_icon_hero.dart';
 import '../shared/shared_widgets.dart';
 import 'log_day_sheet.dart';
 import 'streak_cards.dart';
@@ -463,14 +464,10 @@ class _HabitHeroCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            width: AppSizes.heroBadge,
-            height: AppSizes.heroBadge,
-            decoration: BoxDecoration(
-              color: foregroundColor.withValues(alpha: AppOpacity.overlayOnColor),
-              borderRadius: BorderRadius.circular(AppRadii.medium),
-            ),
-            child: Icon(habitIconForName(habit.habit.iconName), color: foregroundColor, size: AppSizes.iconHero),
+          HabitIconHero(
+            habitId: habit.habit.id,
+            icon: habitIconForName(habit.habit.iconName),
+            look: HabitIconLook.onHabitColor(habitColor),
           ),
           const SizedBox(width: AppSpacing.large),
           Expanded(

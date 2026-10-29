@@ -27,7 +27,32 @@ abstract final class AppDurations {
 
   /// Komo stops moving after this long, so an idle screen stops drawing frames and saves battery.
   static const Duration mascotAnimationBudget = Duration(seconds: 12);
+
+  /// Komo in a header or bar answers a change or a tap with a short gesture, then rests: it sits
+  /// next to content the user reads and must not pull the eye.
+  static const Duration mascotHeaderAnimationBudget = Duration(milliseconds: 2500);
+
+  /// A list row fading and rising into place.
+  static const Duration entrance = Duration(milliseconds: 360);
+
+  /// Gap between two rows of a staggered entrance; short, so the eighth row lands in about half a second.
+  static const Duration entranceStaggerStep = Duration(milliseconds: 40);
+
+  /// A number counting up to its value.
+  static const Duration counter = Duration(milliseconds: 720);
+
+  /// The burst of color behind Komo when a milestone is reached.
+  static const Duration celebrationBurst = Duration(milliseconds: 900);
+
+  /// How long a celebration card stays; long enough to read two short lines twice.
+  static const Duration celebrationVisible = Duration(seconds: 4);
 }
+
+/// Only the first rows of a list are staggered: past these the wait would feel like lag.
+const int maximumStaggeredEntranceCount = 8;
+
+/// How far a row rises while it fades in, in logical pixels.
+const double entranceRiseDistance = 8;
 
 abstract final class AppCurves {
   static const Curve standard = Curves.easeOutCubic;
