@@ -239,5 +239,17 @@
   "weeklyRecapBestStreak": "Plus longue série : {habitTitle}, {streak}",
   "dismissWeeklyRecap": "Masquer le bilan",
   "checkForUpdatesAutomatically": "Rechercher les mises à jour automatiquement",
-  "checkForUpdatesAutomaticallyDescription": "Une fois par jour au plus, en demandant la dernière version à GitHub."
+  "checkForUpdatesAutomaticallyDescription": "Une fois par jour au plus, en demandant la dernière version à GitHub.",
+  "restoreAutomaticBackup": "Restaurer une sauvegarde automatique",
+  "automaticBackups": "Sauvegardes automatiques",
+  "automaticBackupsExplanation": "Komit garde une copie de vos données sur ce téléphone avant chaque import ou mise à jour, et une fois par jour quand quelque chose a changé. Les {count} plus récentes sont conservées.",
+  "noAutomaticBackupsTitle": "Aucune sauvegarde automatique",
+  "noAutomaticBackupsMessage": "La première est faite aujourd'hui, dès que vous aurez noté quelque chose.",
+  "automaticBackupBeforeImport": "Avant un import",
+  "automaticBackupBeforeUpdate": "Avant une mise à jour",
+  "automaticBackupDaily": "Copie quotidienne",
+  "restoreAutomaticBackupConfirmationTitle": "Restaurer cette sauvegarde ?",
+  "restoreAutomaticBackupConfirmationMessage": "Tout le contenu de l'application sera remplacé par la copie du {date}. Vos données actuelles sont d'abord enregistrées dans une sauvegarde automatique.",
+  "preImportBackupFailed": "Rien n'a été remplacé : Komit n'a pas pu enregistrer d'abord une copie de vos données actuelles. Libérez de l'espace et réessayez.",
+  "lastExportDaysAgo": "Dernier export : il y a {days} jours"
 }

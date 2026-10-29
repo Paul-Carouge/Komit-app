@@ -83,7 +83,9 @@ class _KomitAppState extends ConsumerState<KomitApp> {
         // Screens without an app bar still get transparent bars with readable icons.
         value: systemUiOverlayStyleFor(Theme.of(context).brightness),
         child: SplashHandoff(
-          child: _ReminderSynchronizer(child: _HomeWidgetSynchronizer(child: child!)),
+          child: _ReminderSynchronizer(
+            child: _HomeWidgetSynchronizer(child: _DailyAutomaticBackupScheduler(child: child!)),
+          ),
         ),
       ),
     );
@@ -189,4 +191,51 @@ class _HomeWidgetSynchronizerState extends ConsumerState<_HomeWidgetSynchronizer
     }
     return widget.child;
   }
+}
+
+/// Asks for the daily automatic backup at launch and whenever the app resumes; the service
+/// itself skips it when the last copy is less than a day old or the data did not change.
+class _DailyAutomaticBackupScheduler extends ConsumerStatefulWidget {
+  const _DailyAutomaticBackupScheduler({required this.child});
+
+  final Widget child;
+
+  @override
+  ConsumerState<_DailyAutomaticBackupScheduler> createState() => _DailyAutomaticBackupSchedulerState();
+}
+
+class _DailyAutomaticBackupSchedulerState extends ConsumerState<_DailyAutomaticBackupScheduler> {
+  late final AppLifecycleListener _lifecycleListener;
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycleListener = AppLifecycleListener(onResume: _writeDailyBackupIfDue);
+    // After the first frame: the launch must not wait for a backup.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _writeDailyBackupIfDue());
+  }
+
+  @override
+  void dispose() {
+    _lifecycleListener.dispose();
+    super.dispose();
+  }
+
+  void _writeDailyBackupIfDue() {
+    // Read now: the error may arrive after this widget is gone.
+    final logger = ref.read(appLoggerProvider);
+    unawaited(
+      ref
+          .read(automaticBackupServiceProvider)
+          .writeDailySnapshotIfDataChanged()
+          .then<void>(
+            (_) {},
+            onError: (Object error, StackTrace stackTrace) =>
+                logger.logError(event: 'daily_backup_failed', error: error, stackTrace: stackTrace),
+          ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

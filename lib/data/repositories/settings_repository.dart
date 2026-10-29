@@ -10,6 +10,7 @@ class AppSettings {
     required this.themeMode,
     required this.languageCode,
     required this.isAutomaticUpdateCheckEnabled,
+    required this.lastExportAt,
   });
 
   final String? userName;
@@ -21,6 +22,9 @@ class AppSettings {
 
   /// Whether Komit asks GitHub for a new version on its own, at most once a day.
   final bool isAutomaticUpdateCheckEnabled;
+
+  /// When the user last saved an export file; null if never.
+  final DateTime? lastExportAt;
 }
 
 class SettingsRepository {
@@ -36,6 +40,7 @@ class SettingsRepository {
   static const String _dismissedWeeklyRecapWeekKey = 'dismissed_weekly_recap_week';
   static const String _isAutomaticUpdateCheckEnabledKey = 'automatic_update_check_enabled';
   static const String _lastAutomaticUpdateCheckAtKey = 'last_automatic_update_check_at';
+  static const String _lastExportAtKey = 'last_export_at';
 
   AppSettings readSettings() => AppSettings(
     userName: _preferences.getString(_userNameKey),
@@ -43,6 +48,7 @@ class SettingsRepository {
     themeMode: ThemeMode.values.asNameMap()[_preferences.getString(_themeModeKey)] ?? ThemeMode.system,
     languageCode: _preferences.getString(_languageCodeKey),
     isAutomaticUpdateCheckEnabled: _preferences.getBool(_isAutomaticUpdateCheckEnabledKey) ?? true,
+    lastExportAt: _readDateTime(_lastExportAtKey),
   );
 
   Future<void> saveUserName(String? userName) async {
@@ -84,6 +90,9 @@ class SettingsRepository {
 
   Future<void> saveLastAutomaticUpdateCheckAt(DateTime checkedAt) =>
       _preferences.setInt(_lastAutomaticUpdateCheckAtKey, checkedAt.millisecondsSinceEpoch);
+
+  Future<void> saveLastExportAt(DateTime exportedAt) =>
+      _preferences.setInt(_lastExportAtKey, exportedAt.millisecondsSinceEpoch);
 
   DateTime? _readDateTime(String key) => switch (_preferences.getInt(key)) {
     final millisecondsSinceEpoch? => DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch),

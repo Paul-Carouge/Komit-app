@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../core/calendar_day.dart';
+import '../../core/current_calendar_day.dart';
 import '../../core/haptics.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
@@ -11,6 +13,7 @@ import '../../providers.dart';
 import '../shared/shared_widgets.dart';
 import '../updates/update_prompt.dart';
 import '../../services/notification_permission_service.dart';
+import 'automatic_backups_sheet.dart';
 import 'backup_actions.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -90,26 +93,7 @@ class SettingsScreen extends ConsumerWidget {
                 SectionTitle(localizations.notifications),
                 const _NotificationSettingsCard(),
                 SectionTitle(localizations.dataAndStorage),
-                SoftCard(
-                  padding: EdgeInsets.zero,
-                  child: Column(
-                    children: [
-                      ListTile(
-                        leading: HabitIconBadge(icon: LucideIcons.download, color: komitColors.mutedText),
-                        title: Text(localizations.exportData),
-                        trailing: const Icon(LucideIcons.chevronRight),
-                        onTap: () => exportBackupToUserChosenFile(context, ref),
-                      ),
-                      ListTile(
-                        // Neutral like export: the confirmation dialog carries the warning.
-                        leading: HabitIconBadge(icon: LucideIcons.upload, color: komitColors.mutedText),
-                        title: Text(localizations.importData),
-                        trailing: const Icon(LucideIcons.chevronRight),
-                        onTap: () => importBackupFromUserChosenFile(context, ref),
-                      ),
-                    ],
-                  ),
-                ),
+                const _DataAndStorageCard(),
                 if (ref.watch(appUpdateServiceProvider).isSupported) ...[
                   SectionTitle(localizations.updates),
                   SoftCard(
@@ -183,6 +167,94 @@ Future<void> _openReleasesPage(BuildContext context, WidgetRef ref) async {
       ref.read(appLoggerProvider).logError(event: 'releases_page_failed', error: error, stackTrace: stackTrace),
     );
     if (context.mounted) showMessageSnackBar(context, AppLocalizations.of(context).settingsUnavailable);
+  }
+}
+
+/// Days without an export after which Settings reminds the user to save one.
+const int _daysWithoutExportBeforeReminder = 30;
+
+/// Export, import and restore. One operation at a time: while one runs, every tile is disabled
+/// and the running one shows a spinner, since encoding a long history takes a moment.
+class _DataAndStorageCard extends ConsumerStatefulWidget {
+  const _DataAndStorageCard();
+
+  @override
+  ConsumerState<_DataAndStorageCard> createState() => _DataAndStorageCardState();
+}
+
+enum _BackupOperation { export, import, restore }
+
+class _DataAndStorageCardState extends ConsumerState<_DataAndStorageCard> {
+  _BackupOperation? _runningOperation;
+
+  Future<void> _run(_BackupOperation operation, Future<Object?> Function() action) async {
+    setState(() => _runningOperation = operation);
+    try {
+      await action();
+    } finally {
+      if (mounted) setState(() => _runningOperation = null);
+    }
+  }
+
+  Future<void> _chooseAndRestoreAutomaticBackup() async {
+    final backup = await showAutomaticBackupsSheet(context);
+    if (backup == null || !mounted) return;
+    await _run(_BackupOperation.restore, () => restoreAutomaticBackup(context, ref, backup));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    final komitColors = KomitColors.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final lastExportAt = ref.watch(settingsControllerProvider).lastExportAt;
+    final daysSinceLastExport = lastExportAt == null
+        ? null
+        : ref.watch(currentCalendarDayProvider).daysSinceEpoch - CalendarDay.fromDateTime(lastExportAt).daysSinceEpoch;
+    final isExportReminderShown =
+        daysSinceLastExport != null && daysSinceLastExport >= _daysWithoutExportBeforeReminder;
+    final isIdle = _runningOperation == null;
+
+    Widget trailingFor(_BackupOperation operation) => _runningOperation == operation
+        ? const SizedBox.square(
+            dimension: AppSizes.inlineProgressIndicator,
+            child: CircularProgressIndicator(strokeWidth: AppSizes.inlineProgressIndicatorStroke),
+          )
+        : const Icon(LucideIcons.chevronRight);
+
+    return SoftCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        children: [
+          ListTile(
+            leading: HabitIconBadge(
+              icon: LucideIcons.download,
+              color: isExportReminderShown ? colorScheme.primary : komitColors.mutedText,
+            ),
+            title: Text(localizations.exportData),
+            subtitle: isExportReminderShown ? Text(localizations.lastExportDaysAgo(daysSinceLastExport)) : null,
+            trailing: trailingFor(_BackupOperation.export),
+            enabled: isIdle,
+            onTap: () => _run(_BackupOperation.export, () => exportBackupToUserChosenFile(context, ref)),
+          ),
+          ListTile(
+            // Neutral like export: the confirmation dialog carries the warning.
+            leading: HabitIconBadge(icon: LucideIcons.upload, color: komitColors.mutedText),
+            title: Text(localizations.importData),
+            trailing: trailingFor(_BackupOperation.import),
+            enabled: isIdle,
+            onTap: () => _run(_BackupOperation.import, () => importBackupFromUserChosenFile(context, ref)),
+          ),
+          ListTile(
+            leading: HabitIconBadge(icon: LucideIcons.history, color: komitColors.mutedText),
+            title: Text(localizations.restoreAutomaticBackup),
+            trailing: trailingFor(_BackupOperation.restore),
+            enabled: isIdle,
+            onTap: _chooseAndRestoreAutomaticBackup,
+          ),
+        ],
+      ),
+    );
   }
 }
 

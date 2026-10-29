@@ -1,6 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
-import 'dart:developer' as developer;
 import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -12,27 +13,38 @@ import '../../data/backup/backup_json_codec.dart';
 import '../../data/backup/backup_snapshot.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
+import '../../services/automatic_backup_service.dart';
 import '../shared/shared_widgets.dart';
 
 /// Guards against loading an unrelated huge file in memory; real backups are a few hundred KB.
 const int _maximumBackupFileSizeBytes = 20 * 1024 * 1024;
 
-Future<void> exportBackupToUserChosenFile(BuildContext context, WidgetRef ref) async {
+/// Returns true when the user saved the file.
+Future<bool> exportBackupToUserChosenFile(BuildContext context, WidgetRef ref) async {
   final localizations = AppLocalizations.of(context);
   try {
-    final now = DateTime.now();
+    final now = ref.read(clockProvider)();
     final snapshot = await ref
         .read(backupRepositoryProvider)
         .readSnapshot(userName: ref.read(settingsControllerProvider).userName);
-    final jsonText = encodeBackupSnapshotToJson(snapshot, exportedAt: now);
-    await FilePicker.saveFile(
+    // Encoding years of logs must not freeze the UI.
+    final fileBytes = await Isolate.run(
+      () => Uint8List.fromList(utf8.encode(encodeBackupSnapshotToJson(snapshot, exportedAt: now))),
+    );
+    final savedPath = await FilePicker.saveFile(
       fileName: 'komit_backup_${DateFormat('yyyyMMdd_HHmm').format(now)}.json',
-      bytes: utf8.encode(jsonText),
+      bytes: fileBytes,
       mimeType: 'application/json',
     );
-  } on Object catch (error) {
-    developer.log('Backup export failed', name: 'komit.backup', error: error);
+    if (savedPath == null) return false;
+    await ref.read(settingsControllerProvider.notifier).recordExport(now);
+    return true;
+  } on Object catch (error, stackTrace) {
+    unawaited(
+      ref.read(appLoggerProvider).logError(event: 'backup_export_failed', error: error, stackTrace: stackTrace),
+    );
     if (context.mounted) showMessageSnackBar(context, localizations.exportFailed);
+    return false;
   }
 }
 
@@ -53,8 +65,8 @@ Future<bool> importBackupFromUserChosenFile(BuildContext context, WidgetRef ref)
   } on InvalidBackupException catch (error) {
     if (context.mounted) showMessageSnackBar(context, localizations.importFailed(error.message));
     return false;
-  } on Object catch (error) {
-    developer.log('Backup file could not be read', name: 'komit.backup', error: error);
+  } on Object catch (error, stackTrace) {
+    unawaited(ref.read(appLoggerProvider).logError(event: 'backup_read_failed', error: error, stackTrace: stackTrace));
     if (context.mounted) showMessageSnackBar(context, localizations.importFailed(localizations.genericError));
     return false;
   }
@@ -67,24 +79,77 @@ Future<bool> importBackupFromUserChosenFile(BuildContext context, WidgetRef ref)
     confirmLabel: localizations.replace,
   );
   if (!isConfirmed || !context.mounted) return false;
+  return _replaceAllDataKeepingACopy(context, ref, snapshot);
+}
 
+/// Asks for confirmation, then replaces everything with [backup]; returns true when restored.
+Future<bool> restoreAutomaticBackup(BuildContext context, WidgetRef ref, AutomaticBackup backup) async {
+  final localizations = AppLocalizations.of(context);
+  final isConfirmed = await showDestructiveConfirmationDialog(
+    context,
+    title: localizations.restoreAutomaticBackupConfirmationTitle,
+    message: localizations.restoreAutomaticBackupConfirmationMessage(formatAutomaticBackupDate(context, backup)),
+    confirmLabel: localizations.replace,
+  );
+  if (!isConfirmed || !context.mounted) return false;
+  final BackupSnapshot snapshot;
   try {
-    await ref.read(backupRepositoryProvider).replaceAllDataWith(snapshot);
-    if (snapshot.userName != null) {
-      await ref.read(settingsControllerProvider.notifier).updateUserName(snapshot.userName);
-    }
-    if (context.mounted) showMessageSnackBar(context, localizations.importSucceeded(snapshot.logCount));
-  } on Object catch (error) {
-    developer.log('Backup import failed, database rolled back', name: 'komit.backup', error: error);
+    snapshot = await ref
+        .read(automaticBackupServiceProvider)
+        .readSnapshot(backup, today: ref.read(currentCalendarDayProvider));
+  } on Object catch (error, stackTrace) {
+    unawaited(
+      ref.read(appLoggerProvider).logError(event: 'automatic_backup_read_failed', error: error, stackTrace: stackTrace),
+    );
     if (context.mounted) showMessageSnackBar(context, localizations.importFailed(localizations.genericError));
     return false;
   }
+  if (!context.mounted) return false;
+  return _replaceAllDataKeepingACopy(context, ref, snapshot);
+}
+
+/// "Oct 28, 2026 14:05" in the user's language.
+String formatAutomaticBackupDate(BuildContext context, AutomaticBackup backup) =>
+    DateFormat.yMMMd(Localizations.localeOf(context).toLanguageTag()).add_Hm().format(backup.createdAt);
+
+/// Keeps an automatic copy of the current data first, so any import can be undone from
+/// Settings. Without that copy nothing is replaced.
+Future<bool> _replaceAllDataKeepingACopy(BuildContext context, WidgetRef ref, BackupSnapshot snapshot) async {
+  final localizations = AppLocalizations.of(context);
+  final logger = ref.read(appLoggerProvider);
+  try {
+    await ref.read(automaticBackupServiceProvider).writeSnapshot(AutomaticBackupReason.beforeImport);
+  } on Object catch (error, stackTrace) {
+    unawaited(logger.logError(event: 'pre_import_backup_failed', error: error, stackTrace: stackTrace));
+    if (context.mounted) showMessageSnackBar(context, localizations.preImportBackupFailed);
+    return false;
+  }
+
+  try {
+    await ref.read(backupRepositoryProvider).replaceAllDataWith(snapshot);
+  } on Object catch (error, stackTrace) {
+    unawaited(logger.logError(event: 'backup_import_failed', error: error, stackTrace: stackTrace));
+    if (context.mounted) showMessageSnackBar(context, localizations.importFailed(localizations.genericError));
+    return false;
+  }
+
+  // The data is in: a name that fails to save must not report the whole import as failed.
+  if (snapshot.userName != null) {
+    try {
+      await ref.read(settingsControllerProvider.notifier).updateUserName(snapshot.userName);
+    } on Object catch (error, stackTrace) {
+      unawaited(logger.logError(event: 'imported_name_save_failed', error: error, stackTrace: stackTrace));
+    }
+  }
+  if (context.mounted) showMessageSnackBar(context, localizations.importSucceeded(snapshot.logCount));
 
   // Imported reminders would otherwise be scheduled but silently never shown.
   final hasImportedReminders = snapshot.habits.any((habit) => habit.reminderMinuteOfDay != null);
   if (hasImportedReminders) {
     final isNotificationAllowed = await ref.read(reminderSchedulerProvider).requestPermission();
-    if (!isNotificationAllowed && context.mounted) showMessageSnackBar(context, localizations.notificationsDenied);
+    if (!isNotificationAllowed && context.mounted) {
+      showMessageSnackBar(context, localizations.notificationsDenied);
+    }
   }
   return true;
 }

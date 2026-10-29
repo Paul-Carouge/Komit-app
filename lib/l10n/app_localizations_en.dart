@@ -886,4 +886,47 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get checkForUpdatesAutomaticallyDescription => 'At most once a day, by asking GitHub for the latest version.';
+
+  @override
+  String get restoreAutomaticBackup => 'Restore an automatic backup';
+
+  @override
+  String get automaticBackups => 'Automatic backups';
+
+  @override
+  String automaticBackupsExplanation(int count) {
+    return 'Komit keeps a copy of your data on this phone before each import or update, and once a day when something changed. The $count most recent are kept.';
+  }
+
+  @override
+  String get noAutomaticBackupsTitle => 'No automatic backup yet';
+
+  @override
+  String get noAutomaticBackupsMessage => 'The first one is made today, once you have logged something.';
+
+  @override
+  String get automaticBackupBeforeImport => 'Before an import';
+
+  @override
+  String get automaticBackupBeforeUpdate => 'Before an update';
+
+  @override
+  String get automaticBackupDaily => 'Daily copy';
+
+  @override
+  String get restoreAutomaticBackupConfirmationTitle => 'Restore this backup?';
+
+  @override
+  String restoreAutomaticBackupConfirmationMessage(String date) {
+    return 'Everything in the app will be replaced by the copy from $date. Your current data is saved as an automatic backup first.';
+  }
+
+  @override
+  String get preImportBackupFailed =>
+      'Nothing was replaced: Komit could not save a copy of your current data first. Free up some space and try again.';
+
+  @override
+  String lastExportDaysAgo(int days) {
+    return 'Last export: $days days ago';
+  }
 }

@@ -10,6 +10,7 @@ import '../../core/theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
 import '../../services/app_update_service.dart';
+import '../../services/automatic_backup_service.dart';
 import '../shared/shared_widgets.dart';
 
 final installedVersionProvider = FutureProvider<String?>((ref) async {
@@ -68,6 +69,15 @@ Future<void> checkForUpdate(BuildContext context, WidgetRef ref, {required bool 
   );
   if (isInstallRequested != true || !context.mounted) return;
   if (!await _ensureInstallPermission(context, updateService) || !context.mounted) return;
+  try {
+    await ref.read(automaticBackupServiceProvider).writeSnapshot(AutomaticBackupReason.beforeUpdate);
+  } on Object catch (error, stackTrace) {
+    // Updates keep the database; the copy is only a safety net, so its failure must not block them.
+    unawaited(
+      ref.read(appLoggerProvider).logError(event: 'pre_update_backup_failed', error: error, stackTrace: stackTrace),
+    );
+  }
+  if (!context.mounted) return;
   await showDialog<void>(
     context: context,
     barrierDismissible: false,

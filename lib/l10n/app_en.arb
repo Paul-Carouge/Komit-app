@@ -645,5 +645,38 @@
   },
   "dismissWeeklyRecap": "Dismiss the recap",
   "checkForUpdatesAutomatically": "Check for updates automatically",
-  "checkForUpdatesAutomaticallyDescription": "At most once a day, by asking GitHub for the latest version."
+  "checkForUpdatesAutomaticallyDescription": "At most once a day, by asking GitHub for the latest version.",
+  "restoreAutomaticBackup": "Restore an automatic backup",
+  "automaticBackups": "Automatic backups",
+  "automaticBackupsExplanation": "Komit keeps a copy of your data on this phone before each import or update, and once a day when something changed. The {count} most recent are kept.",
+  "@automaticBackupsExplanation": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noAutomaticBackupsTitle": "No automatic backup yet",
+  "noAutomaticBackupsMessage": "The first one is made today, once you have logged something.",
+  "automaticBackupBeforeImport": "Before an import",
+  "automaticBackupBeforeUpdate": "Before an update",
+  "automaticBackupDaily": "Daily copy",
+  "restoreAutomaticBackupConfirmationTitle": "Restore this backup?",
+  "restoreAutomaticBackupConfirmationMessage": "Everything in the app will be replaced by the copy from {date}. Your current data is saved as an automatic backup first.",
+  "@restoreAutomaticBackupConfirmationMessage": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "preImportBackupFailed": "Nothing was replaced: Komit could not save a copy of your current data first. Free up some space and try again.",
+  "lastExportDaysAgo": "Last export: {days} days ago",
+  "@lastExportDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  }
 }

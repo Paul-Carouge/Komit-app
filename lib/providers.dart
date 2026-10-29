@@ -14,6 +14,7 @@ import 'domain/habit_history.dart';
 import 'domain/habit_statistics.dart';
 import 'domain/weekly_recap.dart';
 import 'services/app_update_service.dart';
+import 'services/automatic_backup_service.dart';
 import 'services/notification_permission_service.dart';
 import 'services/reminder_scheduler.dart';
 
@@ -28,6 +29,18 @@ final habitRepositoryProvider = Provider(
 );
 final noteRepositoryProvider = Provider((ref) => NoteRepository(ref.watch(appDatabaseProvider)));
 final backupRepositoryProvider = Provider((ref) => BackupRepository(ref.watch(appDatabaseProvider)));
+final automaticBackupServiceProvider = Provider(
+  (ref) => AutomaticBackupService(
+    backupRepository: ref.watch(backupRepositoryProvider),
+    readUserName: () => ref.read(settingsControllerProvider).userName,
+    now: ref.watch(clockProvider),
+  ),
+);
+
+/// Refreshed each time the restore list opens, since backups are written in the background.
+final automaticBackupsProvider = FutureProvider.autoDispose(
+  (ref) => ref.watch(automaticBackupServiceProvider).listBackupsNewestFirst(),
+);
 final appUpdateServiceProvider = Provider((ref) => AppUpdateService());
 final notificationPermissionServiceProvider = Provider(
   (ref) => NotificationPermissionService(ref.watch(reminderSchedulerProvider)),
@@ -62,6 +75,11 @@ class SettingsController extends Notifier<AppSettings> {
 
   Future<void> updateLanguageCode(String? languageCode) async {
     await _repository.saveLanguageCode(languageCode);
+    state = _repository.readSettings();
+  }
+
+  Future<void> recordExport(DateTime exportedAt) async {
+    await _repository.saveLastExportAt(exportedAt);
     state = _repository.readSettings();
   }
 

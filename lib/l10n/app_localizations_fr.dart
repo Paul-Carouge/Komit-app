@@ -901,4 +901,47 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get checkForUpdatesAutomaticallyDescription =>
       'Une fois par jour au plus, en demandant la dernière version à GitHub.';
+
+  @override
+  String get restoreAutomaticBackup => 'Restaurer une sauvegarde automatique';
+
+  @override
+  String get automaticBackups => 'Sauvegardes automatiques';
+
+  @override
+  String automaticBackupsExplanation(int count) {
+    return 'Komit garde une copie de vos données sur ce téléphone avant chaque import ou mise à jour, et une fois par jour quand quelque chose a changé. Les $count plus récentes sont conservées.';
+  }
+
+  @override
+  String get noAutomaticBackupsTitle => 'Aucune sauvegarde automatique';
+
+  @override
+  String get noAutomaticBackupsMessage => 'La première est faite aujourd\'hui, dès que vous aurez noté quelque chose.';
+
+  @override
+  String get automaticBackupBeforeImport => 'Avant un import';
+
+  @override
+  String get automaticBackupBeforeUpdate => 'Avant une mise à jour';
+
+  @override
+  String get automaticBackupDaily => 'Copie quotidienne';
+
+  @override
+  String get restoreAutomaticBackupConfirmationTitle => 'Restaurer cette sauvegarde ?';
+
+  @override
+  String restoreAutomaticBackupConfirmationMessage(String date) {
+    return 'Tout le contenu de l\'application sera remplacé par la copie du $date. Vos données actuelles sont d\'abord enregistrées dans une sauvegarde automatique.';
+  }
+
+  @override
+  String get preImportBackupFailed =>
+      'Rien n\'a été remplacé : Komit n\'a pas pu enregistrer d\'abord une copie de vos données actuelles. Libérez de l\'espace et réessayez.';
+
+  @override
+  String lastExportDaysAgo(int days) {
+    return 'Dernier export : il y a $days jours';
+  }
 }

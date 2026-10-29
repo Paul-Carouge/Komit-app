@@ -76,6 +76,10 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
   phone. Moving to a new phone with a cable or Wi-Fi transfer still copies everything.
 - Turn off "Check for updates automatically" in Settings. When it is on, Komit asks GitHub
   at most once a day instead of at every launch.
+- Automatic backups: before every import, before an update is installed, and once a day
+  when something changed, Komit keeps a copy of your data on the phone. The 10 most recent
+  copies can be restored from Settings → Data & storage → "Restore an automatic backup".
+- Settings reminds you to export your data when the last export is more than 30 days old.
 
 ### Changed
 - Screens slide in and out again, with Android's back gesture preview: an update of the
@@ -112,6 +116,8 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
 - Importing a backup is no longer shown in red in the settings; it still asks for
   confirmation before replacing your data.
 - If notifications cannot be set up on the phone, Komit still opens normally.
+- Exporting a long history no longer freezes the screen: the export row shows a spinner
+  while the file is prepared.
 
 ### Fixed
 - A new note saved with the check button and closed at the same moment is no longer stored
@@ -131,6 +137,8 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
 - When an update cannot be installed (cancelled, not enough storage, incompatible, blocked
   or conflicting with another version), Komit now says why, and the downloaded file is
   removed after a failed download.
+- An import whose data was saved no longer reports a failure when only the first name in
+  the file could not be saved.
 
 ## [2.0.0] - 2026-10-28
 

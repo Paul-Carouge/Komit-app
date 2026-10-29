@@ -1531,6 +1531,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'At most once a day, by asking GitHub for the latest version.'**
   String get checkForUpdatesAutomaticallyDescription;
+
+  /// No description provided for @restoreAutomaticBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore an automatic backup'**
+  String get restoreAutomaticBackup;
+
+  /// No description provided for @automaticBackups.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic backups'**
+  String get automaticBackups;
+
+  /// No description provided for @automaticBackupsExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Komit keeps a copy of your data on this phone before each import or update, and once a day when something changed. The {count} most recent are kept.'**
+  String automaticBackupsExplanation(int count);
+
+  /// No description provided for @noAutomaticBackupsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No automatic backup yet'**
+  String get noAutomaticBackupsTitle;
+
+  /// No description provided for @noAutomaticBackupsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The first one is made today, once you have logged something.'**
+  String get noAutomaticBackupsMessage;
+
+  /// No description provided for @automaticBackupBeforeImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Before an import'**
+  String get automaticBackupBeforeImport;
+
+  /// No description provided for @automaticBackupBeforeUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Before an update'**
+  String get automaticBackupBeforeUpdate;
+
+  /// No description provided for @automaticBackupDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily copy'**
+  String get automaticBackupDaily;
+
+  /// No description provided for @restoreAutomaticBackupConfirmationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore this backup?'**
+  String get restoreAutomaticBackupConfirmationTitle;
+
+  /// No description provided for @restoreAutomaticBackupConfirmationMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything in the app will be replaced by the copy from {date}. Your current data is saved as an automatic backup first.'**
+  String restoreAutomaticBackupConfirmationMessage(String date);
+
+  /// No description provided for @preImportBackupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was replaced: Komit could not save a copy of your current data first. Free up some space and try again.'**
+  String get preImportBackupFailed;
+
+  /// No description provided for @lastExportDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'Last export: {days} days ago'**
+  String lastExportDaysAgo(int days);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

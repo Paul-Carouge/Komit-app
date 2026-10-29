@@ -66,6 +66,10 @@ abstract final class AppSizes {
   /// Thickness of each habit's bar in the weekly recap: visible at a glance, thinner than text.
   static const double recapProgressBarHeight = 6;
 
+  /// A spinner in place of a list tile's trailing icon while its action runs.
+  static const double inlineProgressIndicator = 20;
+  static const double inlineProgressIndicatorStroke = 2.5;
+
   static const double mascotSmall = 48;
   static const double mascotMedium = 112;
   static const double mascotLarge = 168;
