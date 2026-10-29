@@ -63,7 +63,13 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
     CalendarDay today,
   ) {
     final localizations = AppLocalizations.of(context);
-    final streaks = computeStreakSummary(objectiveIdByDay.keys, today: today);
+    final streaks = computeScheduledStreakSummary(
+      objectiveIdByDay,
+      successObjectiveIds: habit.successObjectiveIds,
+      scheduledWeekdayMask: habit.habit.scheduledWeekdayMask,
+      targetDaysPerWeek: habit.habit.targetDaysPerWeek,
+      today: today,
+    );
     final firstYear = [
       habit.habit.createdAt.year,
       ...objectiveIdByDay.keys.map((day) => day.year),

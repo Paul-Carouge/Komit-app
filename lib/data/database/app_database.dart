@@ -1,7 +1,10 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 
+import '../../domain/habit_schedule.dart';
 import 'app_database.steps.dart';
+
+export '../../domain/habit_schedule.dart' show everyWeekdayMask, maximumTargetDaysPerWeek, minimumTargetDaysPerWeek;
 
 part 'app_database.g.dart';
 
@@ -9,11 +12,6 @@ const int maximumHabitTitleLength = 80;
 const int maximumObjectiveTitleLength = 60;
 const int maximumHabitDescriptionLength = 1000;
 const int maximumNoteContentLength = 20000;
-
-/// Bit `weekday - 1` is set for each scheduled [DateTime.monday]..[DateTime.sunday].
-const int everyWeekdayMask = 0x7F;
-const int minimumTargetDaysPerWeek = 1;
-const int maximumTargetDaysPerWeek = DateTime.daysPerWeek;
 
 /// How long a connection waits for another isolate's write lock before failing.
 const Duration databaseBusyTimeout = Duration(seconds: 5);

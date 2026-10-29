@@ -9,6 +9,8 @@ import 'package:komit/data/backup/backup_json_codec.dart';
 import 'package:komit/data/backup/backup_snapshot.dart';
 import 'package:komit/data/database/app_database.dart';
 import 'package:komit/data/repositories/backup_repository.dart';
+import 'package:komit/data/repositories/habit_repository.dart';
+import 'package:komit/domain/habit_statistics.dart';
 
 /// Same shape as a file exported by the original Komit app (format v1).
 String buildLegacyBackupJson({List<Map<String, Object?>>? extraLogs}) => jsonEncode({
@@ -412,6 +414,30 @@ void main() {
 
       final importedLogCount = await database.habitLogs.count().getSingle();
       expect(importedLogCount, rawLogCount);
+      expect(await database.habits.count().getSingle(), 8);
+
+      // The v2 defaults (every objective a success, every day scheduled) keep the v1 streaks.
+      final habitRepository = HabitRepository(database);
+      final realToday = CalendarDay.fromDateTime(DateTime.now());
+      for (final habit in await habitRepository.watchAllHabitsWithObjectives().first) {
+        final objectiveIdByDay = await habitRepository.watchObjectiveIdByDayForHabit(habit.habit.id).first;
+        final everyLoggedDayStreak = computeStreakSummary(
+          objectiveIdByDay,
+          successObjectiveIds: {for (final objective in habit.objectives) objective.id},
+          today: realToday,
+        );
+        final scheduledStreak = computeScheduledStreakSummary(
+          objectiveIdByDay,
+          successObjectiveIds: habit.successObjectiveIds,
+          scheduledWeekdayMask: habit.habit.scheduledWeekdayMask,
+          targetDaysPerWeek: habit.habit.targetDaysPerWeek,
+          today: realToday,
+        );
+        expect(
+          (scheduledStreak.currentStreakLength, scheduledStreak.bestStreakLength),
+          (everyLoggedDayStreak.currentStreakLength, everyLoggedDayStreak.bestStreakLength),
+        );
+      }
     },
   );
 }

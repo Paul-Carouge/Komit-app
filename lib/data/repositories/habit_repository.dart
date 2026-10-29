@@ -11,6 +11,12 @@ class HabitWithObjectives {
   /// Sorted by the user-defined order.
   final List<ObjectiveRow> objectives;
 
+  /// The objectives whose logs extend a streak.
+  Set<int> get successObjectiveIds => {
+    for (final objective in objectives)
+      if (objective.countsAsSuccess) objective.id,
+  };
+
   ObjectiveRow? objectiveWithId(int objectiveId) {
     for (final objective in objectives) {
       if (objective.id == objectiveId) return objective;

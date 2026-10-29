@@ -72,7 +72,13 @@ class _StatisticsContent extends StatelessWidget {
     final komitColors = KomitColors.of(context);
     final textTheme = Theme.of(context).textTheme;
     final statistics = computeYearStatistics(objectiveIdByDay, year: year);
-    final streaks = computeStreakSummary(objectiveIdByDay.keys, today: today);
+    final streaks = computeScheduledStreakSummary(
+      objectiveIdByDay,
+      successObjectiveIds: habit.successObjectiveIds,
+      scheduledWeekdayMask: habit.habit.scheduledWeekdayMask,
+      targetDaysPerWeek: habit.habit.targetDaysPerWeek,
+      today: today,
+    );
     return ListView(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.screenGutter,

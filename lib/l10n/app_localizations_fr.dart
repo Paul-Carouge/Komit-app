@@ -68,6 +68,18 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String weekCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count semaines',
+      one: '1 semaine',
+      zero: '0 semaine',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get yearlyProgress => 'Progression annuelle';
 
   @override

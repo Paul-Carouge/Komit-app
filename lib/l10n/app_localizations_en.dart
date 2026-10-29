@@ -62,6 +62,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String weekCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: '$count weeks', one: '1 week');
+    return '$_temp0';
+  }
+
+  @override
   String get yearlyProgress => 'Yearly progress';
 
   @override

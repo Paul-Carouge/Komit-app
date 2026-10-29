@@ -36,6 +36,14 @@
       }
     }
   },
+  "weekCount": "{count, plural, =1{1 week} other{{count} weeks}}",
+  "@weekCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "yearlyProgress": "Yearly progress",
   "logToday": "Log today",
   "objectivesLegend": "Objectives",

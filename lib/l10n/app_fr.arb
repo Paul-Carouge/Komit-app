@@ -15,6 +15,7 @@
   "currentStreak": "Série en cours",
   "bestStreak": "Meilleure série",
   "dayCount": "{count, plural, =0{0 jour} =1{1 jour} other{{count} jours}}",
+  "weekCount": "{count, plural, =0{0 semaine} =1{1 semaine} other{{count} semaines}}",
   "yearlyProgress": "Progression annuelle",
   "logToday": "Noter aujourd'hui",
   "objectivesLegend": "Objectifs",

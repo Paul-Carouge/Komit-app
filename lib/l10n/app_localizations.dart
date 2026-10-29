@@ -182,6 +182,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 day} other{{count} days}}'**
   String dayCount(int count);
 
+  /// No description provided for @weekCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 week} other{{count} weeks}}'**
+  String weekCount(int count);
+
   /// No description provided for @yearlyProgress.
   ///
   /// In en, this message translates to:

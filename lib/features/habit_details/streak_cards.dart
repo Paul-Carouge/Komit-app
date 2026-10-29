@@ -15,6 +15,10 @@ class StreakCards extends StatelessWidget {
     final localizations = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
     final komitColors = KomitColors.of(context);
+    final formatStreakLength = switch (streaks.unit) {
+      StreakUnit.days => localizations.dayCount,
+      StreakUnit.weeks => localizations.weekCount,
+    };
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -23,7 +27,7 @@ class StreakCards extends StatelessWidget {
             child: _StreakCard(
               icon: LucideIcons.flame,
               label: localizations.currentStreak,
-              value: localizations.dayCount(streaks.currentStreakDays),
+              value: formatStreakLength(streaks.currentStreakLength),
               backgroundColor: colorScheme.primaryContainer,
               accentColor: komitColors.accentText,
               valueColor: komitColors.accentText,
@@ -34,7 +38,7 @@ class StreakCards extends StatelessWidget {
             child: _StreakCard(
               icon: LucideIcons.trophy,
               label: localizations.bestStreak,
-              value: localizations.dayCount(streaks.bestStreakDays),
+              value: formatStreakLength(streaks.bestStreakLength),
               backgroundColor: colorScheme.surfaceContainerLow,
               accentColor: komitColors.mutedText,
               valueColor: colorScheme.onSurface,
