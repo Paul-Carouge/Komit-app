@@ -4,6 +4,15 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-10-29
+
+### Added
+- Komo dresses up for the holidays, following the French calendar: a witch hat from
+  October 24 to November 6, a Santa hat from December 1 to Epiphany (January 6), and bunny
+  ears from Palm Sunday to the Sunday after Easter. The home screen wishes a happy holiday
+  next to the date. Everything returns to normal on its own afterwards.
+- Two new achievements: a success day on Halloween, and one on Easter Sunday (32 in all).
+
 ## [2.1.0] - 2026-10-29
 
 ### Added
