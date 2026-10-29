@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+
+import '../../core/theme/komit_icons.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../data/backup/encrypted_backup_envelope.dart';
@@ -56,7 +57,7 @@ class _BackupPassphraseDialogState extends State<_BackupPassphraseDialog> {
     final textTheme = Theme.of(context).textTheme;
     final visibilityToggle = IconButton(
       tooltip: _isPassphraseVisible ? localizations.hidePassphrase : localizations.showPassphrase,
-      icon: Icon(_isPassphraseVisible ? LucideIcons.eyeOff : LucideIcons.eye),
+      icon: Icon(_isPassphraseVisible ? KomitIcons.eyeOff : KomitIcons.eye),
       onPressed: () => setState(() => _isPassphraseVisible = !_isPassphraseVisible),
     );
     return AlertDialog(

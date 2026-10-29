@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+
+import '../../core/theme/komit_icons.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
@@ -61,9 +62,9 @@ class _AutomaticBackupsSheet extends ConsumerWidget {
                             ListTile(
                               leading: HabitIconBadge(
                                 icon: switch (backup.reason) {
-                                  AutomaticBackupReason.beforeImport => LucideIcons.upload,
-                                  AutomaticBackupReason.beforeUpdate => LucideIcons.refreshCw,
-                                  AutomaticBackupReason.daily => LucideIcons.calendarCheck,
+                                  AutomaticBackupReason.beforeImport => KomitIcons.upload,
+                                  AutomaticBackupReason.beforeUpdate => KomitIcons.refreshCw,
+                                  AutomaticBackupReason.daily => KomitIcons.calendarCheck,
                                 },
                                 color: komitColors.mutedText,
                               ),
@@ -73,7 +74,7 @@ class _AutomaticBackupsSheet extends ConsumerWidget {
                                 AutomaticBackupReason.beforeUpdate => localizations.automaticBackupBeforeUpdate,
                                 AutomaticBackupReason.daily => localizations.automaticBackupDaily,
                               }),
-                              trailing: const Icon(LucideIcons.chevronRight),
+                              trailing: const Icon(KomitIcons.chevronRight),
                               onTap: () => Navigator.of(context).pop(backup),
                             ),
                         ],

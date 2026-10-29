@@ -2,7 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+
+import '../../core/theme/komit_icons.dart';
 
 import '../../core/calendar_day.dart';
 import '../../core/current_calendar_day.dart';
@@ -210,7 +211,7 @@ Future<LogDayChoice?> showLogDaySheet(
                       minimumSize: const Size.fromHeight(AppSizes.minimumTouchTarget),
                     ),
                     onPressed: () => Navigator.of(context).pop(const LogDayChoiceClear()),
-                    icon: const Icon(LucideIcons.eraser),
+                    icon: const Icon(KomitIcons.eraser),
                     label: Text(localizations.clearLog),
                   ),
                 ),
@@ -256,7 +257,7 @@ class _ObjectivePill extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (isSelected) ...[
-                    Icon(LucideIcons.check, color: foregroundColor, size: AppSizes.iconMedium),
+                    Icon(KomitIcons.check, color: foregroundColor, size: AppSizes.iconMedium),
                     const SizedBox(width: AppSpacing.small),
                   ],
                   Flexible(

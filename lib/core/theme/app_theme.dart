@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+
+import 'komit_icons.dart';
 
 /// Komit's look: Material 3 Expressive shapes and type, with premium touches borrowed from iOS
 /// (frosted bars, large titles, soft diffuse shadows, springy presses), kept native to Android.
@@ -363,7 +364,7 @@ ThemeData _buildTheme({
     extensions: [komitColors],
     textTheme: textTheme,
     splashFactory: InkSparkle.splashFactory,
-    actionIconTheme: ActionIconThemeData(backButtonIconBuilder: (context) => const Icon(LucideIcons.chevronLeft)),
+    actionIconTheme: ActionIconThemeData(backButtonIconBuilder: (context) => const Icon(KomitIcons.chevronLeft)),
     pageTransitionsTheme: PageTransitionsTheme(
       builders: {
         // Matches Android 14+ predictive back; the fallback fade uses the page color, not black.

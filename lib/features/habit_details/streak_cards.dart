@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+
+import '../../core/theme/komit_icons.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../domain/habit_statistics.dart';
@@ -26,7 +27,7 @@ class StreakCards extends StatelessWidget {
         children: [
           Expanded(
             child: _StreakCard(
-              icon: LucideIcons.flame,
+              icon: KomitIcons.flame,
               label: localizations.currentStreak,
               value: streaks.currentStreakLength,
               formatValue: formatStreakLength,
@@ -38,7 +39,7 @@ class StreakCards extends StatelessWidget {
           const SizedBox(width: AppSpacing.medium),
           Expanded(
             child: _StreakCard(
-              icon: LucideIcons.trophy,
+              icon: KomitIcons.trophy,
               label: localizations.bestStreak,
               value: streaks.bestStreakLength,
               formatValue: formatStreakLength,

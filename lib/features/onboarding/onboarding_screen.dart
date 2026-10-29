@@ -5,7 +5,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+
+import '../../core/theme/komit_icons.dart';
 
 import '../../core/haptics.dart';
 import '../../core/theme/app_motion.dart';
@@ -191,7 +192,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         ),
         secondaryAction: TextButton.icon(
           onPressed: _isFinishing ? null : _restoreFromBackup,
-          icon: const Icon(LucideIcons.upload),
+          icon: const Icon(KomitIcons.upload),
           label: Text(localizations.restoreFromBackup),
         ),
       ),
@@ -224,12 +225,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         message: localizations.onboardingRemindersMessage,
         primaryAction: FilledButton.icon(
           onPressed: _isFinishing ? null : _finish,
-          icon: const Icon(LucideIcons.arrowRight),
+          icon: const Icon(KomitIcons.arrowRight),
           label: Text(localizations.getStarted),
         ),
         secondaryAction: TextButton.icon(
           onPressed: _isFinishing ? null : () => context.push(AppRoutes.privacy),
-          icon: const Icon(LucideIcons.shieldCheck),
+          icon: const Icon(KomitIcons.shieldCheck),
           label: Text(localizations.privacyLink),
         ),
       ),

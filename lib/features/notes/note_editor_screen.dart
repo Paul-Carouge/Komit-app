@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+
+import '../../core/theme/komit_icons.dart';
 
 import '../../core/haptics.dart';
 import '../../core/theme/app_theme.dart';
@@ -160,11 +161,11 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
           ),
           actions: [
             if (_noteId != null)
-              IconButton(tooltip: localizations.deleteNote, onPressed: _delete, icon: const Icon(LucideIcons.trash2)),
+              IconButton(tooltip: localizations.deleteNote, onPressed: _delete, icon: const Icon(KomitIcons.trash2)),
             IconButton(
               tooltip: localizations.save,
               onPressed: _isLoading ? null : _saveAndClose,
-              icon: const Icon(LucideIcons.check),
+              icon: const Icon(KomitIcons.check),
             ),
           ],
         ),

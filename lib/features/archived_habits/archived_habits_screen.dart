@@ -3,7 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+
+import '../../core/theme/komit_icons.dart';
 
 import '../../core/calendar_day.dart';
 import '../../core/date_formatting.dart';
@@ -102,7 +103,7 @@ class _ArchivedHabitRow extends ConsumerWidget {
             IconButton(
               tooltip: localizations.unarchiveHabit,
               onPressed: () => unarchiveHabitWithMessage(context, ref, habit),
-              icon: const Icon(LucideIcons.archiveRestore),
+              icon: const Icon(KomitIcons.archiveRestore),
             ),
           ],
         ),

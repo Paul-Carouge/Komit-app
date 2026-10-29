@@ -7,7 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+
+import '../../core/theme/komit_icons.dart';
 
 import '../../core/calendar_day.dart';
 import '../../core/current_calendar_day.dart';
@@ -52,12 +53,12 @@ class DashboardScreen extends ConsumerWidget {
               IconButton(
                 tooltip: localizations.achievementsTooltip,
                 onPressed: () => context.push(AppRoutes.achievements),
-                icon: const Icon(LucideIcons.trophy),
+                icon: const Icon(KomitIcons.trophy),
               ),
               IconButton(
                 tooltip: localizations.settingsTooltip,
                 onPressed: () => context.push(AppRoutes.settings),
-                icon: const Icon(LucideIcons.settings),
+                icon: const Icon(KomitIcons.settings),
               ),
             ],
           ),
@@ -70,7 +71,7 @@ class DashboardScreen extends ConsumerWidget {
                 message: localizations.dashboardEmptyMessage,
                 action: FilledButton.icon(
                   onPressed: () => context.push(AppRoutes.newHabit),
-                  icon: const Icon(LucideIcons.plus),
+                  icon: const Icon(KomitIcons.plus),
                   label: Text(localizations.createFirstHabit),
                 ),
               ),
@@ -204,7 +205,7 @@ class _TodayProgressRing extends StatelessWidget {
           ),
           child: child,
         ),
-        child: isComplete ? Icon(LucideIcons.check, color: KomitColors.of(context).accentText) : null,
+        child: isComplete ? Icon(KomitIcons.check, color: KomitColors.of(context).accentText) : null,
       ),
     );
   }
@@ -575,7 +576,7 @@ class _StreakChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(LucideIcons.flame, size: AppSizes.iconSmall, color: komitColors.onHighlightContainer),
+            Icon(KomitIcons.flame, size: AppSizes.iconSmall, color: komitColors.onHighlightContainer),
             const SizedBox(width: AppSpacing.extraSmall),
             Flexible(
               child: Text(
@@ -673,7 +674,7 @@ class _TodayLogButtonState extends State<_TodayLogButton> with SingleTickerProvi
               child: SizedBox.square(
                 dimension: AppSizes.logButton,
                 child: objectiveColor == null
-                    ? Icon(LucideIcons.plus, color: colorScheme.onSurfaceVariant)
+                    ? Icon(KomitIcons.plus, color: colorScheme.onSurfaceVariant)
                     : CustomPaint(
                         painter: _CheckMarkPainter(
                           progress: _logAnimation,
@@ -745,7 +746,7 @@ class _NewHabitRow extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(LucideIcons.plus, color: accentText),
+            Icon(KomitIcons.plus, color: accentText),
             const SizedBox(width: AppSpacing.small),
             Flexible(
               child: Text(
@@ -774,7 +775,7 @@ class _ArchivedHabitsRow extends ConsumerWidget {
       child: TextButton.icon(
         style: TextButton.styleFrom(foregroundColor: mutedText),
         onPressed: () => context.push(AppRoutes.archivedHabits),
-        icon: const Icon(LucideIcons.archive),
+        icon: const Icon(KomitIcons.archive),
         label: Text(AppLocalizations.of(context).archivedHabitsRow(archivedCount)),
       ),
     );

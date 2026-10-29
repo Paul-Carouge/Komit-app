@@ -3,7 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+
+import '../../core/theme/komit_icons.dart';
 
 import '../../core/calendar_day.dart';
 import '../../core/current_calendar_day.dart';
@@ -127,12 +128,12 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
                     ),
                     IconButton(
                       tooltip: localizations.statisticsTooltip,
-                      icon: const Icon(LucideIcons.chartNoAxesColumn),
+                      icon: const Icon(KomitIcons.chartNoAxesColumn),
                       onPressed: () => context.push(AppRoutes.habitStatistics(loadedHabit.habit.id, _selectedYear)),
                     ),
                     IconButton(
                       tooltip: localizations.moreActionsTooltip,
-                      icon: const Icon(LucideIcons.ellipsis),
+                      icon: const Icon(KomitIcons.ellipsis),
                       onPressed: () => _showMoreActions(loadedHabit),
                     ),
                   ],
@@ -189,7 +190,7 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
                       foregroundColor: KomitColors.of(context).accentText,
                     ),
                     onPressed: () => _openLogSheet(habit, today, objectiveIdByDay[today]),
-                    icon: const Icon(LucideIcons.plus),
+                    icon: const Icon(KomitIcons.plus),
                     label: Text(localizations.logToday),
                   )
                 : null,
@@ -212,7 +213,7 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
             alignment: Alignment.centerRight,
             child: TextButton.icon(
               onPressed: () => _pickDayToLog(habit, objectiveIdByDay, firstYear: firstYear, today: today),
-              icon: const Icon(LucideIcons.calendarPlus),
+              icon: const Icon(KomitIcons.calendarPlus),
               label: Text(localizations.logAnotherDay),
             ),
           ),
@@ -277,24 +278,24 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(LucideIcons.pencil),
+              leading: const Icon(KomitIcons.pencil),
               title: Text(localizations.editHabit),
               onTap: () => Navigator.of(context).pop(_MoreAction.edit),
             ),
             if (isArchived)
               ListTile(
-                leading: const Icon(LucideIcons.archiveRestore),
+                leading: const Icon(KomitIcons.archiveRestore),
                 title: Text(localizations.unarchiveHabit),
                 onTap: () => Navigator.of(context).pop(_MoreAction.unarchive),
               )
             else
               ListTile(
-                leading: const Icon(LucideIcons.archive),
+                leading: const Icon(KomitIcons.archive),
                 title: Text(localizations.archiveHabit),
                 onTap: () => Navigator.of(context).pop(_MoreAction.archive),
               ),
             ListTile(
-              leading: Icon(LucideIcons.trash2, color: colorScheme.error),
+              leading: Icon(KomitIcons.trash2, color: colorScheme.error),
               title: Text(localizations.deleteHabit, style: TextStyle(color: colorScheme.error)),
               onTap: () => Navigator.of(context).pop(_MoreAction.delete),
             ),
@@ -392,13 +393,13 @@ class _YearChip extends StatelessWidget {
       label: AppLocalizations.of(context).chooseYear,
       child: ActionChip(
         onPressed: onPressed,
-        avatar: Icon(LucideIcons.calendar, color: colorScheme.onSurfaceVariant),
+        avatar: Icon(KomitIcons.calendar, color: colorScheme.onSurfaceVariant),
         label: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text('$year', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(width: AppSpacing.extraSmall),
-            Icon(LucideIcons.chevronDown, size: AppSizes.iconSmall, color: KomitColors.of(context).accentText),
+            Icon(KomitIcons.chevronDown, size: AppSizes.iconSmall, color: KomitColors.of(context).accentText),
           ],
         ),
         backgroundColor: colorScheme.surfaceContainerLowest,

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+
+import '../../core/theme/komit_icons.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../data/database/app_database.dart';
@@ -32,7 +33,7 @@ class NotesScreen extends ConsumerWidget {
               IconButton(
                 tooltip: localizations.settingsTooltip,
                 onPressed: () => context.push(AppRoutes.settings),
-                icon: const Icon(LucideIcons.settings),
+                icon: const Icon(KomitIcons.settings),
               ),
             ],
           ),
@@ -146,7 +147,7 @@ class _NewNoteBanner extends StatelessWidget {
                 color: foregroundColor.withValues(alpha: AppOpacity.overlayOnColor),
                 borderRadius: BorderRadius.circular(AppRadii.medium),
               ),
-              child: Icon(LucideIcons.plus, color: foregroundColor, size: AppSizes.iconHero),
+              child: Icon(KomitIcons.plus, color: foregroundColor, size: AppSizes.iconHero),
             ),
             const SizedBox(width: AppSpacing.large),
             Expanded(

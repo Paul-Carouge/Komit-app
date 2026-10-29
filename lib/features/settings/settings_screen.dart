@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+
+import '../../core/theme/komit_icons.dart';
 
 import '../../core/calendar_day.dart';
 import '../../core/current_calendar_day.dart';
@@ -65,9 +66,9 @@ class SettingsScreen extends ConsumerWidget {
                     child: Column(
                       children: [
                         for (final (themeMode, icon, label) in [
-                          (ThemeMode.system, LucideIcons.smartphone, localizations.themeSystem),
-                          (ThemeMode.light, LucideIcons.sun, localizations.themeLight),
-                          (ThemeMode.dark, LucideIcons.moon, localizations.themeDark),
+                          (ThemeMode.system, KomitIcons.smartphone, localizations.themeSystem),
+                          (ThemeMode.light, KomitIcons.sun, localizations.themeLight),
+                          (ThemeMode.dark, KomitIcons.moon, localizations.themeDark),
                         ])
                           RadioListTile<ThemeMode>(
                             value: themeMode,
@@ -89,7 +90,7 @@ class SettingsScreen extends ConsumerWidget {
                     const ButtonSegment(value: 'fr', label: Text('Français')),
                   ],
                   selected: {settings.languageCode},
-                  selectedIcon: const Icon(LucideIcons.check),
+                  selectedIcon: const Icon(KomitIcons.check),
                   onSelectionChanged: (selection) {
                     unawaited(KomitHaptics.selection());
                     settingsController.updateLanguageCode(selection.single);
@@ -108,13 +109,13 @@ class SettingsScreen extends ConsumerWidget {
                     child: Column(
                       children: [
                         ListTile(
-                          leading: HabitIconBadge(icon: LucideIcons.refreshCw, color: colorScheme.primary),
+                          leading: HabitIconBadge(icon: KomitIcons.refreshCw, color: colorScheme.primary),
                           title: Text(localizations.checkForUpdates),
-                          trailing: const Icon(LucideIcons.chevronRight),
+                          trailing: const Icon(KomitIcons.chevronRight),
                           onTap: () => checkForUpdate(context, ref, isUserInitiated: true),
                         ),
                         SwitchListTile(
-                          secondary: HabitIconBadge(icon: LucideIcons.calendarClock, color: komitColors.mutedText),
+                          secondary: HabitIconBadge(icon: KomitIcons.calendarClock, color: komitColors.mutedText),
                           title: Text(localizations.checkForUpdatesAutomatically),
                           subtitle: Text(localizations.checkForUpdatesAutomaticallyDescription),
                           value: settings.isAutomaticUpdateCheckEnabled,
@@ -134,13 +135,13 @@ class SettingsScreen extends ConsumerWidget {
                     children: [
                       if (installedVersion != null)
                         ListTile(
-                          leading: HabitIconBadge(icon: LucideIcons.info, color: komitColors.mutedText),
+                          leading: HabitIconBadge(icon: KomitIcons.info, color: komitColors.mutedText),
                           title: Text(localizations.versionLabel(installedVersion)),
                         ),
                       ListTile(
-                        leading: HabitIconBadge(icon: LucideIcons.scrollText, color: komitColors.mutedText),
+                        leading: HabitIconBadge(icon: KomitIcons.scrollText, color: komitColors.mutedText),
                         title: Text(localizations.openSourceLicenses),
-                        trailing: const Icon(LucideIcons.chevronRight),
+                        trailing: const Icon(KomitIcons.chevronRight),
                         onTap: () => showLicensePage(
                           context: context,
                           applicationName: localizations.appTitle,
@@ -149,9 +150,9 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                       if (ref.watch(appUpdateServiceProvider).isSupported)
                         ListTile(
-                          leading: HabitIconBadge(icon: LucideIcons.history, color: komitColors.mutedText),
+                          leading: HabitIconBadge(icon: KomitIcons.history, color: komitColors.mutedText),
                           title: Text(localizations.allVersionsOnGitHub),
-                          trailing: const Icon(LucideIcons.externalLink),
+                          trailing: const Icon(KomitIcons.externalLink),
                           onTap: () => _openReleasesPage(context, ref),
                         ),
                     ],
@@ -196,7 +197,7 @@ class _PrivacyAndSecurityCard extends ConsumerWidget {
       child: Column(
         children: [
           SwitchListTile(
-            secondary: HabitIconBadge(icon: LucideIcons.lockKeyhole, color: colorScheme.primary),
+            secondary: HabitIconBadge(icon: KomitIcons.lockKeyhole, color: colorScheme.primary),
             title: Text(localizations.appLockSetting),
             subtitle: Text(
               isAppLockToggleEnabled ? localizations.appLockSettingDescription : localizations.appLockUnavailable,
@@ -207,13 +208,13 @@ class _PrivacyAndSecurityCard extends ConsumerWidget {
                 : null,
           ),
           ListTile(
-            leading: HabitIconBadge(icon: LucideIcons.shieldCheck, color: komitColors.mutedText),
+            leading: HabitIconBadge(icon: KomitIcons.shieldCheck, color: komitColors.mutedText),
             title: Text(localizations.privacyLink),
-            trailing: const Icon(LucideIcons.chevronRight),
+            trailing: const Icon(KomitIcons.chevronRight),
             onTap: () => context.push(AppRoutes.privacy),
           ),
           SwitchListTile(
-            secondary: HabitIconBadge(icon: LucideIcons.eyeOff, color: komitColors.mutedText),
+            secondary: HabitIconBadge(icon: KomitIcons.eyeOff, color: komitColors.mutedText),
             title: Text(localizations.hideScreenContentSetting),
             subtitle: Text(localizations.hideScreenContentSettingDescription),
             value: settings.isScreenContentHidden,
@@ -315,7 +316,7 @@ class _DataAndStorageCardState extends ConsumerState<_DataAndStorageCard> {
             dimension: AppSizes.inlineProgressIndicator,
             child: CircularProgressIndicator(strokeWidth: AppSizes.inlineProgressIndicatorStroke),
           )
-        : const Icon(LucideIcons.chevronRight);
+        : const Icon(KomitIcons.chevronRight);
 
     return SoftCard(
       padding: EdgeInsets.zero,
@@ -323,7 +324,7 @@ class _DataAndStorageCardState extends ConsumerState<_DataAndStorageCard> {
         children: [
           ListTile(
             leading: HabitIconBadge(
-              icon: LucideIcons.download,
+              icon: KomitIcons.download,
               color: isExportReminderShown ? colorScheme.primary : komitColors.mutedText,
             ),
             title: Text(localizations.exportData),
@@ -333,7 +334,7 @@ class _DataAndStorageCardState extends ConsumerState<_DataAndStorageCard> {
             onTap: () => _run(_BackupOperation.export, () => exportBackupToUserChosenFile(context, ref)),
           ),
           ListTile(
-            leading: HabitIconBadge(icon: LucideIcons.lockKeyhole, color: komitColors.mutedText),
+            leading: HabitIconBadge(icon: KomitIcons.lockKeyhole, color: komitColors.mutedText),
             title: Text(localizations.exportEncryptedData),
             subtitle: Text(localizations.exportEncryptedDataDescription),
             trailing: trailingFor(_BackupOperation.encryptedExport),
@@ -342,14 +343,14 @@ class _DataAndStorageCardState extends ConsumerState<_DataAndStorageCard> {
           ),
           ListTile(
             // Neutral like export: the confirmation dialog carries the warning.
-            leading: HabitIconBadge(icon: LucideIcons.upload, color: komitColors.mutedText),
+            leading: HabitIconBadge(icon: KomitIcons.upload, color: komitColors.mutedText),
             title: Text(localizations.importData),
             trailing: trailingFor(_BackupOperation.import),
             enabled: isIdle,
             onTap: () => _run(_BackupOperation.import, () => importBackupFromUserChosenFile(context, ref)),
           ),
           ListTile(
-            leading: HabitIconBadge(icon: LucideIcons.history, color: komitColors.mutedText),
+            leading: HabitIconBadge(icon: KomitIcons.history, color: komitColors.mutedText),
             title: Text(localizations.restoreAutomaticBackup),
             trailing: trailingFor(_BackupOperation.restore),
             enabled: isIdle,
@@ -373,18 +374,18 @@ class _NotificationSettingsCard extends ConsumerWidget {
     final status = ref.watch(notificationStatusProvider);
     final (statusIcon, statusColor, statusText) = switch (status) {
       AsyncData(value: NotificationStatus.enabled) => (
-        LucideIcons.bellRing,
+        KomitIcons.bellRing,
         colorScheme.primary,
         localizations.notificationsStatusEnabled,
       ),
       AsyncData(value: NotificationStatus.disabled) => (
-        LucideIcons.bellOff,
+        KomitIcons.bellOff,
         colorScheme.error,
         localizations.notificationsStatusDisabled,
       ),
       AsyncData(value: NotificationStatus.unavailable) ||
-      AsyncError() => (LucideIcons.bellOff, komitColors.mutedText, localizations.notificationsStatusUnavailable),
-      _ => (LucideIcons.bell, komitColors.mutedText, localizations.loading),
+      AsyncError() => (KomitIcons.bellOff, komitColors.mutedText, localizations.notificationsStatusUnavailable),
+      _ => (KomitIcons.bell, komitColors.mutedText, localizations.loading),
     };
     return SoftCard(
       padding: EdgeInsets.zero,
@@ -398,9 +399,9 @@ class _NotificationSettingsCard extends ConsumerWidget {
             ),
           ),
           ListTile(
-            leading: HabitIconBadge(icon: LucideIcons.settings, color: komitColors.mutedText),
+            leading: HabitIconBadge(icon: KomitIcons.settings, color: komitColors.mutedText),
             title: Text(localizations.openSystemSettings),
-            trailing: const Icon(LucideIcons.externalLink),
+            trailing: const Icon(KomitIcons.externalLink),
             onTap: () => _openNotificationSettings(context, ref),
           ),
         ],

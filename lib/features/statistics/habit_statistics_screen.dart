@@ -2,7 +2,8 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+
+import '../../core/theme/komit_icons.dart';
 
 import '../../core/calendar_day.dart';
 import '../../core/current_calendar_day.dart';
@@ -115,7 +116,7 @@ class _StatisticsContent extends StatelessWidget {
               child: Row(
                 children: [
                   HabitIconBadge(
-                    icon: LucideIcons.calendarCheck,
+                    icon: KomitIcons.calendarCheck,
                     color: komitColors.onHighlightContainer,
                     size: AppSizes.heroBadge,
                   ),

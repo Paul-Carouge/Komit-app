@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+
+import '../../core/theme/komit_icons.dart';
 
 import '../../core/haptics.dart';
 import '../../core/theme/app_motion.dart';
@@ -72,7 +73,7 @@ class _AsyncValueViewState<T> extends ConsumerState<AsyncValueView<T>> {
           message: localizations.loadErrorMessage,
           action: FilledButton.tonalIcon(
             onPressed: () => ref.invalidate(widget.retryProvider),
-            icon: const Icon(LucideIcons.rotateCw),
+            icon: const Icon(KomitIcons.rotateCw),
             label: Text(localizations.retryLoading),
           ),
         ),

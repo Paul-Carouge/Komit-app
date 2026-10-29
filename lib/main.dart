@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app.dart';
 import 'core/app_logger.dart';
+import 'core/third_party_licenses.dart';
 import 'data/database/app_database.dart';
 import 'data/repositories/settings_repository.dart';
 import 'providers.dart';
@@ -15,6 +16,7 @@ import 'services/reminder_scheduler.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  registerThirdPartyLicenses();
   final (preferences, logger) = await (
     SharedPreferences.getInstance(),
     AppLogger.openInApplicationSupportDirectory(),

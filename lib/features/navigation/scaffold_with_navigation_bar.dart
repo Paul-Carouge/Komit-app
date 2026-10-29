@@ -2,7 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+
+import '../../core/theme/komit_icons.dart';
 
 import '../../core/haptics.dart';
 import '../../l10n/app_localizations.dart';
@@ -30,12 +31,8 @@ class ScaffoldWithNavigationBar extends StatelessWidget {
               navigationShell.goBranch(index, initialLocation: index == navigationShell.currentIndex);
             },
             destinations: [
-              NavigationDestination(
-                icon: const Icon(LucideIcons.house),
-                selectedIcon: const Icon(LucideIcons.house, fill: 1),
-                label: localizations.habitsTab,
-              ),
-              NavigationDestination(icon: const Icon(LucideIcons.notebookPen), label: localizations.notesTab),
+              NavigationDestination(icon: const Icon(KomitIcons.house), label: localizations.habitsTab),
+              NavigationDestination(icon: const Icon(KomitIcons.notebookPen), label: localizations.notesTab),
             ],
           ),
         ),

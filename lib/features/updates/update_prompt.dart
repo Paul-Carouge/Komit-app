@@ -3,7 +3,8 @@ import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+
+import '../../core/theme/komit_icons.dart';
 
 import '../../core/current_calendar_day.dart';
 import '../../core/theme/app_theme.dart';
@@ -95,7 +96,7 @@ Future<bool> _ensureInstallPermission(BuildContext context, AppUpdateService upd
     if (!context.mounted) return false;
     final isRationaleAccepted = await showPermissionRationaleSheet(
       context,
-      icon: LucideIcons.shieldCheck,
+      icon: KomitIcons.shieldCheck,
       title: localizations.installPermissionTitle,
       message: localizations.installPermissionMessage,
       confirmLabel: localizations.openSettings,

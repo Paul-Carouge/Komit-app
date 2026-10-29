@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+
+import '../../core/theme/komit_icons.dart';
 
 import '../../core/habit_appearance.dart';
 import '../../core/haptics.dart';
@@ -179,7 +180,7 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
           message: localizations.loadErrorMessage,
           action: FilledButton.tonalIcon(
             onPressed: _retryLoading,
-            icon: const Icon(LucideIcons.rotateCw),
+            icon: const Icon(KomitIcons.rotateCw),
             label: Text(localizations.retryLoading),
           ),
         ),
@@ -261,7 +262,7 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
               localizations.objectives,
               trailing: TextButton.icon(
                 onPressed: _addObjective,
-                icon: const Icon(LucideIcons.plus),
+                icon: const Icon(KomitIcons.plus),
                 label: Text(localizations.addObjective),
               ),
             ),
@@ -381,7 +382,7 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
     final habitTitle = _titleController.text.trim();
     final isRationaleAccepted = await showPermissionRationaleSheet(
       context,
-      icon: LucideIcons.bellRing,
+      icon: KomitIcons.bellRing,
       title: localizations.reminderPermissionTitle(habitTitle.isEmpty ? localizations.thisHabit : habitTitle),
       message: localizations.reminderPermissionMessage(_formatMinuteOfDay(context, reminderMinuteOfDay)),
       confirmLabel: localizations.continueAction,
@@ -556,7 +557,7 @@ class _AppearanceTile extends StatelessWidget {
               leading,
               const SizedBox(width: AppSpacing.medium),
               Expanded(child: Text(label, style: Theme.of(context).textTheme.titleSmall)),
-              Icon(LucideIcons.chevronRight, color: KomitColors.of(context).mutedText),
+              Icon(KomitIcons.chevronRight, color: KomitColors.of(context).mutedText),
             ],
           ),
         ),
@@ -589,7 +590,7 @@ class _ReminderCard extends StatelessWidget {
         children: [
           SwitchListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.large, vertical: AppSpacing.small),
-            secondary: HabitIconBadge(icon: LucideIcons.bell, color: colorScheme.primary),
+            secondary: HabitIconBadge(icon: KomitIcons.bell, color: colorScheme.primary),
             title: Text(localizations.dailyReminder, style: Theme.of(context).textTheme.titleMedium),
             subtitle: Text(
               formattedTime == null ? localizations.reminderDisabled : localizations.reminderEnabledAt(formattedTime),
@@ -653,7 +654,7 @@ class _ObjectiveRowEditor extends StatelessWidget {
                       message: localizations.reorderObjective,
                       child: SizedBox.square(
                         dimension: AppSizes.minimumTouchTarget,
-                        child: Icon(LucideIcons.gripVertical, color: komitColors.mutedText),
+                        child: Icon(KomitIcons.gripVertical, color: komitColors.mutedText),
                       ),
                     ),
                   ),
@@ -674,7 +675,7 @@ class _ObjectiveRowEditor extends StatelessWidget {
                   IconButton(
                     tooltip: localizations.removeObjective,
                     onPressed: onRemoved,
-                    icon: Icon(LucideIcons.x, color: komitColors.mutedText),
+                    icon: Icon(KomitIcons.x, color: komitColors.mutedText),
                   ),
                 ],
               ),
@@ -809,7 +810,7 @@ class _SchedulePicker extends StatelessWidget {
                 onPressed: targetDaysPerWeek > minimumTargetDaysPerWeek
                     ? () => onTargetDaysPerWeekChanged(targetDaysPerWeek - 1)
                     : null,
-                icon: const Icon(LucideIcons.minus),
+                icon: const Icon(KomitIcons.minus),
               ),
               Expanded(
                 child: Semantics(
@@ -826,7 +827,7 @@ class _SchedulePicker extends StatelessWidget {
                 onPressed: targetDaysPerWeek < maximumTargetDaysPerWeek
                     ? () => onTargetDaysPerWeekChanged(targetDaysPerWeek + 1)
                     : null,
-                icon: const Icon(LucideIcons.plus),
+                icon: const Icon(KomitIcons.plus),
               ),
             ],
           ),

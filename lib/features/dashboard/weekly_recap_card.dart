@@ -2,7 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+
+import '../../core/theme/komit_icons.dart';
 
 import '../../core/current_calendar_day.dart';
 import '../../core/haptics.dart';
@@ -91,7 +92,7 @@ class WeeklyRecapCard extends StatelessWidget {
               IconButton(
                 tooltip: localizations.dismissWeeklyRecap,
                 onPressed: onDismissed,
-                icon: Icon(LucideIcons.x, color: komitColors.mutedText),
+                icon: Icon(KomitIcons.x, color: komitColors.mutedText),
               ),
             ],
           ),
@@ -111,7 +112,7 @@ class WeeklyRecapCard extends StatelessWidget {
                   const SizedBox(height: AppSpacing.small),
                   Row(
                     children: [
-                      Icon(LucideIcons.flame, size: AppSizes.iconSmall, color: komitColors.accentText),
+                      Icon(KomitIcons.flame, size: AppSizes.iconSmall, color: komitColors.accentText),
                       const SizedBox(width: AppSpacing.small),
                       Expanded(
                         child: Text(

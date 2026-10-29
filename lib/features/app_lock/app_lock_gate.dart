@@ -3,7 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+
+import '../../core/theme/komit_icons.dart';
 
 import '../../core/current_calendar_day.dart';
 import '../../core/haptics.dart';
@@ -247,7 +248,7 @@ class _AppLockScreen extends StatelessWidget {
                   FilledButton.icon(
                     style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(AppSizes.primaryButtonHeight)),
                     onPressed: isAuthenticating ? null : onUnlockPressed,
-                    icon: const Icon(LucideIcons.fingerprint),
+                    icon: const Icon(KomitIcons.fingerprint),
                     label: Text(failureMessage == null ? localizations.unlock : localizations.tryAgain),
                   ),
                 ],

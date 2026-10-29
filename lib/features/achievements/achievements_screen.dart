@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+
+import '../../core/theme/komit_icons.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../domain/achievements.dart';
@@ -162,7 +163,7 @@ class _AchievementTile extends StatelessWidget {
           const SizedBox(height: AppSpacing.medium),
           Row(
             children: [
-              Icon(isUnlocked ? LucideIcons.check : LucideIcons.lock, size: AppSizes.iconSmall, color: statusColor),
+              Icon(isUnlocked ? KomitIcons.check : KomitIcons.lock, size: AppSizes.iconSmall, color: statusColor),
               const SizedBox(width: AppSpacing.extraSmall),
               Flexible(
                 child: Text(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+
+import '../../core/theme/komit_icons.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
@@ -39,13 +40,13 @@ class PrivacyScreen extends StatelessWidget {
                 _PrivacyCard(
                   entries: [
                     (
-                      LucideIcons.refreshCw,
+                      KomitIcons.refreshCw,
                       colorScheme.primary,
                       localizations.privacyUpdateCheckTitle,
                       localizations.privacyUpdateCheckBody,
                     ),
                     (
-                      LucideIcons.eyeOff,
+                      KomitIcons.eyeOff,
                       mutedColor,
                       localizations.privacyNoTrackingTitle,
                       localizations.privacyNoTrackingBody,
@@ -56,31 +57,31 @@ class PrivacyScreen extends StatelessWidget {
                 _PrivacyCard(
                   entries: [
                     (
-                      LucideIcons.cloudOff,
+                      KomitIcons.cloudOff,
                       colorScheme.primary,
                       localizations.privacyCloudBackupTitle,
                       localizations.privacyCloudBackupBody,
                     ),
                     (
-                      LucideIcons.history,
+                      KomitIcons.history,
                       mutedColor,
                       localizations.automaticBackups,
                       localizations.privacyAutomaticBackupsBody(automaticBackupRetentionCount),
                     ),
                     (
-                      LucideIcons.fileJson,
+                      KomitIcons.fileJson,
                       mutedColor,
                       localizations.privacyPlainExportTitle,
                       localizations.privacyPlainExportBody,
                     ),
                     (
-                      LucideIcons.lockKeyhole,
+                      KomitIcons.lockKeyhole,
                       mutedColor,
                       localizations.privacyEncryptedExportTitle,
                       localizations.privacyEncryptedExportBody,
                     ),
                     (
-                      LucideIcons.scrollText,
+                      KomitIcons.scrollText,
                       mutedColor,
                       localizations.privacyErrorLogTitle,
                       localizations.privacyErrorLogBody,
@@ -91,37 +92,37 @@ class PrivacyScreen extends StatelessWidget {
                 _PrivacyCard(
                   entries: [
                     (
-                      LucideIcons.bell,
+                      KomitIcons.bell,
                       mutedColor,
                       localizations.permissionNotificationsTitle,
                       localizations.permissionNotificationsBody,
                     ),
                     (
-                      LucideIcons.power,
+                      KomitIcons.power,
                       mutedColor,
                       localizations.permissionStartupTitle,
                       localizations.permissionStartupBody,
                     ),
                     (
-                      LucideIcons.download,
+                      KomitIcons.download,
                       mutedColor,
                       localizations.permissionInstallTitle,
                       localizations.permissionInstallBody,
                     ),
                     (
-                      LucideIcons.globe,
+                      KomitIcons.globe,
                       mutedColor,
                       localizations.permissionInternetTitle,
                       localizations.permissionInternetBody,
                     ),
                     (
-                      LucideIcons.vibrate,
+                      KomitIcons.vibrate,
                       mutedColor,
                       localizations.permissionVibrationTitle,
                       localizations.permissionVibrationBody,
                     ),
                     (
-                      LucideIcons.fingerprint,
+                      KomitIcons.fingerprint,
                       mutedColor,
                       localizations.permissionBiometricTitle,
                       localizations.permissionBiometricBody,

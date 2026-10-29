@@ -40,8 +40,7 @@ Future<void> _loadRealFonts() async {
     roboto.addFont(Future.value(ByteData.sublistView(bytes)));
   }
   await roboto.load();
-  final lucide = FontLoader('packages/lucide_icons_flutter/Lucide')
-    ..addFont(rootBundle.load('packages/lucide_icons_flutter/assets/lucide.ttf'));
+  final lucide = FontLoader('Lucide')..addFont(rootBundle.load('assets/fonts/lucide.ttf'));
   await lucide.load();
 }
 

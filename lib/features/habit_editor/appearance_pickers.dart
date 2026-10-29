@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+
+import '../../core/theme/komit_icons.dart';
 
 import '../../core/habit_appearance.dart';
 import '../../core/theme/app_theme.dart';
@@ -42,7 +43,7 @@ Future<int?> showColorPickerSheet(BuildContext context, {required int selectedCo
                       : null,
                 ),
                 child: colorArgb == selectedColorArgb
-                    ? Icon(LucideIcons.check, color: foregroundColorReadableOn(Color(colorArgb)))
+                    ? Icon(KomitIcons.check, color: foregroundColorReadableOn(Color(colorArgb)))
                     : null,
               ),
             ),
