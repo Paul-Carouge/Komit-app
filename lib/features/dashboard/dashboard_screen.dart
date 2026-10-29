@@ -19,8 +19,6 @@ import '../mascot/komo_mascot.dart';
 import '../shared/day_grid.dart';
 import '../shared/shared_widgets.dart';
 
-/// Two weeks fit on one row at a readable cell size on a phone.
-const int _recentDayCountShownPerHabit = 14;
 const double _todayButtonSize = 44;
 
 class DashboardScreen extends ConsumerWidget {
@@ -148,11 +146,11 @@ class _HabitRow extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
     final dateFormat = DateFormat.MMMd(Localizations.localeOf(context).toLanguageTag());
     final lastLoggedDateText = lastLoggedDay == null ? null : dateFormat.format(lastLoggedDay!.asLocalDate);
-    final firstShownDay = today.addDays(-(_recentDayCountShownPerHabit - 1));
+    final firstShownDay = today.addDays(-(recentDayCountShownOnDashboard - 1));
     final todayObjectiveId = recentObjectiveIdByDay[today];
     final todayObjective = todayObjectiveId == null ? null : habit.objectiveWithId(todayObjectiveId);
     final cells = [
-      for (var offset = 0; offset < _recentDayCountShownPerHabit; offset++)
+      for (var offset = 0; offset < recentDayCountShownOnDashboard; offset++)
         _recentDayCell(firstShownDay.addDays(offset), komitColors, dateFormat),
     ];
     return PressableCard(
@@ -198,7 +196,7 @@ class _HabitRow extends ConsumerWidget {
             Padding(
               padding: const EdgeInsetsDirectional.only(end: AppSpacing.small),
               child: ExcludeSemantics(
-                child: DayGrid(columnCount: _recentDayCountShownPerHabit, cells: cells),
+                child: DayGrid(columnCount: recentDayCountShownOnDashboard, cells: cells),
               ),
             ),
           ],

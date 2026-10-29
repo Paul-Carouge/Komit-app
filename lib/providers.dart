@@ -55,19 +55,20 @@ final settingsControllerProvider = NotifierProvider<SettingsController, AppSetti
 
 final activeHabitsProvider = StreamProvider((ref) => ref.watch(habitRepositoryProvider).watchActiveHabits());
 
-final habitWithObjectivesProvider = StreamProvider.family<HabitWithObjectives?, int>(
+final habitWithObjectivesProvider = StreamProvider.autoDispose.family<HabitWithObjectives?, int>(
   (ref, habitId) => ref.watch(habitRepositoryProvider).watchHabitWithObjectives(habitId),
 );
 
-final objectiveIdByDayForHabitProvider = StreamProvider.family<Map<CalendarDay, int>, int>(
+final objectiveIdByDayForHabitProvider = StreamProvider.autoDispose.family<Map<CalendarDay, int>, int>(
   (ref, habitId) => ref.watch(habitRepositoryProvider).watchObjectiveIdByDayForHabit(habitId),
 );
 
-/// Days shown on each dashboard card.
-const int dashboardRecentDayCount = 28;
+/// Days shown on each dashboard row, today included: two weeks fit on one row at a readable
+/// cell size on a phone, and the logs query loads no more than that.
+const int recentDayCountShownOnDashboard = 14;
 
 final recentObjectiveIdByDayByHabitIdProvider = StreamProvider((ref) {
-  final firstDay = ref.watch(currentCalendarDayProvider).addDays(-(dashboardRecentDayCount - 1));
+  final firstDay = ref.watch(currentCalendarDayProvider).addDays(-(recentDayCountShownOnDashboard - 1));
   return ref.watch(habitRepositoryProvider).watchObjectiveIdByDayForAllHabitsSince(firstDay);
 });
 
