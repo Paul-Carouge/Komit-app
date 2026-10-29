@@ -72,6 +72,8 @@ Future<LogDayChoice?> showLogDaySheet(
 }) {
   return showModalBottomSheet<LogDayChoice>(
     context: context,
+    // Root navigator, like every Komit sheet: it covers the frosted navigation bar instead of sliding under it.
+    useRootNavigator: true,
     isScrollControlled: true,
     builder: (context) {
       final localizations = AppLocalizations.of(context);

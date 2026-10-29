@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// Komit's look: Material 3 Expressive shapes and type, with premium touches borrowed from iOS
 /// (frosted bars, large titles, soft diffuse shadows, springy presses), kept native to Android.
@@ -12,6 +14,9 @@ abstract final class AppSpacing {
   static const double huge = 32;
   static const double giant = 48;
   static const double screenGutter = 20;
+
+  /// Space after the last app bar action, so it does not touch the screen edge.
+  static const double appBarActionsEndInset = 8;
 }
 
 /// Corner radii, from the sharpest (a day cell) to the roundest (cards and sheets).
@@ -27,6 +32,9 @@ abstract final class AppRadii {
 
 abstract final class AppSizes {
   static const double minimumTouchTarget = 48;
+
+  /// Material 3 top app bar height, also the collapsed height of large-title bars.
+  static const double topAppBarHeight = 64;
 
   /// Primary actions are taller than the minimum target, like Material 3 Expressive buttons.
   static const double primaryButtonHeight = 56;
@@ -50,6 +58,25 @@ abstract final class AppSizes {
 
   /// Onboarding and empty states read as a column of text; wider lines hurt reading on tablets.
   static const double readableContentMaximumWidth = 480;
+
+  /// Height of one placeholder row while a list loads: about a dashboard habit row.
+  static const double skeletonRowHeight = 112;
+  static const double skeletonLineHeight = 12;
+  static const int skeletonRowCount = 3;
+}
+
+/// Body text size at which the system text scale is measured; non-linear scalers grow small text more.
+const double _textScaleReferenceFontSize = 16;
+
+/// How much the user's font size setting enlarges body text: 1 by default, 2 at 200 %.
+double bodyTextScaleOf(BuildContext context) =>
+    MediaQuery.textScalerOf(context).scale(_textScaleReferenceFontSize) / _textScaleReferenceFontSize;
+
+/// Limits on the user's font scale for text that is already large or must fit a fixed bar.
+abstract final class AppTextScaling {
+  /// Large titles start at headline size and app bars have a fixed height: past this factor
+  /// they would push the content off a phone screen. Body text keeps the full scale.
+  static const double appBarMaximumScaleFactor = 1.5;
 }
 
 /// Opacities used to tint a surface with a habit or brand color.
@@ -77,16 +104,26 @@ abstract final class AppBlur {
   static const double frostedSigma = 24;
 }
 
-/// Large, faint, offset shadows: cards look lifted without a visible edge.
+/// One large, faint, offset shadow: cards look lifted without a visible edge. A tight contact
+/// shadow would draw a gray ledge under each card, so there is none; the negative spread keeps
+/// the shadow from peeking out at the sides.
 abstract final class AppShadows {
-  static List<BoxShadow> card(Color shadowColor) => [
-    BoxShadow(color: shadowColor, blurRadius: 24, offset: const Offset(0, 8)),
-    BoxShadow(
-      color: shadowColor.withValues(alpha: shadowColor.a / 2),
-      blurRadius: 4,
-      offset: const Offset(0, 1),
-    ),
-  ];
+  static const double _cardBlurRadius = 32;
+  static const double _cardSpreadRadius = -8;
+  static const Offset _cardOffset = Offset(0, 12);
+
+  /// Empty for a transparent [shadowColor]: dark mode lifts cards with lighter surfaces instead,
+  /// and an invisible blur would still cost a draw on every frame.
+  static List<BoxShadow> card(Color shadowColor) => shadowColor.a == 0
+      ? const []
+      : [
+          BoxShadow(
+            color: shadowColor,
+            blurRadius: _cardBlurRadius,
+            spreadRadius: _cardSpreadRadius,
+            offset: _cardOffset,
+          ),
+        ];
 }
 
 /// Product colors that Material's [ColorScheme] has no slot for.
@@ -97,9 +134,6 @@ class KomitColors extends ThemeExtension<KomitColors> {
     required this.futureCell,
     required this.mutedText,
     required this.accentText,
-    required this.notesGradientStart,
-    required this.notesGradientEnd,
-    required this.onNotesGradient,
     required this.highlightContainer,
     required this.onHighlightContainer,
     required this.cardShadow,
@@ -114,9 +148,6 @@ class KomitColors extends ThemeExtension<KomitColors> {
 
   /// Orange that keeps a 4.5:1 contrast on cards, unlike the brand orange.
   final Color accentText;
-  final Color notesGradientStart;
-  final Color notesGradientEnd;
-  final Color onNotesGradient;
   final Color highlightContainer;
   final Color onHighlightContainer;
   final Color cardShadow;
@@ -140,9 +171,6 @@ class KomitColors extends ThemeExtension<KomitColors> {
       futureCell: lerpColor(futureCell, other.futureCell),
       mutedText: lerpColor(mutedText, other.mutedText),
       accentText: lerpColor(accentText, other.accentText),
-      notesGradientStart: lerpColor(notesGradientStart, other.notesGradientStart),
-      notesGradientEnd: lerpColor(notesGradientEnd, other.notesGradientEnd),
-      onNotesGradient: lerpColor(onNotesGradient, other.onNotesGradient),
       highlightContainer: lerpColor(highlightContainer, other.highlightContainer),
       onHighlightContainer: lerpColor(onHighlightContainer, other.onHighlightContainer),
       cardShadow: lerpColor(cardShadow, other.cardShadow),
@@ -164,8 +192,18 @@ abstract final class _BrandColors {
   static const Color danger = Color(0xFFD93025);
   static const Color dangerOnDark = Color(0xFFFF8A80);
   static const Color violet = Color(0xFF6B4CE5);
-  static const Color purple = Color(0xFF9446FD);
 }
+
+/// Transparent system bars for edge-to-edge, with icons readable on the app's background.
+SystemUiOverlayStyle systemUiOverlayStyleFor(Brightness brightness) =>
+    (brightness == Brightness.dark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark).copyWith(
+      statusBarColor: Colors.transparent,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarDividerColor: Colors.transparent,
+      // The frosted navigation bar already separates content from the gesture bar.
+      systemNavigationBarContrastEnforced: false,
+      systemStatusBarContrastEnforced: false,
+    );
 
 /// Picks ink or white so text and icons stay readable on any user-chosen habit color.
 Color foregroundColorReadableOn(Color background) =>
@@ -205,9 +243,6 @@ final ThemeData lightAppTheme = _buildTheme(
     futureCell: Color(0xFFF4F2EF),
     mutedText: Color(0xFF6B665F),
     accentText: Color(0xFFAD4E00),
-    notesGradientStart: _BrandColors.violet,
-    notesGradientEnd: _BrandColors.purple,
-    onNotesGradient: _BrandColors.white,
     highlightContainer: Color(0xFFFFE7D1),
     onHighlightContainer: Color(0xFF5A2D00),
     cardShadow: Color(0x0F2A1A08),
@@ -230,8 +265,9 @@ final ThemeData darkAppTheme = _buildTheme(
     onSecondaryContainer: Color(0xFFEAE4FF),
     surface: Color(0xFF0F0E0D),
     onSurface: Color(0xFFF2EFEA),
+    // Dark mode shows depth with lighter steps instead of shadows: page, then cards, then sheets.
     surfaceContainerLowest: Color(0xFF1B1A18),
-    surfaceContainerLow: Color(0xFF1B1A18),
+    surfaceContainerLow: Color(0xFF1F1D1B),
     surfaceContainer: Color(0xFF232120),
     surfaceContainerHigh: Color(0xFF2C2A28),
     surfaceContainerHighest: Color(0xFF363330),
@@ -251,12 +287,9 @@ final ThemeData darkAppTheme = _buildTheme(
     futureCell: Color(0xFF211F1E),
     mutedText: Color(0xFFA19C94),
     accentText: _BrandColors.orangeOnDark,
-    notesGradientStart: _BrandColors.violet,
-    notesGradientEnd: _BrandColors.purple,
-    onNotesGradient: _BrandColors.white,
     highlightContainer: Color(0xFF4D2A08),
     onHighlightContainer: Color(0xFFFFDCC0),
-    cardShadow: Color(0x33000000),
+    cardShadow: Color(0x00000000),
     mascotBody: _BrandColors.orange,
     mascotFace: _BrandColors.ink,
     mascotGroundShadow: Color(0x33000000),
@@ -282,6 +315,10 @@ ThemeData _buildTheme({
   final base = ThemeData(brightness: brightness, colorScheme: colorScheme, useMaterial3: true);
   final textTheme = _buildTextTheme(base.textTheme);
   final cardShape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.large));
+  // Sheets and dialogs float above cards: white in light mode, one step lighter than cards in dark.
+  final floatingSurfaceColor = brightness == Brightness.dark
+      ? colorScheme.surfaceContainerHigh
+      : colorScheme.surfaceContainerLowest;
   final fieldShape = BorderRadius.circular(AppRadii.medium);
   const pillShape = StadiumBorder();
   return base.copyWith(
@@ -289,6 +326,7 @@ ThemeData _buildTheme({
     extensions: [komitColors],
     textTheme: textTheme,
     splashFactory: InkSparkle.splashFactory,
+    actionIconTheme: ActionIconThemeData(backButtonIconBuilder: (context) => const Icon(LucideIcons.chevronLeft)),
     pageTransitionsTheme: PageTransitionsTheme(
       builders: {
         // Matches Android 14+ predictive back; the fallback fade uses the page color, not black.
@@ -301,10 +339,11 @@ ThemeData _buildTheme({
       elevation: AppElevation.flat,
       scrolledUnderElevation: AppElevation.flat,
       centerTitle: false,
+      systemOverlayStyle: systemUiOverlayStyleFor(brightness),
       titleTextStyle: textTheme.titleLarge?.copyWith(color: colorScheme.onSurface),
     ),
     cardTheme: CardThemeData(
-      color: colorScheme.surfaceContainerLowest,
+      color: colorScheme.surfaceContainerLow,
       elevation: AppElevation.flat,
       margin: EdgeInsets.zero,
       shape: cardShape,
@@ -323,13 +362,13 @@ ThemeData _buildTheme({
       ),
     ),
     bottomSheetTheme: BottomSheetThemeData(
-      backgroundColor: colorScheme.surfaceContainerLowest,
+      backgroundColor: floatingSurfaceColor,
       surfaceTintColor: Colors.transparent,
       showDragHandle: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadii.large))),
     ),
     dialogTheme: DialogThemeData(
-      backgroundColor: colorScheme.surfaceContainerLowest,
+      backgroundColor: floatingSurfaceColor,
       surfaceTintColor: Colors.transparent,
       shape: cardShape,
       titleTextStyle: textTheme.headlineSmall?.copyWith(color: colorScheme.onSurface),
@@ -407,6 +446,8 @@ ThemeData _buildTheme({
         minimumSize: const Size.fromHeight(AppSizes.minimumTouchTarget),
         selectedBackgroundColor: colorScheme.primary,
         selectedForegroundColor: colorScheme.onPrimary,
+        // The default unselected label color is too faint on the page for WCAG AA.
+        foregroundColor: colorScheme.onSurface,
         side: BorderSide(color: colorScheme.outlineVariant),
       ),
     ),

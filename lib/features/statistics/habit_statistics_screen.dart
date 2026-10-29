@@ -31,23 +31,40 @@ class HabitStatisticsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final localizations = AppLocalizations.of(context);
-    final habit = ref.watch(habitWithObjectivesProvider(habitId));
-    final objectiveIdByDay = ref.watch(objectiveIdByDayForHabitProvider(habitId));
+    final habitProvider = habitWithObjectivesProvider(habitId);
+    final objectiveIdByDayProvider = objectiveIdByDayForHabitProvider(habitId);
+    final habit = ref.watch(habitProvider);
+    final objectiveIdByDay = ref.watch(objectiveIdByDayProvider);
+    final Widget content = switch ((habit, objectiveIdByDay)) {
+      (AsyncData(value: final habit?), AsyncData(value: final objectiveIdByDay)) => _StatisticsContent(
+        habit: habit,
+        objectiveIdByDay: objectiveIdByDay,
+        year: year,
+        today: ref.watch(currentCalendarDayProvider),
+      ),
+      (AsyncData(value: null), _) => SliverFillRemaining(
+        hasScrollBody: false,
+        child: KomoEmptyState(mood: KomoMood.sleepy, title: localizations.habitNotFound),
+      ),
+      (AsyncData(), _) => SliverFillRemaining(
+        hasScrollBody: false,
+        child: AsyncValueView(
+          value: objectiveIdByDay,
+          retryProvider: objectiveIdByDayProvider,
+          builder: (_) => const SizedBox(),
+        ),
+      ),
+      _ => SliverFillRemaining(
+        hasScrollBody: false,
+        child: AsyncValueView(value: habit, retryProvider: habitProvider, builder: (_) => const SizedBox()),
+      ),
+    };
     return Scaffold(
-      appBar: AppBar(title: Text(localizations.statisticsTitle(year))),
-      body: AsyncValueView(
-        value: habit,
-        builder: (habit) => habit == null
-            ? Center(child: Text(localizations.habitNotFound))
-            : AsyncValueView(
-                value: objectiveIdByDay,
-                builder: (objectiveIdByDay) => _StatisticsContent(
-                  habit: habit,
-                  objectiveIdByDay: objectiveIdByDay,
-                  year: year,
-                  today: ref.watch(currentCalendarDayProvider),
-                ),
-              ),
+      body: CustomScrollView(
+        slivers: [
+          LargeTitleSliverAppBar(title: localizations.statisticsTitle(year)),
+          content,
+        ],
       ),
     );
   }
@@ -79,60 +96,64 @@ class _StatisticsContent extends StatelessWidget {
       targetDaysPerWeek: habit.habit.targetDaysPerWeek,
       today: today,
     );
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(
+    return SliverPadding(
+      padding: EdgeInsets.fromLTRB(
         AppSpacing.screenGutter,
         AppSpacing.small,
         AppSpacing.screenGutter,
-        AppSpacing.huge,
+        AppSpacing.huge + MediaQuery.paddingOf(context).bottom,
       ),
-      children: [
-        MergeSemantics(
-          child: Container(
-            padding: const EdgeInsets.all(AppSpacing.extraLarge),
-            decoration: BoxDecoration(
-              color: komitColors.highlightContainer,
-              borderRadius: BorderRadius.circular(AppRadii.large),
-            ),
-            child: Row(
-              children: [
-                HabitIconBadge(
-                  icon: LucideIcons.trophy,
-                  color: komitColors.onHighlightContainer,
-                  size: AppSizes.heroBadge,
-                ),
-                const SizedBox(width: AppSpacing.large),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      localizations.daysLogged,
-                      style: textTheme.bodyLarge?.copyWith(color: komitColors.onHighlightContainer),
+      sliver: SliverList.list(
+        children: [
+          MergeSemantics(
+            child: Container(
+              padding: const EdgeInsets.all(AppSpacing.extraLarge),
+              decoration: BoxDecoration(
+                color: komitColors.highlightContainer,
+                borderRadius: BorderRadius.circular(AppRadii.large),
+              ),
+              child: Row(
+                children: [
+                  HabitIconBadge(
+                    icon: LucideIcons.trophy,
+                    color: komitColors.onHighlightContainer,
+                    size: AppSizes.heroBadge,
+                  ),
+                  const SizedBox(width: AppSpacing.large),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          localizations.daysLogged,
+                          style: textTheme.bodyLarge?.copyWith(color: komitColors.onHighlightContainer),
+                        ),
+                        Text(
+                          '${statistics.totalLogCount}',
+                          style: textTheme.displaySmall?.copyWith(
+                            color: komitColors.onHighlightContainer,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      '${statistics.totalLogCount}',
-                      style: textTheme.displaySmall?.copyWith(
-                        color: komitColors.onHighlightContainer,
-                        fontFeatures: const [FontFeature.tabularFigures()],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: AppSpacing.medium),
-        StreakCards(streaks: streaks),
-        if (statistics.totalLogCount == 0)
-          KomoEmptyState(mood: KomoMood.sleepy, title: localizations.noLogsThisYear, mascotSize: AppSizes.mascotSmall)
-        else ...[
-          SectionTitle(localizations.objectiveDistribution),
-          _ObjectiveDistributionChart(habit: habit, statistics: statistics),
-          SectionTitle(localizations.monthlyActivity),
-          _MonthlyActivityChart(statistics: statistics, year: year),
+          const SizedBox(height: AppSpacing.medium),
+          StreakCards(streaks: streaks),
+          if (statistics.totalLogCount == 0)
+            KomoEmptyState(mood: KomoMood.sleepy, title: localizations.noLogsThisYear, mascotSize: AppSizes.mascotSmall)
+          else ...[
+            SectionTitle(localizations.objectiveDistribution),
+            _ObjectiveDistributionChart(habit: habit, statistics: statistics),
+            SectionTitle(localizations.monthlyActivity),
+            _MonthlyActivityChart(statistics: statistics, year: year),
+          ],
         ],
-      ],
+      ),
     );
   }
 }

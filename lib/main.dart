@@ -34,6 +34,7 @@ Future<void> main() async {
         appDatabaseProvider.overrideWithValue(AppDatabase()),
         settingsRepositoryProvider.overrideWithValue(SettingsRepository(preferences)),
         reminderSchedulerProvider.overrideWithValue(reminderScheduler),
+        appLoggerProvider.overrideWithValue(logger),
       ],
       child: const KomitApp(),
     ),

@@ -158,6 +158,30 @@ abstract class AppLocalizations {
   /// **'Something went wrong. Please try again.'**
   String get genericError;
 
+  /// No description provided for @loadErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This screen couldn\'t load'**
+  String get loadErrorTitle;
+
+  /// No description provided for @loadErrorMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your data is still safe on your phone. Try again, and restart Komit if it keeps happening.'**
+  String get loadErrorMessage;
+
+  /// No description provided for @retryLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get retryLoading;
+
+  /// No description provided for @logThisDayAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Log this day'**
+  String get logThisDayAction;
+
   /// No description provided for @habitNotFound.
   ///
   /// In en, this message translates to:

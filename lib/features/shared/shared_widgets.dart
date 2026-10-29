@@ -3,28 +3,185 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/haptics.dart';
 import '../../core/theme/app_motion.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
+import '../../providers.dart';
 import '../mascot/komo_empty_state.dart';
 import '../mascot/komo_mascot.dart';
 
-/// Renders the loading and error states of [value] the same way on every screen.
-class AsyncValueView<T> extends StatelessWidget {
-  const AsyncValueView({required this.value, required this.builder, super.key});
+/// Renders the loading and error states of [value] the same way on every screen, and
+/// cross-fades between them so a screen never jumps from one state to the next.
+///
+/// An error is written to the private error log and offers to load [retryProvider] again.
+class AsyncValueView<T> extends ConsumerStatefulWidget {
+  const AsyncValueView({required this.value, required this.builder, required this.retryProvider, super.key});
 
   final AsyncValue<T> value;
   final Widget Function(T value) builder;
+  final ProviderOrFamily retryProvider;
+
+  @override
+  ConsumerState<AsyncValueView<T>> createState() => _AsyncValueViewState<T>();
+}
+
+class _AsyncValueViewState<T> extends ConsumerState<AsyncValueView<T>> {
+  static const Key _dataKey = ValueKey('data');
+  static const Key _errorKey = ValueKey('error');
+  static const Key _loadingKey = ValueKey('loading');
+
+  @override
+  void initState() {
+    super.initState();
+    _logErrorIfNew(previousValue: null);
+  }
+
+  @override
+  void didUpdateWidget(AsyncValueView<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _logErrorIfNew(previousValue: oldWidget.value);
+  }
+
+  void _logErrorIfNew({required AsyncValue<T>? previousValue}) {
+    final value = widget.value;
+    if (value is! AsyncError<T> || identical(value.error, previousValue?.error)) return;
+    unawaited(
+      ref
+          .read(appLoggerProvider)
+          .logError(event: 'screen_load_failed', error: value.error, stackTrace: value.stackTrace),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return switch (value) {
-      AsyncData(:final value) => builder(value),
-      AsyncError() => KomoEmptyState(mood: KomoMood.sleepy, title: AppLocalizations.of(context).genericError),
-      _ => Center(child: CircularProgressIndicator(semanticsLabel: AppLocalizations.of(context).loading)),
+    final localizations = AppLocalizations.of(context);
+    final value = widget.value;
+    final (Key stateKey, Widget stateView) = switch (value) {
+      AsyncData(:final value) => (_dataKey, widget.builder(value)),
+      // While a retry runs the value is still an error, but loading: show the skeleton again.
+      AsyncError() when !value.isLoading => (
+        _errorKey,
+        KomoEmptyState(
+          mood: KomoMood.sleepy,
+          title: localizations.loadErrorTitle,
+          message: localizations.loadErrorMessage,
+          action: FilledButton.tonalIcon(
+            onPressed: () => ref.invalidate(widget.retryProvider),
+            icon: const Icon(LucideIcons.rotateCw),
+            label: Text(localizations.retryLoading),
+          ),
+        ),
+      ),
+      _ => (_loadingKey, const _DelayedLoadingSkeleton()),
     };
+    return AnimatedSwitcher(
+      duration: motionAwareDuration(context, AppDurations.standard),
+      switchInCurve: AppCurves.standard,
+      switchOutCurve: AppCurves.standard,
+      child: KeyedSubtree(key: stateKey, child: stateView),
+    );
+  }
+}
+
+/// Placeholder rows shaped like the content, shown only when loading lasts long enough to be
+/// noticed: local reads usually finish first, and a skeleton flashing for a frame looks broken.
+class _DelayedLoadingSkeleton extends StatefulWidget {
+  const _DelayedLoadingSkeleton();
+
+  @override
+  State<_DelayedLoadingSkeleton> createState() => _DelayedLoadingSkeletonState();
+}
+
+class _DelayedLoadingSkeletonState extends State<_DelayedLoadingSkeleton> {
+  late final Timer _revealTimer;
+  bool _isVisible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _revealTimer = Timer(AppDurations.loadingSkeletonDelay, () => setState(() => _isVisible = true));
+  }
+
+  @override
+  void dispose() {
+    _revealTimer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: AppLocalizations.of(context).loading,
+      liveRegion: true,
+      child: ExcludeSemantics(
+        child: AnimatedOpacity(
+          opacity: _isVisible ? 1 : 0,
+          duration: motionAwareDuration(context, AppDurations.standard),
+          child: SingleChildScrollView(
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.screenGutter, AppSpacing.small, AppSpacing.screenGutter, 0),
+            child: Column(
+              children: [
+                for (var index = 0; index < AppSizes.skeletonRowCount; index++)
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: AppSpacing.medium),
+                    child: _SkeletonRow(),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SkeletonRow extends StatelessWidget {
+  const _SkeletonRow();
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final placeholderDecoration = BoxDecoration(
+      color: colorScheme.surfaceContainerHigh,
+      borderRadius: BorderRadius.circular(AppRadii.small),
+    );
+    return Container(
+      height: AppSizes.skeletonRowHeight,
+      padding: const EdgeInsets.all(AppSpacing.large),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(AppRadii.large),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: AppSizes.iconBadge,
+                height: AppSizes.iconBadge,
+                decoration: placeholderDecoration.copyWith(borderRadius: BorderRadius.circular(AppRadii.badge)),
+              ),
+              const SizedBox(width: AppSpacing.medium),
+              Expanded(
+                child: FractionallySizedBox(
+                  alignment: AlignmentDirectional.centerStart,
+                  widthFactor: 0.5,
+                  child: Container(height: AppSizes.skeletonLineHeight, decoration: placeholderDecoration),
+                ),
+              ),
+            ],
+          ),
+          const Spacer(),
+          Container(height: AppSizes.skeletonLineHeight, decoration: placeholderDecoration),
+        ],
+      ),
+    );
   }
 }
 
@@ -53,15 +210,12 @@ class HabitIconBadge extends StatelessWidget {
 /// A tappable card lifted by a soft shadow, that sinks while pressed and springs back on release,
 /// so every card answers the finger the same way.
 class PressableCard extends StatefulWidget {
-  const PressableCard({required this.onTap, required this.child, this.color, this.shape, this.gradient, super.key});
+  const PressableCard({required this.onTap, required this.child, this.color, this.shape, super.key});
 
   final VoidCallback onTap;
   final Widget child;
   final Color? color;
   final ShapeBorder? shape;
-
-  /// Painted under the ink ripple, which a plain [Card.color] could not do with a gradient.
-  final Gradient? gradient;
 
   @override
   State<PressableCard> createState() => _PressableCardState();
@@ -72,7 +226,6 @@ class _PressableCardState extends State<PressableCard> {
 
   @override
   Widget build(BuildContext context) {
-    final gradient = widget.gradient;
     final shape = widget.shape ?? Theme.of(context).cardTheme.shape!;
     final isTransparent = widget.color == Colors.transparent;
     final inkWell = InkWell(
@@ -93,17 +246,7 @@ class _PressableCardState extends State<PressableCard> {
           shape: shape,
           shadows: isTransparent ? null : AppShadows.card(KomitColors.of(context).cardShadow),
         ),
-        child: Card(
-          color: widget.color,
-          shape: shape,
-          clipBehavior: Clip.antiAlias,
-          child: gradient == null
-              ? inkWell
-              : Ink(
-                  decoration: BoxDecoration(gradient: gradient),
-                  child: inkWell,
-                ),
-        ),
+        child: Card(color: widget.color, shape: shape, clipBehavior: Clip.antiAlias, child: inkWell),
       ),
     );
   }
@@ -150,34 +293,100 @@ class FrostedGlass extends StatelessWidget {
   }
 }
 
-/// iOS-style large title that collapses into a frosted bar when the content scrolls under it.
+/// Lines the expanded large title may wrap to before it is ellipsized.
+const int _largeTitleMaximumLines = 2;
+
+/// Share of the collapse after which the large title has fully faded into the bar.
+const double _largeTitleFadeOutShare = 0.6;
+
+/// iOS-style large title: a bold title under the bar that scrolls away with the content, then
+/// the same title fades into the frosted bar once it is collapsed.
+///
+/// The collapsed title is the toolbar title, so the toolbar lays it out between the back button
+/// and the [actions]: it can never slide under them, whatever the length or the font scale.
 class LargeTitleSliverAppBar extends StatelessWidget {
-  const LargeTitleSliverAppBar({required this.title, this.leading, this.actions, super.key});
+  const LargeTitleSliverAppBar({required this.title, this.actions = const [], super.key});
 
   final String title;
-  final Widget? leading;
-  final List<Widget>? actions;
+  final List<Widget> actions;
 
   @override
   Widget build(BuildContext context) {
-    return SliverAppBar.large(
-      pinned: true,
-      leading: leading,
-      automaticallyImplyLeading: leading == null,
-      actions: actions,
-      backgroundColor: Colors.transparent,
-      surfaceTintColor: Colors.transparent,
-      flexibleSpace: FrostedGlass(
-        child: FlexibleSpaceBar(
-          titlePadding: const EdgeInsetsDirectional.only(start: AppSpacing.screenGutter, bottom: AppSpacing.large),
-          expandedTitleScale: 1.6,
-          title: Semantics(
-            header: true,
-            child: Text(
-              title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.titleLarge,
+    return MediaQuery.withClampedTextScaling(
+      maxScaleFactor: AppTextScaling.appBarMaximumScaleFactor,
+      child: Builder(
+        builder: (context) {
+          final colorScheme = Theme.of(context).colorScheme;
+          final expandedTitleStyle = Theme.of(context).textTheme.headlineLarge!.copyWith(color: colorScheme.onSurface);
+          final expandedTitleHeight = _measureExpandedTitleHeight(context, expandedTitleStyle);
+          return SliverAppBar.large(
+            pinned: true,
+            toolbarHeight: AppSizes.topAppBarHeight,
+            expandedHeight: AppSizes.topAppBarHeight + AppSpacing.small + expandedTitleHeight + AppSpacing.large,
+            titleSpacing: AppSpacing.screenGutter,
+            actionsPadding: const EdgeInsetsDirectional.only(end: AppSpacing.appBarActionsEndInset),
+            backgroundColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
+            title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
+            actions: actions,
+            flexibleSpace: FrostedGlass(
+              child: _ExpandedLargeTitle(title: title, style: expandedTitleStyle),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// The bar grows with the title, so a two-line title or a large font is never cut.
+  double _measureExpandedTitleHeight(BuildContext context, TextStyle style) {
+    final painter = TextPainter(
+      text: TextSpan(text: title, style: style),
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+      locale: Localizations.maybeLocaleOf(context),
+      maxLines: _largeTitleMaximumLines,
+      ellipsis: '…',
+    );
+    // shortcut: assumes the bar spans the screen width, true for every Komit screen; measure with
+    // a LayoutBuilder if a screen ever shows it in a side pane.
+    painter.layout(maxWidth: MediaQuery.sizeOf(context).width - 2 * AppSpacing.screenGutter);
+    final height = painter.height;
+    painter.dispose();
+    return height;
+  }
+}
+
+class _ExpandedLargeTitle extends StatelessWidget {
+  const _ExpandedLargeTitle({required this.title, required this.style});
+
+  final String title;
+  final TextStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    final settings = context.dependOnInheritedWidgetOfExactType<FlexibleSpaceBarSettings>()!;
+    final collapsibleExtent = settings.maxExtent - settings.minExtent;
+    final collapseProgress = collapsibleExtent <= 0
+        ? 1.0
+        : ((settings.maxExtent - settings.currentExtent) / collapsibleExtent).clamp(0.0, 1.0);
+    final isCollapsed = collapseProgress >= 1;
+    return Padding(
+      // The title slides under the toolbar edge like content, instead of crossing the actions.
+      padding: EdgeInsets.only(top: MediaQuery.paddingOf(context).top + AppSizes.topAppBarHeight),
+      child: ClipRect(
+        child: Opacity(
+          opacity: (1 - collapseProgress / _largeTitleFadeOutShare).clamp(0.0, 1.0),
+          // Faded but not yet collapsed: still the screen's heading for screen readers.
+          alwaysIncludeSemantics: !isCollapsed,
+          child: Align(
+            alignment: AlignmentDirectional.bottomStart,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(AppSpacing.screenGutter, 0, AppSpacing.screenGutter, AppSpacing.large),
+              child: Semantics(
+                header: true,
+                child: Text(title, style: style, maxLines: _largeTitleMaximumLines, overflow: TextOverflow.ellipsis),
+              ),
             ),
           ),
         ),
@@ -201,6 +410,8 @@ class ColorDot extends StatelessWidget {
   );
 }
 
+/// A section heading with an optional trailing action, which moves under the heading when
+/// both do not fit on one line (long translations, large fonts).
 class SectionTitle extends StatelessWidget {
   const SectionTitle(this.text, {this.trailing, super.key});
 
@@ -211,11 +422,13 @@ class SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(top: AppSpacing.extraLarge, bottom: AppSpacing.medium),
-      child: Row(
+      child: Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: AppSpacing.medium,
+        runSpacing: AppSpacing.small,
         children: [
-          Expanded(
-            child: Semantics(header: true, child: Text(text, style: Theme.of(context).textTheme.titleLarge)),
-          ),
+          Semantics(header: true, child: Text(text, style: Theme.of(context).textTheme.titleLarge)),
           ?trailing,
         ],
       ),

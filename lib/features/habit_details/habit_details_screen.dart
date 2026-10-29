@@ -8,6 +8,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/calendar_day.dart';
 import '../../core/current_calendar_day.dart';
 import '../../core/haptics.dart';
+import '../../core/theme/app_motion.dart';
 import '../../core/habit_appearance.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/repositories/habit_repository.dart';
@@ -31,30 +32,122 @@ class HabitDetailsScreen extends ConsumerStatefulWidget {
   ConsumerState<HabitDetailsScreen> createState() => _HabitDetailsScreenState();
 }
 
+/// The hero card's height: once scrolled past it, the habit title moves into the bar.
+const double _heroCardScrollExtent = AppSizes.heroBadge + 2 * AppSpacing.extraLarge;
+
 class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
   int _selectedYear = DateTime.now().year;
+
+  /// Read by the bar title only, so scrolling never rebuilds the screen.
+  final ValueNotifier<bool> _isHeroCardScrolledAway = ValueNotifier(false);
+
+  @override
+  void dispose() {
+    _isHeroCardScrolledAway.dispose();
+    super.dispose();
+  }
+
+  bool _updateHeroCardVisibility(ScrollNotification notification) {
+    if (notification.depth == 0) {
+      _isHeroCardScrolledAway.value = notification.metrics.pixels > _heroCardScrollExtent;
+    }
+    return false;
+  }
 
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
-    final habit = ref.watch(habitWithObjectivesProvider(widget.habitId));
+    final habitProvider = habitWithObjectivesProvider(widget.habitId);
+    final objectiveIdByDayProvider = objectiveIdByDayForHabitProvider(widget.habitId);
+    final habit = ref.watch(habitProvider);
     final today = ref.watch(currentCalendarDayProvider);
-    final objectiveIdByDay = ref.watch(objectiveIdByDayForHabitProvider(widget.habitId));
-    return Scaffold(
-      body: SafeArea(
+    final objectiveIdByDay = ref.watch(objectiveIdByDayProvider);
+    final loadedHabit = habit.value;
+    final loadedObjectiveIdByDay = objectiveIdByDay.value;
+    final Widget content = switch ((habit, objectiveIdByDay)) {
+      (AsyncData(value: final habit?), AsyncData(value: final objectiveIdByDay)) => _buildContent(
+        context,
+        habit,
+        objectiveIdByDay,
+        today,
+      ),
+      (AsyncData(value: null), _) => SliverFillRemaining(
+        hasScrollBody: false,
+        child: KomoEmptyState(mood: KomoMood.sleepy, title: localizations.habitNotFound),
+      ),
+      (AsyncData(), _) => SliverFillRemaining(
+        hasScrollBody: false,
         child: AsyncValueView(
-          value: habit,
-          builder: (habit) {
-            if (habit == null) return KomoEmptyState(mood: KomoMood.sleepy, title: localizations.habitNotFound);
-            return AsyncValueView(
-              value: objectiveIdByDay,
-              builder: (objectiveIdByDay) => _buildContent(context, habit, objectiveIdByDay, today),
-            );
-          },
+          value: objectiveIdByDay,
+          retryProvider: objectiveIdByDayProvider,
+          builder: (_) => const SizedBox(),
+        ),
+      ),
+      _ => SliverFillRemaining(
+        hasScrollBody: false,
+        child: AsyncValueView(value: habit, retryProvider: habitProvider, builder: (_) => const SizedBox()),
+      ),
+    };
+    return Scaffold(
+      body: NotificationListener<ScrollNotification>(
+        onNotification: _updateHeroCardVisibility,
+        child: CustomScrollView(
+          slivers: [
+            MediaQuery.withClampedTextScaling(
+              maxScaleFactor: AppTextScaling.appBarMaximumScaleFactor,
+              child: SliverAppBar(
+                pinned: true,
+                toolbarHeight: AppSizes.topAppBarHeight,
+                backgroundColor: Colors.transparent,
+                surfaceTintColor: Colors.transparent,
+                flexibleSpace: const FrostedGlass(child: SizedBox.expand()),
+                actionsPadding: const EdgeInsetsDirectional.only(end: AppSpacing.appBarActionsEndInset),
+                title: loadedHabit == null
+                    ? null
+                    : ValueListenableBuilder(
+                        valueListenable: _isHeroCardScrolledAway,
+                        builder: (context, isHeroCardScrolledAway, title) => AnimatedOpacity(
+                          opacity: isHeroCardScrolledAway ? 1 : 0,
+                          duration: motionAwareDuration(context, AppDurations.standard),
+                          curve: AppCurves.standard,
+                          child: title,
+                        ),
+                        child: Text(loadedHabit.habit.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+                      ),
+                actions: [
+                  if (loadedHabit != null && loadedObjectiveIdByDay != null) ...[
+                    _YearChip(
+                      year: _selectedYear,
+                      onPressed: () => _chooseYear(
+                        firstYear: _firstYearWithData(loadedHabit, loadedObjectiveIdByDay),
+                        lastYear: today.year,
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: localizations.statisticsTooltip,
+                      icon: const Icon(LucideIcons.chartNoAxesColumn),
+                      onPressed: () => context.push(AppRoutes.habitStatistics(loadedHabit.habit.id, _selectedYear)),
+                    ),
+                    IconButton(
+                      tooltip: localizations.moreActionsTooltip,
+                      icon: const Icon(LucideIcons.ellipsis),
+                      onPressed: () => _showMoreActions(loadedHabit),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            content,
+          ],
         ),
       ),
     );
   }
+
+  int _firstYearWithData(HabitWithObjectives habit, Map<CalendarDay, int> objectiveIdByDay) => [
+    habit.habit.createdAt.year,
+    ...objectiveIdByDay.keys.map((day) => day.year),
+  ].reduce((earliest, year) => year < earliest ? year : earliest);
 
   Widget _buildContent(
     BuildContext context,
@@ -70,105 +163,72 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
       targetDaysPerWeek: habit.habit.targetDaysPerWeek,
       today: today,
     );
-    final firstYear = [
-      habit.habit.createdAt.year,
-      ...objectiveIdByDay.keys.map((day) => day.year),
-    ].reduce((earliest, year) => year < earliest ? year : earliest);
-    return CustomScrollView(
-      slivers: [
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.small, vertical: AppSpacing.small),
-            child: Row(
-              children: [
-                BackButton(onPressed: () => context.pop()),
-                const Spacer(),
-                _YearChip(
-                  year: _selectedYear,
-                  onPressed: () => _chooseYear(firstYear: firstYear, lastYear: today.year),
-                ),
-                const Spacer(),
-                IconButton(
-                  tooltip: localizations.statisticsTooltip,
-                  icon: const Icon(LucideIcons.chartNoAxesColumn),
-                  onPressed: () => context.push(AppRoutes.habitStatistics(habit.habit.id, _selectedYear)),
-                ),
-                IconButton(
-                  tooltip: localizations.moreActionsTooltip,
-                  icon: const Icon(LucideIcons.ellipsis),
-                  onPressed: () => _showMoreActions(habit),
-                ),
-              ],
+    final firstYear = _firstYearWithData(habit, objectiveIdByDay);
+    return SliverPadding(
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.screenGutter,
+        AppSpacing.small,
+        AppSpacing.screenGutter,
+        AppSpacing.huge + MediaQuery.paddingOf(context).bottom,
+      ),
+      sliver: SliverList.list(
+        children: [
+          _HabitHeroCard(habit: habit),
+          const SizedBox(height: AppSpacing.extraLarge),
+          StreakCards(streaks: streaks),
+          SectionTitle(
+            localizations.yearlyProgress,
+            trailing: _selectedYear == today.year
+                ? FilledButton.tonalIcon(
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(0, AppSizes.minimumTouchTarget),
+                      // Explicit, because the tonal default is the secondary (violet) container.
+                      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                      foregroundColor: KomitColors.of(context).accentText,
+                    ),
+                    onPressed: () => _openLogSheet(habit, today, objectiveIdByDay[today]),
+                    icon: const Icon(LucideIcons.plus),
+                    label: Text(localizations.logToday),
+                  )
+                : null,
+          ),
+          SoftCard(
+            padding: EdgeInsets.zero,
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.medium),
+              child: YearlyGrid(
+                year: _selectedYear,
+                today: today,
+                habit: habit,
+                objectiveIdByDay: objectiveIdByDay,
+                onDayTapped: (day) => _openLogSheet(habit, day, objectiveIdByDay[day]),
+              ),
             ),
           ),
-        ),
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.screenGutter,
-            AppSpacing.small,
-            AppSpacing.screenGutter,
-            AppSpacing.huge,
+          // Grid cells are below the 48 dp touch target size; this is the accessible equivalent.
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: () => _pickDayToLog(habit, objectiveIdByDay, firstYear: firstYear, today: today),
+              icon: const Icon(LucideIcons.calendarPlus),
+              label: Text(localizations.logAnotherDay),
+            ),
           ),
-          sliver: SliverList.list(
+          SectionTitle(localizations.objectivesLegend),
+          Wrap(
+            spacing: AppSpacing.small,
+            runSpacing: AppSpacing.small,
             children: [
-              _HabitHeroCard(habit: habit),
-              const SizedBox(height: AppSpacing.extraLarge),
-              StreakCards(streaks: streaks),
-              SectionTitle(
-                localizations.yearlyProgress,
-                trailing: _selectedYear == today.year
-                    ? FilledButton.tonalIcon(
-                        style: FilledButton.styleFrom(
-                          minimumSize: const Size(0, AppSizes.minimumTouchTarget),
-                          // Explicit, because the tonal default is the secondary (violet) container.
-                          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                          foregroundColor: KomitColors.of(context).accentText,
-                        ),
-                        onPressed: () => _openLogSheet(habit, today, objectiveIdByDay[today]),
-                        icon: const Icon(LucideIcons.plus),
-                        label: Text(localizations.logToday),
-                      )
-                    : null,
-              ),
-              SoftCard(
-                padding: EdgeInsets.zero,
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.medium),
-                  child: YearlyGrid(
-                    year: _selectedYear,
-                    today: today,
-                    habit: habit,
-                    objectiveIdByDay: objectiveIdByDay,
-                    onDayTapped: (day) => _openLogSheet(habit, day, objectiveIdByDay[day]),
-                  ),
+              for (final objective in habit.objectives)
+                Chip(
+                  avatar: ColorDot(color: Color(objective.colorArgb)),
+                  label: Text(objective.title),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.medium)),
                 ),
-              ),
-              // Grid cells are below the 48 dp touch target size; this is the accessible equivalent.
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton.icon(
-                  onPressed: () => _pickDayToLog(habit, objectiveIdByDay, firstYear: firstYear, today: today),
-                  icon: const Icon(LucideIcons.calendarPlus),
-                  label: Text(localizations.logAnotherDay),
-                ),
-              ),
-              SectionTitle(localizations.objectivesLegend),
-              Wrap(
-                spacing: AppSpacing.small,
-                runSpacing: AppSpacing.small,
-                children: [
-                  for (final objective in habit.objectives)
-                    Chip(
-                      avatar: ColorDot(color: Color(objective.colorArgb)),
-                      label: Text(objective.title),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.medium)),
-                    ),
-                ],
-              ),
             ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -195,6 +255,7 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
   Future<void> _chooseYear({required int firstYear, required int lastYear}) async {
     final chosenYear = await showModalBottomSheet<int>(
       context: context,
+      useRootNavigator: true,
       builder: (context) => _YearPickerSheet(firstYear: firstYear, lastYear: lastYear, selectedYear: _selectedYear),
     );
     if (chosenYear == null || !mounted) return;
@@ -207,6 +268,7 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final isDeleteRequested = await showModalBottomSheet<bool>(
       context: context,
+      useRootNavigator: true,
       builder: (context) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/app_logger.dart';
 import 'core/calendar_day.dart';
 import 'core/current_calendar_day.dart';
 import 'data/database/app_database.dart';
@@ -15,6 +16,7 @@ import 'services/reminder_scheduler.dart';
 final appDatabaseProvider = Provider<AppDatabase>((ref) => throw UnimplementedError('Override in main'));
 final settingsRepositoryProvider = Provider<SettingsRepository>((ref) => throw UnimplementedError('Override in main'));
 final reminderSchedulerProvider = Provider<ReminderScheduler>((ref) => throw UnimplementedError('Override in main'));
+final appLoggerProvider = Provider<AppLogger>((ref) => throw UnimplementedError('Override in main'));
 
 final habitRepositoryProvider = Provider(
   (ref) => HabitRepository(ref.watch(appDatabaseProvider), now: ref.watch(clockProvider)),

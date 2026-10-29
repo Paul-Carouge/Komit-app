@@ -117,11 +117,11 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
       body: _isLoading
           ? Center(child: CircularProgressIndicator(semanticsLabel: localizations.loading))
           : ListView(
-              padding: const EdgeInsets.fromLTRB(
+              padding: EdgeInsets.fromLTRB(
                 AppSpacing.screenGutter,
                 AppSpacing.small,
                 AppSpacing.screenGutter,
-                AppSpacing.huge,
+                AppSpacing.huge + MediaQuery.paddingOf(context).bottom,
               ),
               children: [
                 TextField(
@@ -141,24 +141,17 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
                   decoration: InputDecoration(labelText: localizations.descriptionOptional, counterText: ''),
                 ),
                 SectionTitle(localizations.appearance),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _AppearanceTile(
-                        leading: ColorDot(color: Color(_colorArgb), size: AppSizes.colorDotLarge),
-                        label: localizations.color,
-                        onTap: _chooseColor,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.medium),
-                    Expanded(
-                      child: _AppearanceTile(
-                        leading: HabitIconBadge(icon: habitIconForName(_iconName), color: Color(_colorArgb)),
-                        label: localizations.icon,
-                        onTap: _chooseIcon,
-                      ),
-                    ),
-                  ],
+                _AppearanceTiles(
+                  colorTile: _AppearanceTile(
+                    leading: ColorDot(color: Color(_colorArgb), size: AppSizes.colorDotLarge),
+                    label: localizations.color,
+                    onTap: _chooseColor,
+                  ),
+                  iconTile: _AppearanceTile(
+                    leading: HabitIconBadge(icon: habitIconForName(_iconName), color: Color(_colorArgb)),
+                    label: localizations.icon,
+                    onTap: _chooseIcon,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.large),
                 _ReminderCard(
@@ -327,6 +320,41 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
   }
 }
 
+/// Above this font scale two tiles side by side leave too little room for their labels.
+const double _appearanceTilesStackingTextScaleFactor = 1.3;
+
+/// Color and icon side by side, stacked when the font is large.
+class _AppearanceTiles extends StatelessWidget {
+  const _AppearanceTiles({required this.colorTile, required this.iconTile});
+
+  final Widget colorTile;
+  final Widget iconTile;
+
+  @override
+  Widget build(BuildContext context) {
+    if (bodyTextScaleOf(context) > _appearanceTilesStackingTextScaleFactor) {
+      return Column(
+        children: [
+          colorTile,
+          const SizedBox(height: AppSpacing.medium),
+          iconTile,
+        ],
+      );
+    }
+    // Same height side by side, although the icon badge is taller than the color dot.
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(child: colorTile),
+          const SizedBox(width: AppSpacing.medium),
+          Expanded(child: iconTile),
+        ],
+      ),
+    );
+  }
+}
+
 class _AppearanceTile extends StatelessWidget {
   const _AppearanceTile({required this.leading, required this.label, required this.onTap});
 
@@ -463,6 +491,7 @@ class _ObjectiveRowEditor extends StatelessWidget {
                     counterText: '',
                     filled: false,
                     border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
                   ),
                 ),

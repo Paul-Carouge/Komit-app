@@ -47,6 +47,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get genericError => 'Une erreur est survenue. Réessaie.';
 
   @override
+  String get loadErrorTitle => 'Impossible d\'afficher cet écran';
+
+  @override
+  String get loadErrorMessage =>
+      'Tes données sont toujours en sécurité sur ton téléphone. Réessaie, et redémarre Komit si ça continue.';
+
+  @override
+  String get retryLoading => 'Réessayer';
+
+  @override
+  String get logThisDayAction => 'Noter ce jour';
+
+  @override
   String get habitNotFound => 'Habitude introuvable';
 
   @override

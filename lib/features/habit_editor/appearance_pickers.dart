@@ -17,6 +17,7 @@ Future<int?> showColorPickerSheet(BuildContext context, {required int selectedCo
       : [selectedColorArgb, ...habitColorPaletteArgb];
   return showModalBottomSheet<int>(
     context: context,
+    useRootNavigator: true,
     builder: (context) => _PickerSheet(
       title: AppLocalizations.of(context).chooseColor,
       children: [
@@ -54,6 +55,7 @@ Future<int?> showColorPickerSheet(BuildContext context, {required int selectedCo
 Future<String?> showIconPickerSheet(BuildContext context, {required String selectedIconName, required int colorArgb}) {
   return showModalBottomSheet<String>(
     context: context,
+    useRootNavigator: true,
     isScrollControlled: true,
     builder: (context) {
       final colorScheme = Theme.of(context).colorScheme;

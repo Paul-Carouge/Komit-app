@@ -127,8 +127,9 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
         ),
         body: _isLoading
             ? Center(child: CircularProgressIndicator(semanticsLabel: localizations.loading))
-            : Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenGutter),
+            : SafeArea(
+                top: false,
+                minimum: const EdgeInsets.symmetric(horizontal: AppSpacing.screenGutter),
                 child: TextField(
                   controller: _contentController,
                   autofocus: widget.noteId == null,

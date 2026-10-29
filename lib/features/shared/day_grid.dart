@@ -28,9 +28,19 @@ const double _poppingRingGrowth = 0.6;
 ///
 /// When one or two cells change color (a day was just logged or cleared), they pop into place.
 class DayGrid extends StatefulWidget {
-  const DayGrid({required this.columnCount, required this.cells, this.cellGap = AppSpacing.extraSmall, super.key});
+  const DayGrid({
+    required this.columnCount,
+    required this.cells,
+    this.cellGap = AppSpacing.extraSmall,
+    this.cellTapActionLabel,
+    super.key,
+  });
 
   final int columnCount;
+
+  /// Screen readers offer a cell's tap as a named action rather than a button: a cell is far
+  /// smaller than a 48 dp touch target, and the screen offers a full-size control for the same job.
+  final String? cellTapActionLabel;
 
   /// Row-major order; its length must be a multiple of [columnCount].
   final List<DayGridCell> cells;
@@ -80,6 +90,8 @@ class _DayGridState extends State<DayGrid> with SingleTickerProviderStateMixin {
         final geometry = _DayGridGeometry(columnCount: widget.columnCount, cellSize: cellSize, cellGap: cellGap);
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
+          // Each cell exposes its own action; a tap on the whole grid would mean nothing.
+          excludeFromSemantics: true,
           onTapUp: (details) {
             final cellIndex = geometry.cellIndexAt(details.localPosition);
             if (cellIndex != null && cellIndex < widget.cells.length) widget.cells[cellIndex].onTap?.call();
@@ -91,6 +103,7 @@ class _DayGridState extends State<DayGrid> with SingleTickerProviderStateMixin {
               geometry: geometry,
               popAnimation: _popController,
               previousColorByPoppingCellIndex: _previousColorByPoppingCellIndex,
+              cellTapActionLabel: widget.cellTapActionLabel,
             ),
           ),
         );
@@ -127,12 +140,14 @@ class _DayGridPainter extends CustomPainter {
     required this.geometry,
     required this.popAnimation,
     required this.previousColorByPoppingCellIndex,
+    required this.cellTapActionLabel,
   }) : super(repaint: popAnimation);
 
   final List<DayGridCell> cells;
   final _DayGridGeometry geometry;
   final AnimationController popAnimation;
   final Map<int, Color?> previousColorByPoppingCellIndex;
+  final String? cellTapActionLabel;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -178,20 +193,30 @@ class _DayGridPainter extends CustomPainter {
   }
 
   @override
-  SemanticsBuilderCallback get semanticsBuilder =>
-      (size) => [
-        for (final (index, cell) in cells.indexed)
-          if (cell.color != null)
-            CustomPainterSemantics(
-              rect: geometry.cellRect(index),
-              properties: SemanticsProperties(
+  SemanticsBuilderCallback get semanticsBuilder {
+    final actionLabel = cellTapActionLabel;
+    final cellTapAction = actionLabel == null ? null : CustomSemanticsAction(label: actionLabel);
+    return (size) => [
+      for (final (index, cell) in cells.indexed)
+        if (cell.color != null)
+          CustomPainterSemantics(
+            rect: geometry.cellRect(index),
+            properties: switch ((cell.onTap, cellTapAction)) {
+              (final onTap?, final cellTapAction?) => SemanticsProperties(
                 label: cell.semanticLabel,
-                button: cell.onTap != null,
-                onTap: cell.onTap,
+                customSemanticsActions: {cellTapAction: onTap},
                 textDirection: TextDirection.ltr,
               ),
-            ),
-      ];
+              (final onTap, _) => SemanticsProperties(
+                label: cell.semanticLabel,
+                button: onTap != null,
+                onTap: onTap,
+                textDirection: TextDirection.ltr,
+              ),
+            },
+          ),
+    ];
+  }
 
   @override
   bool shouldRepaint(_DayGridPainter oldDelegate) =>
@@ -201,5 +226,7 @@ class _DayGridPainter extends CustomPainter {
 
   @override
   bool shouldRebuildSemantics(_DayGridPainter oldDelegate) =>
-      !identical(oldDelegate.cells, cells) || oldDelegate.geometry.cellSize != geometry.cellSize;
+      !identical(oldDelegate.cells, cells) ||
+      oldDelegate.geometry.cellSize != geometry.cellSize ||
+      oldDelegate.cellTapActionLabel != cellTapActionLabel;
 }

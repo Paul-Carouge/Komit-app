@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../core/calendar_day.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/repositories/habit_repository.dart';
+import '../../l10n/app_localizations.dart';
 import '../shared/day_grid.dart';
 
 const int _maximumDaysInMonth = 31;
@@ -85,7 +86,12 @@ class YearlyGrid extends StatelessWidget {
                   ),
                 ),
                 Expanded(
-                  child: DayGrid(columnCount: DateTime.monthsPerYear, cells: cells, cellGap: cellGap),
+                  child: DayGrid(
+                    columnCount: DateTime.monthsPerYear,
+                    cells: cells,
+                    cellGap: cellGap,
+                    cellTapActionLabel: AppLocalizations.of(context).logThisDayAction,
+                  ),
                 ),
               ],
             ),

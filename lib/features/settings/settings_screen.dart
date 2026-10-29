@@ -26,95 +26,107 @@ class SettingsScreen extends ConsumerWidget {
     final currentLanguageCode =
         settings.languageCode ?? (Localizations.localeOf(context).languageCode == 'fr' ? 'fr' : 'en');
     return Scaffold(
-      appBar: AppBar(title: Text(localizations.settings)),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(AppSpacing.screenGutter, 0, AppSpacing.screenGutter, AppSpacing.huge),
-        children: [
-          SectionTitle(localizations.yourName),
-          _UserNameField(
-            // A new key resets the field when the name changes elsewhere, e.g. after an import.
-            key: ValueKey(settings.userName),
-            initialUserName: settings.userName,
-            onSubmitted: settingsController.updateUserName,
-          ),
-          SectionTitle(localizations.appearance),
-          SoftCard(
-            padding: EdgeInsets.zero,
-            child: RadioGroup<ThemeMode>(
-              groupValue: settings.themeMode,
-              onChanged: (themeMode) {
-                if (themeMode == null) return;
-                unawaited(KomitHaptics.selection());
-                settingsController.updateThemeMode(themeMode);
-              },
-              child: Column(
-                children: [
-                  for (final (themeMode, icon, label) in [
-                    (ThemeMode.system, LucideIcons.smartphone, localizations.themeSystem),
-                    (ThemeMode.light, LucideIcons.sun, localizations.themeLight),
-                    (ThemeMode.dark, LucideIcons.moon, localizations.themeDark),
-                  ])
-                    RadioListTile<ThemeMode>(
-                      value: themeMode,
-                      secondary: HabitIconBadge(icon: icon, color: colorScheme.primary),
-                      title: Text(label),
-                      controlAffinity: ListTileControlAffinity.trailing,
-                    ),
-                ],
-              ),
+      body: CustomScrollView(
+        slivers: [
+          LargeTitleSliverAppBar(title: localizations.settings),
+          SliverPadding(
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.screenGutter,
+              0,
+              AppSpacing.screenGutter,
+              AppSpacing.huge + MediaQuery.paddingOf(context).bottom,
             ),
-          ),
-          SectionTitle(localizations.language),
-          SegmentedButton<String>(
-            segments: const [
-              ButtonSegment(value: 'en', label: Text('English')),
-              ButtonSegment(value: 'fr', label: Text('Français')),
-            ],
-            selected: {currentLanguageCode},
-            onSelectionChanged: (selection) {
-              unawaited(KomitHaptics.selection());
-              settingsController.updateLanguageCode(selection.single);
-            },
-          ),
-          SectionTitle(localizations.dataAndStorage),
-          SoftCard(
-            padding: EdgeInsets.zero,
-            child: Column(
+            sliver: SliverList.list(
               children: [
-                ListTile(
-                  leading: HabitIconBadge(icon: LucideIcons.download, color: komitColors.mutedText),
-                  title: Text(localizations.exportData),
-                  trailing: const Icon(LucideIcons.chevronRight),
-                  onTap: () => exportBackupToUserChosenFile(context, ref),
+                SectionTitle(localizations.yourName),
+                _UserNameField(
+                  // A new key resets the field when the name changes elsewhere, e.g. after an import.
+                  key: ValueKey(settings.userName),
+                  initialUserName: settings.userName,
+                  onSubmitted: settingsController.updateUserName,
                 ),
-                ListTile(
-                  leading: HabitIconBadge(icon: LucideIcons.upload, color: colorScheme.error),
-                  title: Text(localizations.importData, style: TextStyle(color: colorScheme.error)),
-                  trailing: const Icon(LucideIcons.chevronRight),
-                  onTap: () => importBackupFromUserChosenFile(context, ref),
+                SectionTitle(localizations.appearance),
+                SoftCard(
+                  padding: EdgeInsets.zero,
+                  child: RadioGroup<ThemeMode>(
+                    groupValue: settings.themeMode,
+                    onChanged: (themeMode) {
+                      if (themeMode == null) return;
+                      unawaited(KomitHaptics.selection());
+                      settingsController.updateThemeMode(themeMode);
+                    },
+                    child: Column(
+                      children: [
+                        for (final (themeMode, icon, label) in [
+                          (ThemeMode.system, LucideIcons.smartphone, localizations.themeSystem),
+                          (ThemeMode.light, LucideIcons.sun, localizations.themeLight),
+                          (ThemeMode.dark, LucideIcons.moon, localizations.themeDark),
+                        ])
+                          RadioListTile<ThemeMode>(
+                            value: themeMode,
+                            secondary: HabitIconBadge(icon: icon, color: colorScheme.primary),
+                            title: Text(label),
+                            controlAffinity: ListTileControlAffinity.trailing,
+                          ),
+                      ],
+                    ),
+                  ),
                 ),
+                SectionTitle(localizations.language),
+                SegmentedButton<String>(
+                  segments: const [
+                    ButtonSegment(value: 'en', label: Text('English')),
+                    ButtonSegment(value: 'fr', label: Text('Français')),
+                  ],
+                  selected: {currentLanguageCode},
+                  selectedIcon: const Icon(LucideIcons.check),
+                  onSelectionChanged: (selection) {
+                    unawaited(KomitHaptics.selection());
+                    settingsController.updateLanguageCode(selection.single);
+                  },
+                ),
+                SectionTitle(localizations.dataAndStorage),
+                SoftCard(
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: HabitIconBadge(icon: LucideIcons.download, color: komitColors.mutedText),
+                        title: Text(localizations.exportData),
+                        trailing: const Icon(LucideIcons.chevronRight),
+                        onTap: () => exportBackupToUserChosenFile(context, ref),
+                      ),
+                      ListTile(
+                        leading: HabitIconBadge(icon: LucideIcons.upload, color: colorScheme.error),
+                        title: Text(localizations.importData, style: TextStyle(color: colorScheme.error)),
+                        trailing: const Icon(LucideIcons.chevronRight),
+                        onTap: () => importBackupFromUserChosenFile(context, ref),
+                      ),
+                    ],
+                  ),
+                ),
+                if (ref.watch(appUpdateServiceProvider).isSupported) ...[
+                  SectionTitle(localizations.updates),
+                  SoftCard(
+                    padding: EdgeInsets.zero,
+                    child: ListTile(
+                      leading: HabitIconBadge(icon: LucideIcons.refreshCw, color: colorScheme.primary),
+                      title: Text(localizations.checkForUpdates),
+                      trailing: const Icon(LucideIcons.chevronRight),
+                      onTap: () => checkForUpdate(context, ref, isUserInitiated: true),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: AppSpacing.huge),
+                if (installedVersion != null)
+                  Text(
+                    localizations.versionLabel(installedVersion),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: komitColors.mutedText),
+                  ),
               ],
             ),
           ),
-          if (ref.watch(appUpdateServiceProvider).isSupported) ...[
-            SectionTitle(localizations.updates),
-            SoftCard(
-              padding: EdgeInsets.zero,
-              child: ListTile(
-                leading: HabitIconBadge(icon: LucideIcons.refreshCw, color: colorScheme.primary),
-                title: Text(localizations.checkForUpdates),
-                trailing: const Icon(LucideIcons.chevronRight),
-                onTap: () => checkForUpdate(context, ref, isUserInitiated: true),
-              ),
-            ),
-          ],
-          const SizedBox(height: AppSpacing.huge),
-          if (installedVersion != null)
-            Text(
-              localizations.versionLabel(installedVersion),
-              textAlign: TextAlign.center,
-              style: TextStyle(color: komitColors.mutedText),
-            ),
         ],
       ),
     );

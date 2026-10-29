@@ -33,8 +33,22 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
 - Messages appear in a floating bar at the bottom of the screen.
 - Screen transitions follow Android's back gesture preview on Android 14 and later.
 - When animations are turned off in the system settings, Komit stops animating too.
+- Settings and statistics open with a large title that shrinks into the top bar as you
+  scroll; a habit's name slides into its top bar once you scroll past its card.
+- Cards have a softer shadow in light mode; in dark mode they stand out with a lighter
+  surface instead. The notes banner uses the warm Komit tint instead of a violet gradient.
+- While a screen loads, placeholder rows appear after a short moment instead of a spinner.
+  If loading fails, the screen explains it and offers a "Try again" button.
 
 ### Fixed
+- When you scroll the home screen, the greeting no longer slides under Komo and the
+  settings button: it shrinks into the top bar and stops before them, even with a long
+  first name or a large font.
+- Bottom sheets (logging a day, picking a year, a color or an icon) now cover the bottom
+  navigation bar instead of opening behind it.
+- With a very large font, section headings, the statistics summary, the "New habit" button
+  and the color and icon choices no longer get cut off.
+- The language choice and other unselected options have more readable text.
 - A screen left open overnight now always moves to the new day at midnight, even when
   the phone wakes its timer a moment early.
 

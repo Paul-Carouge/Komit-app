@@ -35,7 +35,6 @@ class DashboardScreen extends ConsumerWidget {
         slivers: [
           LargeTitleSliverAppBar(
             title: userName == null ? localizations.greetingWithoutName : localizations.greeting(userName),
-            leading: const SizedBox.shrink(),
             // Komo sits with the actions, so the collapsed title never slides under it.
             actions: [
               if (hasHabits) const _DashboardKomo(),
@@ -44,7 +43,6 @@ class DashboardScreen extends ConsumerWidget {
                 onPressed: () => context.push(AppRoutes.settings),
                 icon: const Icon(LucideIcons.settings),
               ),
-              const SizedBox(width: AppSpacing.small),
             ],
           ),
           switch (habits) {
@@ -64,7 +62,11 @@ class DashboardScreen extends ConsumerWidget {
             AsyncData(value: final habits) => _HabitList(habits: habits),
             _ => SliverFillRemaining(
               hasScrollBody: false,
-              child: AsyncValueView(value: habits, builder: (_) => const SizedBox()),
+              child: AsyncValueView(
+                value: habits,
+                retryProvider: activeHabitsProvider,
+                builder: (_) => const SizedBox(),
+              ),
             ),
           },
         ],
@@ -234,7 +236,7 @@ class _TodayLogButton extends StatelessWidget {
         curve: AppCurves.emphasized,
         width: _todayButtonSize,
         height: _todayButtonSize,
-        decoration: BoxDecoration(shape: BoxShape.circle, color: objectiveColor ?? colorScheme.surfaceContainer),
+        decoration: BoxDecoration(shape: BoxShape.circle, color: objectiveColor ?? colorScheme.surfaceContainerHigh),
         child: Icon(
           objectiveColor == null ? LucideIcons.plus : LucideIcons.check,
           color: objectiveColor == null ? colorScheme.onSurfaceVariant : foregroundColorReadableOn(objectiveColor),
@@ -265,9 +267,11 @@ class _NewHabitRow extends StatelessWidget {
           children: [
             Icon(LucideIcons.plus, color: accentText),
             const SizedBox(width: AppSpacing.small),
-            Text(
-              AppLocalizations.of(context).newHabit,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(color: accentText),
+            Flexible(
+              child: Text(
+                AppLocalizations.of(context).newHabit,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(color: accentText),
+              ),
             ),
           ],
         ),

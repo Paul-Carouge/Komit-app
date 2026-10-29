@@ -29,14 +29,12 @@ class NotesScreen extends ConsumerWidget {
         slivers: [
           LargeTitleSliverAppBar(
             title: localizations.secondBrain,
-            leading: const SizedBox.shrink(),
             actions: [
               IconButton(
                 tooltip: localizations.settingsTooltip,
                 onPressed: () => context.push(AppRoutes.settings),
                 icon: const Icon(LucideIcons.settings),
               ),
-              const SizedBox(width: AppSpacing.small),
             ],
           ),
           const SliverPadding(
@@ -89,7 +87,7 @@ class NotesScreen extends ConsumerWidget {
               ),
             ),
             _ => SliverToBoxAdapter(
-              child: AsyncValueView(value: notes, builder: (_) => const SizedBox()),
+              child: AsyncValueView(value: notes, retryProvider: notesProvider, builder: (_) => const SizedBox()),
             ),
           },
         ],
@@ -103,10 +101,11 @@ class _NewNoteBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final komitColors = KomitColors.of(context);
-    final foregroundColor = komitColors.onNotesGradient;
+    final colorScheme = Theme.of(context).colorScheme;
+    // Tinted with the brand, not a loud gradient: the notes list stays the content.
+    final foregroundColor = colorScheme.onPrimaryContainer;
     return PressableCard(
-      gradient: LinearGradient(colors: [komitColors.notesGradientStart, komitColors.notesGradientEnd]),
+      color: colorScheme.primaryContainer,
       onTap: () => context.push(AppRoutes.newNote),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.extraLarge),

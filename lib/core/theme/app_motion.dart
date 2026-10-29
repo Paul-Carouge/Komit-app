@@ -8,6 +8,12 @@ abstract final class AppDurations {
   /// State changes inside a screen (selection, switching onboarding steps).
   static const Duration standard = Duration(milliseconds: 240);
 
+  /// Loading shorter than this shows nothing: a skeleton flashing for a frame looks broken.
+  static const Duration loadingSkeletonDelay = Duration(milliseconds: 150);
+
+  /// Komo's face from the Android splash fading away to reveal the first screen.
+  static const Duration splashHandoff = Duration(milliseconds: 420);
+
   /// A freshly logged day popping into its cell.
   static const Duration emphasized = Duration(milliseconds: 460);
 

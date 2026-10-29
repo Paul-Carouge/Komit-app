@@ -47,6 +47,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get genericError => 'Something went wrong. Please try again.';
 
   @override
+  String get loadErrorTitle => 'This screen couldn\'t load';
+
+  @override
+  String get loadErrorMessage =>
+      'Your data is still safe on your phone. Try again, and restart Komit if it keeps happening.';
+
+  @override
+  String get retryLoading => 'Try again';
+
+  @override
+  String get logThisDayAction => 'Log this day';
+
+  @override
   String get habitNotFound => 'Habit not found';
 
   @override
