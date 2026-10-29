@@ -164,6 +164,49 @@ void main() {
     expect((await repository.watchActiveHabits().first).map((habit) => habit.habit.id), [runningId, readingId]);
   });
 
+  test('saves the schedule, the weekly target and which objectives count as a success', () async {
+    const mondayWednesdayFridayMask = 0x15;
+    final habitId = await repository.saveHabit(
+      HabitDraft(
+        id: null,
+        title: 'Gym',
+        description: '',
+        colorArgb: 1,
+        iconName: 'dumbbell',
+        reminderMinuteOfDay: null,
+        scheduledWeekdayMask: mondayWednesdayFridayMask,
+        objectives: const [
+          ObjectiveDraft(id: null, title: 'Done', colorArgb: 1),
+          ObjectiveDraft(id: null, title: 'Skipped', colorArgb: 2, countsAsSuccess: false),
+        ],
+      ),
+    );
+    var habit = (await repository.watchHabitWithObjectives(habitId).first)!;
+    expect(habit.habit.scheduledWeekdayMask, mondayWednesdayFridayMask);
+    expect(habit.habit.targetDaysPerWeek, isNull);
+    expect(habit.objectives.map((objective) => objective.countsAsSuccess), [true, false]);
+
+    await repository.saveHabit(
+      HabitDraft(
+        id: habitId,
+        title: 'Gym',
+        description: '',
+        colorArgb: 1,
+        iconName: 'dumbbell',
+        reminderMinuteOfDay: null,
+        targetDaysPerWeek: 3,
+        objectives: [
+          for (final objective in habit.objectives)
+            ObjectiveDraft(id: objective.id, title: objective.title, colorArgb: objective.colorArgb),
+        ],
+      ),
+    );
+    habit = (await repository.watchHabitWithObjectives(habitId).first)!;
+    expect(habit.habit.scheduledWeekdayMask, everyWeekdayMask);
+    expect(habit.habit.targetDaysPerWeek, 3);
+    expect(habit.objectives.map((objective) => objective.countsAsSuccess), [true, true]);
+  });
+
   test('watchHabitWithObjectives returns null for an unknown habit', () async {
     expect(await repository.watchHabitWithObjectives(42).first, isNull);
   });

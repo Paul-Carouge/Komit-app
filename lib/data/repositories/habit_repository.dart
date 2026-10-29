@@ -35,6 +35,8 @@ class HabitDraft {
     required this.iconName,
     required this.reminderMinuteOfDay,
     required this.objectives,
+    this.scheduledWeekdayMask = everyWeekdayMask,
+    this.targetDaysPerWeek,
   });
 
   final int? id;
@@ -44,14 +46,21 @@ class HabitDraft {
   final String iconName;
   final int? reminderMinuteOfDay;
   final List<ObjectiveDraft> objectives;
+
+  /// See [HabitRow.scheduledWeekdayMask]; every day by default.
+  final int scheduledWeekdayMask;
+
+  /// Null for a daily habit; see [HabitRow.targetDaysPerWeek].
+  final int? targetDaysPerWeek;
 }
 
 class ObjectiveDraft {
-  const ObjectiveDraft({required this.id, required this.title, required this.colorArgb});
+  const ObjectiveDraft({required this.id, required this.title, required this.colorArgb, this.countsAsSuccess = true});
 
   final int? id;
   final String title;
   final int colorArgb;
+  final bool countsAsSuccess;
 }
 
 /// Thrown when a log would break an invariant the UI is expected to enforce.
@@ -147,6 +156,8 @@ class HabitRepository {
         colorArgb: Value(draft.colorArgb),
         iconName: Value(draft.iconName),
         reminderMinuteOfDay: Value(draft.reminderMinuteOfDay),
+        scheduledWeekdayMask: Value(draft.scheduledWeekdayMask),
+        targetDaysPerWeek: Value(draft.targetDaysPerWeek),
       );
       final int habitId;
       if (draft.id case final existingHabitId?) {
@@ -175,6 +186,7 @@ class HabitRepository {
           title: Value(objective.title.trim()),
           colorArgb: Value(objective.colorArgb),
           sortOrder: Value(sortOrder),
+          countsAsSuccess: Value(objective.countsAsSuccess),
         );
         if (objective.id case final objectiveId?) {
           await (_database.update(
