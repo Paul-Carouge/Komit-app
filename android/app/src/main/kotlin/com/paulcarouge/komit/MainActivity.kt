@@ -1,6 +1,8 @@
 package com.paulcarouge.komit
 
+import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageInstaller
 import android.net.Uri
@@ -15,13 +17,19 @@ import java.security.MessageDigest
 import java.util.concurrent.Executors
 
 private const val APP_UPDATE_CHANNEL = "com.paulcarouge.komit/app_update"
+private const val NOTIFICATION_SETTINGS_CHANNEL = "com.paulcarouge.komit/notification_settings"
+private const val RELEASES_PAGE_URL = "https://github.com/Paul-Carouge/Komit-app/releases"
+private val SHA256_HEX_PATTERN = Regex("^[0-9a-f]{64}$")
 
 class MainActivity : FlutterActivity() {
     private val backgroundExecutor = Executors.newSingleThreadExecutor()
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, APP_UPDATE_CHANNEL)
+        val appUpdateChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, APP_UPDATE_CHANNEL)
+        // The installer reports failures to a receiver after this call returned; relay them to Dart.
+        UpdateInstallStatusReceiver.onInstallFailed = { reason -> appUpdateChannel.invokeMethod("installFailed", reason) }
+        appUpdateChannel
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "currentVersionName" -> {
@@ -33,8 +41,11 @@ class MainActivity : FlutterActivity() {
                     }
 
                     "openInstallPermissionSettings" -> {
-                        openInstallPermissionSettings()
-                        result.success(null)
+                        startActivityOrReportUnavailable(result, installPermissionSettingsIntent())
+                    }
+
+                    "openReleasesPage" -> {
+                        startActivityOrReportUnavailable(result, Intent(Intent.ACTION_VIEW, Uri.parse(RELEASES_PAGE_URL)))
                     }
 
                     "installApk" -> {
@@ -46,37 +57,80 @@ class MainActivity : FlutterActivity() {
                     }
                 }
             }
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, NOTIFICATION_SETTINGS_CHANNEL)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "areNotificationsEnabled" -> {
+                        result.success(getSystemService(NotificationManager::class.java).areNotificationsEnabled())
+                    }
+
+                    "openNotificationSettings" -> {
+                        startActivityOrReportUnavailable(result, notificationSettingsIntent())
+                    }
+
+                    else -> {
+                        result.notImplemented()
+                    }
+                }
+            }
     }
 
     override fun onDestroy() {
+        UpdateInstallStatusReceiver.onInstallFailed = null
         backgroundExecutor.shutdown()
         super.onDestroy()
     }
+
+    /** Some phones lack a settings page or a browser; Dart then explains instead of doing nothing. */
+    private fun startActivityOrReportUnavailable(
+        result: MethodChannel.Result,
+        intent: Intent,
+    ) {
+        try {
+            startActivity(intent)
+            result.success(null)
+        } catch (exception: ActivityNotFoundException) {
+            result.error("activity_unavailable", exception.message, null)
+        }
+    }
+
+    private fun notificationSettingsIntent(): Intent =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+        } else {
+            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName"))
+        }
 
     private fun currentVersionName(): String? = packageManager.getPackageInfo(packageName, 0).versionName
 
     private fun canInstallPackages(): Boolean = Build.VERSION.SDK_INT < Build.VERSION_CODES.O || packageManager.canRequestPackageInstalls()
 
-    private fun openInstallPermissionSettings() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
-        startActivity(
-            Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:$packageName")),
-        )
-    }
+    private fun installPermissionSettingsIntent(): Intent =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:$packageName"))
+        } else {
+            Intent(Settings.ACTION_SECURITY_SETTINGS)
+        }
 
     /** Verifies the downloaded APK against the release digest, then hands it to the system installer. */
     private fun installApk(
         call: MethodCall,
         result: MethodChannel.Result,
     ) {
-        val apkPath = call.argument<String>("apkPath")
-        val expectedSha256 = call.argument<String>("expectedSha256")?.lowercase()
-        if (apkPath == null || expectedSha256 == null) {
-            result.error("invalid_arguments", "apkPath and expectedSha256 are required", null)
+        val apkPath = call.argument<Any>("apkPath") as? String
+        val expectedSha256 = (call.argument<Any>("expectedSha256") as? String)?.lowercase()
+        // Only an APK this app downloaded into its own cache may be installed.
+        val apkFile = apkPath?.let { File(it).canonicalFile }
+        if (apkFile == null ||
+            apkFile.parentFile != cacheDir.canonicalFile ||
+            !apkFile.name.endsWith(".apk") ||
+            expectedSha256 == null ||
+            !SHA256_HEX_PATTERN.matches(expectedSha256)
+        ) {
+            result.error("invalid_arguments", "apkPath must be an APK in the cache and expectedSha256 a hex digest", null)
             return
         }
         backgroundExecutor.execute {
-            val apkFile = File(apkPath)
             try {
                 val actualSha256 = sha256Of(apkFile)
                 if (actualSha256 != expectedSha256) {

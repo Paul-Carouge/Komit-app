@@ -109,7 +109,7 @@
   },
   "reminderNotificationBody": "How did it go today? Log it in Komit.",
   "reminderChannelName": "Habit reminders",
-  "notificationsDenied": "Notifications are disabled for Komit. Enable them in system settings to get reminders.",
+  "notificationsDenied": "Reminders need notifications, which are off for Komit. You can turn them on in the system settings.",
   "secondBrain": "Second brain",
   "newNote": "New note",
   "myNotes": "My notes",
@@ -204,7 +204,7 @@
   "getStarted": "Get started",
   "restoreFromBackup": "Restore from a backup",
   "loading": "Loading…",
-  "updateErrorInstallPermission": "allow Komit to install apps in the settings that just opened, then try again.",
+  "updateErrorInstallPermission": "Komit is not allowed to install apps yet. Allow it in the settings, then try again.",
   "updateErrorNetwork": "the download was interrupted. Check your connection and try again.",
   "updateErrorInvalidRelease": "this version is not available for installation.",
   "updateErrorCorruptedDownload": "the downloaded file is damaged. Try again.",
@@ -214,9 +214,8 @@
   "exportPrivacyNote": "The exported file is not encrypted: keep it somewhere private.",
   "onboardingNameTitle": "What should I call you?",
   "onboardingNameMessage": "Your first name only appears on your home screen. You can skip this step.",
-  "onboardingRemindersTitle": "A gentle nudge in the evening?",
-  "onboardingRemindersMessage": "When you add a reminder to a habit, Komit sends one notification a day, at the time you choose. Android asks for your permission next.",
-  "allowNotifications": "Allow notifications",
+  "onboardingRemindersTitle": "Reminders, only if you want them",
+  "onboardingRemindersMessage": "Reminders are optional and set habit by habit, at the time you choose. Komit asks for permission only when you turn one on.",
   "continueAction": "Continue",
   "skip": "Skip",
   "onboardingStepProgress": "Step {currentStep} of {stepCount}",
@@ -476,5 +475,62 @@
   "noArchivedHabitsMessage": "Archive a habit from its page to pause it without losing its history.",
   "moveUp": "Move up",
   "moveDown": "Move down",
-  "noteSaveFailed": "Your note couldn't be saved. Copy its text, then try again."
+  "noteSaveFailed": "Your note couldn't be saved. Copy its text, then try again.",
+  "reminderNotificationBodyWithDayStreak": "{count, plural, =1{Day 1 of your streak is done. Keep it going today.} other{{count}-day streak. Keep it going today.}}",
+  "@reminderNotificationBodyWithDayStreak": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reminderNotificationBodyWithWeekStreak": "{count, plural, =1{1-week streak. Keep it going today.} other{{count}-week streak. Keep it going today.}}",
+  "@reminderNotificationBodyWithWeekStreak": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reminderChannelDescription": "One notification on the days a habit is planned, at the time you chose for it.",
+  "reminderActionDone": "Done",
+  "reminderActionLater": "Later",
+  "reminderPermissionTitle": "Remind you about {habit}?",
+  "@reminderPermissionTitle": {
+    "placeholders": {
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderPermissionMessage": "Komit will send one notification at {time} on the days this habit is planned, with buttons to log it straight away. Android asks for your permission next.",
+  "@reminderPermissionMessage": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notNow": "Not now",
+  "openSettings": "Open settings",
+  "notifications": "Notifications",
+  "notificationsStatusEnabled": "On: your reminders can appear.",
+  "notificationsStatusDisabled": "Off: your reminders will not appear.",
+  "notificationsStatusUnavailable": "Not available on this device.",
+  "notificationsStatusTitle": "Notification status",
+  "openSystemSettings": "Open system settings",
+  "languageSystem": "System",
+  "about": "About",
+  "openSourceLicenses": "Open-source licenses",
+  "allVersionsOnGitHub": "All versions on GitHub",
+  "installPermissionTitle": "Allow Komit to install its updates",
+  "installPermissionMessage": "Android opens a settings page next. Turn on “Allow from this source”, then come back: the update continues on its own.",
+  "confirmInstallInSystemWindow": "Confirm the installation in the Android window.",
+  "updateErrorInstallCancelled": "the installation was cancelled.",
+  "updateErrorInstallConflict": "another version of Komit on this phone prevents it. Uninstall that version after exporting your data, then try again.",
+  "updateErrorInstallIncompatible": "this version is not compatible with your phone.",
+  "updateErrorInstallStorage": "there is not enough free storage on your phone.",
+  "updateErrorInstallBlocked": "Android blocked the installation.",
+  "settingsUnavailable": "The settings could not be opened.",
+  "thisHabit": "this habit"
 }

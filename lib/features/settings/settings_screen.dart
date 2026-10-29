@@ -10,6 +10,7 @@ import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
 import '../shared/shared_widgets.dart';
 import '../updates/update_prompt.dart';
+import '../../services/notification_permission_service.dart';
 import 'backup_actions.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -23,8 +24,6 @@ class SettingsScreen extends ConsumerWidget {
     final settings = ref.watch(settingsControllerProvider);
     final settingsController = ref.read(settingsControllerProvider.notifier);
     final installedVersion = ref.watch(installedVersionProvider).value;
-    final currentLanguageCode =
-        settings.languageCode ?? (Localizations.localeOf(context).languageCode == 'fr' ? 'fr' : 'en');
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -73,18 +72,23 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ),
                 SectionTitle(localizations.language),
-                SegmentedButton<String>(
-                  segments: const [
-                    ButtonSegment(value: 'en', label: Text('English')),
-                    ButtonSegment(value: 'fr', label: Text('Français')),
+                SegmentedButton<String?>(
+                  segments: [
+                    // Null follows the phone, including Android's per-app language setting.
+                    ButtonSegment(value: null, label: Text(localizations.languageSystem)),
+                    // Each language is named in itself, so it can be found whatever the current one.
+                    const ButtonSegment(value: 'en', label: Text('English')),
+                    const ButtonSegment(value: 'fr', label: Text('Français')),
                   ],
-                  selected: {currentLanguageCode},
+                  selected: {settings.languageCode},
                   selectedIcon: const Icon(LucideIcons.check),
                   onSelectionChanged: (selection) {
                     unawaited(KomitHaptics.selection());
                     settingsController.updateLanguageCode(selection.single);
                   },
                 ),
+                SectionTitle(localizations.notifications),
+                const _NotificationSettingsCard(),
                 SectionTitle(localizations.dataAndStorage),
                 SoftCard(
                   padding: EdgeInsets.zero,
@@ -97,8 +101,9 @@ class SettingsScreen extends ConsumerWidget {
                         onTap: () => exportBackupToUserChosenFile(context, ref),
                       ),
                       ListTile(
-                        leading: HabitIconBadge(icon: LucideIcons.upload, color: colorScheme.error),
-                        title: Text(localizations.importData, style: TextStyle(color: colorScheme.error)),
+                        // Neutral like export: the confirmation dialog carries the warning.
+                        leading: HabitIconBadge(icon: LucideIcons.upload, color: komitColors.mutedText),
+                        title: Text(localizations.importData),
                         trailing: const Icon(LucideIcons.chevronRight),
                         onTap: () => importBackupFromUserChosenFile(context, ref),
                       ),
@@ -117,19 +122,114 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                   ),
                 ],
-                const SizedBox(height: AppSpacing.huge),
-                if (installedVersion != null)
-                  Text(
-                    localizations.versionLabel(installedVersion),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: komitColors.mutedText),
+                SectionTitle(localizations.about),
+                SoftCard(
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    children: [
+                      if (installedVersion != null)
+                        ListTile(
+                          leading: HabitIconBadge(icon: LucideIcons.info, color: komitColors.mutedText),
+                          title: Text(localizations.versionLabel(installedVersion)),
+                        ),
+                      ListTile(
+                        leading: HabitIconBadge(icon: LucideIcons.scrollText, color: komitColors.mutedText),
+                        title: Text(localizations.openSourceLicenses),
+                        trailing: const Icon(LucideIcons.chevronRight),
+                        onTap: () => showLicensePage(
+                          context: context,
+                          applicationName: localizations.appTitle,
+                          applicationVersion: installedVersion,
+                        ),
+                      ),
+                      if (ref.watch(appUpdateServiceProvider).isSupported)
+                        ListTile(
+                          leading: HabitIconBadge(icon: LucideIcons.history, color: komitColors.mutedText),
+                          title: Text(localizations.allVersionsOnGitHub),
+                          trailing: const Icon(LucideIcons.externalLink),
+                          onTap: () => _openReleasesPage(context, ref),
+                        ),
+                    ],
                   ),
+                ),
               ],
             ),
           ),
         ],
       ),
     );
+  }
+}
+
+Future<void> _openReleasesPage(BuildContext context, WidgetRef ref) async {
+  try {
+    await ref.read(appUpdateServiceProvider).openReleasesPage();
+  } on Object catch (error, stackTrace) {
+    unawaited(
+      ref.read(appLoggerProvider).logError(event: 'releases_page_failed', error: error, stackTrace: stackTrace),
+    );
+    if (context.mounted) showMessageSnackBar(context, AppLocalizations.of(context).settingsUnavailable);
+  }
+}
+
+/// The live notification status (refreshed when the app resumes) and the way to change it.
+class _NotificationSettingsCard extends ConsumerWidget {
+  const _NotificationSettingsCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final localizations = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final komitColors = KomitColors.of(context);
+    final status = ref.watch(notificationStatusProvider);
+    final (statusIcon, statusColor, statusText) = switch (status) {
+      AsyncData(value: NotificationStatus.enabled) => (
+        LucideIcons.bellRing,
+        colorScheme.primary,
+        localizations.notificationsStatusEnabled,
+      ),
+      AsyncData(value: NotificationStatus.disabled) => (
+        LucideIcons.bellOff,
+        colorScheme.error,
+        localizations.notificationsStatusDisabled,
+      ),
+      AsyncData(value: NotificationStatus.unavailable) ||
+      AsyncError() => (LucideIcons.bellOff, komitColors.mutedText, localizations.notificationsStatusUnavailable),
+      _ => (LucideIcons.bell, komitColors.mutedText, localizations.loading),
+    };
+    return SoftCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        children: [
+          MergeSemantics(
+            child: ListTile(
+              leading: HabitIconBadge(icon: statusIcon, color: statusColor),
+              title: Text(localizations.notificationsStatusTitle),
+              subtitle: Text(statusText),
+            ),
+          ),
+          ListTile(
+            leading: HabitIconBadge(icon: LucideIcons.settings, color: komitColors.mutedText),
+            title: Text(localizations.openSystemSettings),
+            trailing: const Icon(LucideIcons.externalLink),
+            onTap: () => _openNotificationSettings(context, ref),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _openNotificationSettings(BuildContext context, WidgetRef ref) async {
+    try {
+      await ref.read(notificationPermissionServiceProvider).openNotificationSettings();
+    } on Object catch (error, stackTrace) {
+      unawaited(
+        ref
+            .read(appLoggerProvider)
+            .logError(event: 'notification_settings_failed', error: error, stackTrace: stackTrace),
+      );
+      if (context.mounted) showMessageSnackBar(context, AppLocalizations.of(context).settingsUnavailable);
+    }
   }
 }
 

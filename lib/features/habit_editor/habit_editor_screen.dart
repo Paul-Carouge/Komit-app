@@ -15,6 +15,7 @@ import '../../data/repositories/habit_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../domain/habit_schedule.dart';
 import '../../providers.dart';
+import '../../services/notification_permission_service.dart';
 import '../mascot/komo_empty_state.dart';
 import '../mascot/komo_mascot.dart';
 import '../shared/shared_widgets.dart';
@@ -253,11 +254,7 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
             const SizedBox(height: AppSpacing.large),
             _ReminderCard(
               reminderMinuteOfDay: _reminderMinuteOfDay,
-              onToggled: (isEnabled) => setState(
-                () => _reminderMinuteOfDay = isEnabled
-                    ? _initialReminderMinuteOfDay ?? _defaultReminderMinuteOfDay
-                    : null,
-              ),
+              onToggled: _onReminderToggled,
               onTimeTapped: _chooseReminderTime,
             ),
             SectionTitle(
@@ -360,6 +357,75 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
     if (chosenIconName != null && mounted) setState(() => _iconName = chosenIconName);
   }
 
+  /// Turning a reminder on is the moment Komit asks for notifications: the switch moves at
+  /// once, a sheet explains what this reminder will do, then Android asks. Any refusal puts
+  /// the switch back and says how to allow notifications later.
+  Future<void> _onReminderToggled(bool isEnabled) async {
+    unawaited(KomitHaptics.selection());
+    final reminderMinuteOfDay = _initialReminderMinuteOfDay ?? _defaultReminderMinuteOfDay;
+    setState(() => _reminderMinuteOfDay = isEnabled ? reminderMinuteOfDay : null);
+    if (!isEnabled) return;
+    final localizations = AppLocalizations.of(context);
+    final permissionService = ref.read(notificationPermissionServiceProvider);
+    final NotificationStatus status;
+    try {
+      status = await permissionService.readNotificationStatus();
+    } on Object catch (error, stackTrace) {
+      // The reminder stays on: the settings screen shows the status if it cannot be read here.
+      unawaited(
+        ref.read(appLoggerProvider).logError(event: 'notification_status_failed', error: error, stackTrace: stackTrace),
+      );
+      return;
+    }
+    if (status != NotificationStatus.disabled || !mounted) return;
+    final habitTitle = _titleController.text.trim();
+    final isRationaleAccepted = await showPermissionRationaleSheet(
+      context,
+      icon: LucideIcons.bellRing,
+      title: localizations.reminderPermissionTitle(habitTitle.isEmpty ? localizations.thisHabit : habitTitle),
+      message: localizations.reminderPermissionMessage(_formatMinuteOfDay(context, reminderMinuteOfDay)),
+      confirmLabel: localizations.continueAction,
+    );
+    var isGranted = false;
+    if (isRationaleAccepted) {
+      try {
+        isGranted = await permissionService.requestPermission();
+      } on Object catch (error, stackTrace) {
+        unawaited(
+          ref
+              .read(appLoggerProvider)
+              .logError(event: 'notification_request_failed', error: error, stackTrace: stackTrace),
+        );
+      }
+      ref.invalidate(notificationStatusProvider);
+    }
+    if (isGranted || !mounted) return;
+    setState(() => _reminderMinuteOfDay = null);
+    if (!isRationaleAccepted) return;
+    unawaited(KomitHaptics.error());
+    showMessageSnackBar(
+      context,
+      localizations.notificationsDenied,
+      action: SnackBarAction(
+        label: localizations.openSettings,
+        onPressed: () => _openNotificationSettings(localizations),
+      ),
+    );
+  }
+
+  Future<void> _openNotificationSettings(AppLocalizations localizations) async {
+    try {
+      await ref.read(notificationPermissionServiceProvider).openNotificationSettings();
+    } on Object catch (error, stackTrace) {
+      unawaited(
+        ref
+            .read(appLoggerProvider)
+            .logError(event: 'notification_settings_failed', error: error, stackTrace: stackTrace),
+      );
+      if (mounted) showMessageSnackBar(context, localizations.settingsUnavailable);
+    }
+  }
+
   Future<void> _chooseReminderTime() async {
     final currentMinute = _reminderMinuteOfDay ?? _defaultReminderMinuteOfDay;
     final chosenTime = await showTimePicker(
@@ -399,11 +465,6 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
 
     setState(() => _isSaving = true);
     try {
-      // Asked on every save with a reminder: the permission may have been revoked since.
-      if (_reminderMinuteOfDay != null) {
-        final isNotificationAllowed = await ref.read(reminderSchedulerProvider).requestPermission();
-        if (!isNotificationAllowed && mounted) showMessageSnackBar(context, localizations.notificationsDenied);
-      }
       await ref
           .read(habitRepositoryProvider)
           .saveHabit(
@@ -504,6 +565,11 @@ class _AppearanceTile extends StatelessWidget {
   }
 }
 
+String _formatMinuteOfDay(BuildContext context, int minuteOfDay) => MaterialLocalizations.of(context).formatTimeOfDay(
+  TimeOfDay(hour: minuteOfDay ~/ Duration.minutesPerHour, minute: minuteOfDay % Duration.minutesPerHour),
+  alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context),
+);
+
 class _ReminderCard extends StatelessWidget {
   const _ReminderCard({required this.reminderMinuteOfDay, required this.onToggled, required this.onTimeTapped});
 
@@ -516,15 +582,7 @@ class _ReminderCard extends StatelessWidget {
     final localizations = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
     final reminderMinute = reminderMinuteOfDay;
-    final formattedTime = reminderMinute == null
-        ? null
-        : MaterialLocalizations.of(context).formatTimeOfDay(
-            TimeOfDay(
-              hour: reminderMinute ~/ Duration.minutesPerHour,
-              minute: reminderMinute % Duration.minutesPerHour,
-            ),
-            alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context),
-          );
+    final formattedTime = reminderMinute == null ? null : _formatMinuteOfDay(context, reminderMinute);
     return SoftCard(
       padding: EdgeInsets.zero,
       child: Column(

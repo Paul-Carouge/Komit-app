@@ -208,9 +208,12 @@ class KomitColors extends ThemeExtension<KomitColors> {
   }
 }
 
+/// Komo's orange, shared with code outside the theme such as the notification accent.
 /// Mirrored in android/app/src/main/res/values/colors.xml for the launcher icon and splash.
+const Color komitBrandOrange = Color(0xFFFF8C1A);
+
 abstract final class _BrandColors {
-  static const Color orange = Color(0xFFFF8C1A);
+  static const Color orange = komitBrandOrange;
   static const Color orangeOnDark = Color(0xFFFF9D42);
 
   /// Near-black of Komo's eyes, also used for text on orange.

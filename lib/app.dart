@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,7 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'core/theme/app_theme.dart';
-import 'data/repositories/habit_repository.dart';
+import 'core/current_calendar_day.dart';
 import 'features/splash/splash_handoff.dart';
 import 'l10n/app_localizations.dart';
 import 'providers.dart';
@@ -23,9 +22,21 @@ class KomitApp extends ConsumerStatefulWidget {
 
 class _KomitAppState extends ConsumerState<KomitApp> {
   late final GoRouter _router = buildAppRouter(ref);
+  late final StreamSubscription<int> _reminderTapSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    // Payloads are mapped to a route in Dart: Flutter deep links stay disabled.
+    _reminderTapSubscription = ref
+        .read(reminderSchedulerProvider)
+        .habitIdsOpenedFromReminders
+        .listen((habitId) => _router.push(AppRoutes.habitDetails(habitId)));
+  }
 
   @override
   void dispose() {
+    unawaited(_reminderTapSubscription.cancel());
     _router.dispose();
     super.dispose();
   }
@@ -57,7 +68,9 @@ class _KomitAppState extends ConsumerState<KomitApp> {
   }
 }
 
-/// Keeps scheduled reminders equal to the habits in the database, in the current language.
+/// Keeps scheduled reminders equal to the database, in the current language: after every
+/// habit or log change, at midnight, and when the app resumes (the time zone, the language or
+/// the notification permission may have changed meanwhile).
 class _ReminderSynchronizer extends ConsumerStatefulWidget {
   const _ReminderSynchronizer({required this.child});
 
@@ -68,22 +81,50 @@ class _ReminderSynchronizer extends ConsumerStatefulWidget {
 }
 
 class _ReminderSynchronizerState extends ConsumerState<_ReminderSynchronizer> {
-  Locale? _scheduledLocale;
-  List<HabitWithObjectives>? _scheduledHabits;
+  late final AppLifecycleListener _lifecycleListener;
+  Object? _lastSynchronizedInputs;
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycleListener = AppLifecycleListener(onResume: _onResume);
+  }
+
+  @override
+  void dispose() {
+    _lifecycleListener.dispose();
+    super.dispose();
+  }
+
+  Future<void> _onResume() async {
+    ref.invalidate(notificationStatusProvider);
+    await ref.read(reminderSchedulerProvider).refreshLocalTimeZone();
+    if (mounted) _rebuildReminders();
+  }
+
+  void _rebuildReminders() {
+    unawaited(
+      ref
+          .read(reminderSchedulerProvider)
+          .rebuildReminders(ref.read(habitRepositoryProvider), AppLocalizations.of(context))
+          .catchError(
+            (Object error, StackTrace stackTrace) => ref
+                .read(appLoggerProvider)
+                .logError(event: 'reminder_rebuild_failed', error: error, stackTrace: stackTrace),
+          ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final habits = ref.watch(activeHabitsProvider).value;
-    final locale = Localizations.localeOf(context);
-    if (habits != null && (!identical(habits, _scheduledHabits) || locale != _scheduledLocale)) {
-      _scheduledHabits = habits;
-      _scheduledLocale = locale;
-      unawaited(
-        ref
-            .read(reminderSchedulerProvider)
-            .replaceAllReminders(habits, AppLocalizations.of(context))
-            .catchError((Object error) => developer.log('Reminder scheduling failed', name: 'komit', error: error)),
-      );
+    final recentLogs = ref.watch(recentObjectiveIdByDayByHabitIdProvider).value;
+    // Records compare their fields with ==, which is identity for the list and the map: any
+    // new database emission, a new day or another language triggers one rebuild.
+    final inputs = (habits, recentLogs, ref.watch(currentCalendarDayProvider), Localizations.localeOf(context));
+    if (habits != null && recentLogs != null && inputs != _lastSynchronizedInputs) {
+      _lastSynchronizedInputs = inputs;
+      _rebuildReminders();
     }
     return widget.child;
   }

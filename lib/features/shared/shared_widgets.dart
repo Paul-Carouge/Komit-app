@@ -490,8 +490,66 @@ Future<bool> showDestructiveConfirmationDialog(
   return isConfirmed ?? false;
 }
 
-void showMessageSnackBar(BuildContext context, String message) {
+void showMessageSnackBar(BuildContext context, String message, {SnackBarAction? action}) {
   ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(content: Text(message)));
+    // With an action, Flutter keeps the message until the user acts on it or dismisses it.
+    ..showSnackBar(SnackBar(content: Text(message), action: action));
+}
+
+/// Explains why Komit is about to ask Android for a permission, before Android asks.
+/// Returns true only when the user chose [confirmLabel].
+Future<bool> showPermissionRationaleSheet(
+  BuildContext context, {
+  required IconData icon,
+  required String title,
+  required String message,
+  required String confirmLabel,
+}) async {
+  final isConfirmed = await showModalBottomSheet<bool>(
+    context: context,
+    // Root navigator, like every Komit sheet: it covers the frosted navigation bar instead of sliding under it.
+    useRootNavigator: true,
+    isScrollControlled: true,
+    builder: (context) {
+      final localizations = AppLocalizations.of(context);
+      final textTheme = Theme.of(context).textTheme;
+      return SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(AppSpacing.screenGutter, 0, AppSpacing.screenGutter, AppSpacing.large),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: HabitIconBadge(
+                  icon: icon,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: AppSizes.heroBadge,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.large),
+              Semantics(header: true, child: Text(title, style: textTheme.headlineSmall)),
+              const SizedBox(height: AppSpacing.small),
+              Text(message, style: textTheme.bodyLarge?.copyWith(color: KomitColors.of(context).mutedText)),
+              const SizedBox(height: AppSpacing.extraLarge),
+              FilledButton(
+                style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(AppSizes.primaryButtonHeight)),
+                onPressed: () => Navigator.of(context).pop(true),
+                child: Text(confirmLabel),
+              ),
+              const SizedBox(height: AppSpacing.small),
+              TextButton(
+                style: TextButton.styleFrom(minimumSize: const Size.fromHeight(AppSizes.minimumTouchTarget)),
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text(localizations.notNow),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+  return isConfirmed ?? false;
 }

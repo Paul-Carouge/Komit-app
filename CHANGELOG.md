@@ -41,6 +41,17 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
   can come back.
 - Long-press a habit on the home screen to move it. Screen readers offer "Move up" and
   "Move down".
+- Reminders have buttons: log the day with "Done" (or one of the first two objectives), or
+  "Later" to be reminded again in an hour. Tapping a reminder opens its habit.
+- Reminders show your current streak, and skip days off the habit's schedule, days already
+  logged and archived habits.
+- Settings show whether notifications are on, with a shortcut to the system settings.
+- Settings have an "About" section with the version, the open-source licenses and a link to
+  every Komit version on GitHub.
+- The language can follow the phone ("System"), and Android 13 and later list Komit in the
+  per-app language settings.
+- Before Komit asks to install apps for an update, it explains why; once you allow it and
+  come back, the update continues on its own.
 
 ### Changed
 - Komit now draws behind transparent status and navigation bars on every Android
@@ -63,6 +74,16 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
   surface instead. The notes banner uses the warm Komit tint instead of a violet gradient.
 - While a screen loads, placeholder rows appear after a short moment instead of a spinner.
   If loading fails, the screen explains it and offers a "Try again" button.
+- Komit asks for notifications only when you turn on a habit's reminder, after explaining
+  what that reminder will do. If you refuse, the switch turns back off and offers the system
+  settings. The welcome screens no longer show Android's permission dialog.
+- Reminders are planned a week ahead and rebuilt after each log, when you open the app,
+  after a restart and when the time zone changes. A reminder already on screen is no longer
+  removed when Komit updates the others.
+- On the lock screen, a reminder shows only "Komit", never the habit's name.
+- Importing a backup is no longer shown in red in the settings; it still asks for
+  confirmation before replacing your data.
+- If notifications cannot be set up on the phone, Komit still opens normally.
 
 ### Fixed
 - A new note saved with the check button and closed at the same moment is no longer stored
@@ -79,6 +100,9 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
 - The language choice and other unselected options have more readable text.
 - A screen left open overnight now always moves to the new day at midnight, even when
   the phone wakes its timer a moment early.
+- When an update cannot be installed (cancelled, not enough storage, incompatible, blocked
+  or conflicting with another version), Komit now says why, and the downloaded file is
+  removed after a failed download.
 
 ## [2.0.0] - 2026-10-28
 

@@ -455,7 +455,7 @@ abstract class AppLocalizations {
   /// No description provided for @notificationsDenied.
   ///
   /// In en, this message translates to:
-  /// **'Notifications are disabled for Komit. Enable them in system settings to get reminders.'**
+  /// **'Reminders need notifications, which are off for Komit. You can turn them on in the system settings.'**
   String get notificationsDenied;
 
   /// No description provided for @secondBrain.
@@ -695,7 +695,7 @@ abstract class AppLocalizations {
   /// No description provided for @updateErrorInstallPermission.
   ///
   /// In en, this message translates to:
-  /// **'allow Komit to install apps in the settings that just opened, then try again.'**
+  /// **'Komit is not allowed to install apps yet. Allow it in the settings, then try again.'**
   String get updateErrorInstallPermission;
 
   /// No description provided for @updateErrorNetwork.
@@ -755,20 +755,14 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingRemindersTitle.
   ///
   /// In en, this message translates to:
-  /// **'A gentle nudge in the evening?'**
+  /// **'Reminders, only if you want them'**
   String get onboardingRemindersTitle;
 
   /// No description provided for @onboardingRemindersMessage.
   ///
   /// In en, this message translates to:
-  /// **'When you add a reminder to a habit, Komit sends one notification a day, at the time you choose. Android asks for your permission next.'**
+  /// **'Reminders are optional and set habit by habit, at the time you choose. Komit asks for permission only when you turn one on.'**
   String get onboardingRemindersMessage;
-
-  /// No description provided for @allowNotifications.
-  ///
-  /// In en, this message translates to:
-  /// **'Allow notifications'**
-  String get allowNotifications;
 
   /// No description provided for @continueAction.
   ///
@@ -1153,6 +1147,180 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your note couldn\'t be saved. Copy its text, then try again.'**
   String get noteSaveFailed;
+
+  /// No description provided for @reminderNotificationBodyWithDayStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Day 1 of your streak is done. Keep it going today.} other{{count}-day streak. Keep it going today.}}'**
+  String reminderNotificationBodyWithDayStreak(int count);
+
+  /// No description provided for @reminderNotificationBodyWithWeekStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1-week streak. Keep it going today.} other{{count}-week streak. Keep it going today.}}'**
+  String reminderNotificationBodyWithWeekStreak(int count);
+
+  /// No description provided for @reminderChannelDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'One notification on the days a habit is planned, at the time you chose for it.'**
+  String get reminderChannelDescription;
+
+  /// No description provided for @reminderActionDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get reminderActionDone;
+
+  /// No description provided for @reminderActionLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get reminderActionLater;
+
+  /// No description provided for @reminderPermissionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind you about {habit}?'**
+  String reminderPermissionTitle(String habit);
+
+  /// No description provided for @reminderPermissionMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Komit will send one notification at {time} on the days this habit is planned, with buttons to log it straight away. Android asks for your permission next.'**
+  String reminderPermissionMessage(String time);
+
+  /// No description provided for @notNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get notNow;
+
+  /// No description provided for @openSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get openSettings;
+
+  /// No description provided for @notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifications;
+
+  /// No description provided for @notificationsStatusEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'On: your reminders can appear.'**
+  String get notificationsStatusEnabled;
+
+  /// No description provided for @notificationsStatusDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Off: your reminders will not appear.'**
+  String get notificationsStatusDisabled;
+
+  /// No description provided for @notificationsStatusUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available on this device.'**
+  String get notificationsStatusUnavailable;
+
+  /// No description provided for @notificationsStatusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification status'**
+  String get notificationsStatusTitle;
+
+  /// No description provided for @openSystemSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open system settings'**
+  String get openSystemSettings;
+
+  /// No description provided for @languageSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get languageSystem;
+
+  /// No description provided for @about.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get about;
+
+  /// No description provided for @openSourceLicenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Open-source licenses'**
+  String get openSourceLicenses;
+
+  /// No description provided for @allVersionsOnGitHub.
+  ///
+  /// In en, this message translates to:
+  /// **'All versions on GitHub'**
+  String get allVersionsOnGitHub;
+
+  /// No description provided for @installPermissionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow Komit to install its updates'**
+  String get installPermissionTitle;
+
+  /// No description provided for @installPermissionMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Android opens a settings page next. Turn on “Allow from this source”, then come back: the update continues on its own.'**
+  String get installPermissionMessage;
+
+  /// No description provided for @confirmInstallInSystemWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm the installation in the Android window.'**
+  String get confirmInstallInSystemWindow;
+
+  /// No description provided for @updateErrorInstallCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'the installation was cancelled.'**
+  String get updateErrorInstallCancelled;
+
+  /// No description provided for @updateErrorInstallConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'another version of Komit on this phone prevents it. Uninstall that version after exporting your data, then try again.'**
+  String get updateErrorInstallConflict;
+
+  /// No description provided for @updateErrorInstallIncompatible.
+  ///
+  /// In en, this message translates to:
+  /// **'this version is not compatible with your phone.'**
+  String get updateErrorInstallIncompatible;
+
+  /// No description provided for @updateErrorInstallStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'there is not enough free storage on your phone.'**
+  String get updateErrorInstallStorage;
+
+  /// No description provided for @updateErrorInstallBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Android blocked the installation.'**
+  String get updateErrorInstallBlocked;
+
+  /// No description provided for @settingsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The settings could not be opened.'**
+  String get settingsUnavailable;
+
+  /// No description provided for @thisHabit.
+  ///
+  /// In en, this message translates to:
+  /// **'this habit'**
+  String get thisHabit;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

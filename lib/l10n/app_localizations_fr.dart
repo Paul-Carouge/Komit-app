@@ -226,7 +226,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get notificationsDenied =>
-      'Les notifications sont désactivées pour Komit. Active-les dans les réglages système pour recevoir les rappels.';
+      'Les rappels ont besoin des notifications, désactivées pour Komit. Vous pouvez les activer dans les paramètres du système.';
 
   @override
   String get secondBrain => 'Second cerveau';
@@ -362,7 +362,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get updateErrorInstallPermission =>
-      'autorise Komit à installer des applis dans les réglages qui viennent de s\'ouvrir, puis réessaie.';
+      'Komit n’a pas encore le droit d’installer des applications. Autorisez-le dans les paramètres, puis réessayez.';
 
   @override
   String get updateErrorNetwork => 'le téléchargement a été interrompu. Vérifie ta connexion et réessaie.';
@@ -392,14 +392,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get onboardingNameMessage => 'Ton prénom s\'affiche seulement sur ton accueil. Tu peux passer cette étape.';
 
   @override
-  String get onboardingRemindersTitle => 'Un petit rappel le soir ?';
+  String get onboardingRemindersTitle => 'Des rappels, seulement si vous le voulez';
 
   @override
   String get onboardingRemindersMessage =>
-      'Quand tu ajoutes un rappel à une habitude, Komit t\'envoie une notification par jour, à l\'heure que tu choisis. Android te demande l\'autorisation juste après.';
-
-  @override
-  String get allowNotifications => 'Autoriser les notifications';
+      'Les rappels sont facultatifs et se règlent habitude par habitude, à l’heure de votre choix. Komit demande l’autorisation seulement quand vous en activez un.';
 
   @override
   String get continueAction => 'Continuer';
@@ -651,4 +648,114 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get noteSaveFailed => 'La note n\'a pas pu être enregistrée. Copie son texte, puis réessaie.';
+
+  @override
+  String reminderNotificationBodyWithDayStreak(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Série de $count jours. Continuez aujourd’hui.',
+      one: 'Premier jour de série validé. Continuez aujourd’hui.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String reminderNotificationBodyWithWeekStreak(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Série de $count semaines. Continuez aujourd’hui.',
+      one: 'Série d’une semaine. Continuez aujourd’hui.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reminderChannelDescription =>
+      'Une notification les jours où une habitude est prévue, à l’heure choisie pour elle.';
+
+  @override
+  String get reminderActionDone => 'Fait';
+
+  @override
+  String get reminderActionLater => 'Plus tard';
+
+  @override
+  String reminderPermissionTitle(String habit) {
+    return 'Vous rappeler $habit ?';
+  }
+
+  @override
+  String reminderPermissionMessage(String time) {
+    return 'Komit enverra une notification à $time les jours où cette habitude est prévue, avec des boutons pour la noter tout de suite. Android vous demande ensuite l’autorisation.';
+  }
+
+  @override
+  String get notNow => 'Pas maintenant';
+
+  @override
+  String get openSettings => 'Ouvrir les paramètres';
+
+  @override
+  String get notifications => 'Notifications';
+
+  @override
+  String get notificationsStatusEnabled => 'Activées : vos rappels peuvent s’afficher.';
+
+  @override
+  String get notificationsStatusDisabled => 'Désactivées : vos rappels ne s’afficheront pas.';
+
+  @override
+  String get notificationsStatusUnavailable => 'Non disponibles sur cet appareil.';
+
+  @override
+  String get notificationsStatusTitle => 'État des notifications';
+
+  @override
+  String get openSystemSettings => 'Ouvrir les paramètres du système';
+
+  @override
+  String get languageSystem => 'Système';
+
+  @override
+  String get about => 'À propos';
+
+  @override
+  String get openSourceLicenses => 'Licences open source';
+
+  @override
+  String get allVersionsOnGitHub => 'Toutes les versions sur GitHub';
+
+  @override
+  String get installPermissionTitle => 'Autoriser Komit à installer ses mises à jour';
+
+  @override
+  String get installPermissionMessage =>
+      'Android ouvre ensuite une page de paramètres. Activez « Autoriser cette source », puis revenez : la mise à jour reprend toute seule.';
+
+  @override
+  String get confirmInstallInSystemWindow => 'Confirmez l’installation dans la fenêtre d’Android.';
+
+  @override
+  String get updateErrorInstallCancelled => 'l’installation a été annulée.';
+
+  @override
+  String get updateErrorInstallConflict =>
+      'une autre version de Komit sur ce téléphone l’empêche. Désinstallez-la après avoir exporté vos données, puis réessayez.';
+
+  @override
+  String get updateErrorInstallIncompatible => 'cette version n’est pas compatible avec votre téléphone.';
+
+  @override
+  String get updateErrorInstallStorage => 'il n’y a pas assez d’espace libre sur votre téléphone.';
+
+  @override
+  String get updateErrorInstallBlocked => 'Android a bloqué l’installation.';
+
+  @override
+  String get settingsUnavailable => 'Les paramètres n’ont pas pu s’ouvrir.';
+
+  @override
+  String get thisHabit => 'cette habitude';
 }

@@ -16,6 +16,7 @@ class UpdateInstallStatusReceiver : BroadcastReceiver() {
         val status = intent.getIntExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE)
         if (status != PackageInstaller.STATUS_PENDING_USER_ACTION) {
             Log.i("KomitUpdate", "Install session finished with status $status")
+            installFailureReasonFor(status)?.let { reason -> onInstallFailed?.invoke(reason) }
             return
         }
         val confirmationIntent =
@@ -26,5 +27,22 @@ class UpdateInstallStatusReceiver : BroadcastReceiver() {
                 intent.getParcelableExtra(Intent.EXTRA_INTENT)
             }
         confirmationIntent?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)?.let(context::startActivity)
+    }
+
+    companion object {
+        /** Set by [MainActivity] while Flutter runs; receives a Dart `AppUpdateFailureReason` name. */
+        var onInstallFailed: ((String) -> Unit)? = null
+
+        /** Null on success. The names match the Dart `AppUpdateFailureReason` values. */
+        fun installFailureReasonFor(status: Int): String? =
+            when (status) {
+                PackageInstaller.STATUS_SUCCESS -> null
+                PackageInstaller.STATUS_FAILURE_ABORTED -> "installCancelled"
+                PackageInstaller.STATUS_FAILURE_CONFLICT -> "installConflict"
+                PackageInstaller.STATUS_FAILURE_INCOMPATIBLE -> "installIncompatible"
+                PackageInstaller.STATUS_FAILURE_STORAGE -> "installStorage"
+                PackageInstaller.STATUS_FAILURE_BLOCKED -> "installBlocked"
+                else -> "installFailed"
+            }
     }
 }

@@ -19,6 +19,7 @@ import 'package:komit/data/repositories/settings_repository.dart';
 import 'package:komit/l10n/app_localizations.dart';
 import 'package:komit/providers.dart';
 import 'package:komit/router.dart';
+import 'package:komit/services/notification_permission_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// A fixed "now", so logs, streaks and the two-week strip are the same on every run.
@@ -133,12 +134,36 @@ class KomitTestEnvironment {
   }
 }
 
+/// Notification status and permission answers chosen by the test, recording what was asked.
+class FakeNotificationPermissionService implements NotificationPermissionService {
+  FakeNotificationPermissionService({this.status = NotificationStatus.enabled, this.isPermissionGranted = true});
+
+  NotificationStatus status;
+  bool isPermissionGranted;
+  int permissionRequestCount = 0;
+  int settingsOpenCount = 0;
+
+  @override
+  Future<NotificationStatus> readNotificationStatus() async => status;
+
+  @override
+  Future<bool> requestPermission() async {
+    permissionRequestCount++;
+    if (isPermissionGranted) status = NotificationStatus.enabled;
+    return isPermissionGranted;
+  }
+
+  @override
+  Future<void> openNotificationSettings() async => settingsOpenCount++;
+}
+
 /// Renders the real router and screens at [location], on a compact phone by default.
 Future<GoRouter> pumpKomitApp(
   WidgetTester tester,
   KomitTestEnvironment environment, {
   required ThemeData theme,
   String location = AppRoutes.habits,
+  NotificationPermissionService? notificationPermissionService,
   double textScaleFactor = 1,
   Size logicalSize = compactPhoneLogicalSize,
 }) async {
@@ -155,6 +180,9 @@ Future<GoRouter> pumpKomitApp(
         settingsRepositoryProvider.overrideWithValue(SettingsRepository(environment.preferences)),
         appLoggerProvider.overrideWithValue(AppLogger(Directory.systemTemp.createTempSync('komit_test_logs'))),
         clockProvider.overrideWithValue(() => komitTestNow),
+        notificationPermissionServiceProvider.overrideWithValue(
+          notificationPermissionService ?? FakeNotificationPermissionService(),
+        ),
       ],
       child: _KomitTestApp(theme: theme, onRouterCreated: (createdRouter) => router = createdRouter),
     ),

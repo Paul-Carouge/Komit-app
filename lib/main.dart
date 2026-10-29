@@ -15,11 +15,17 @@ import 'services/reminder_scheduler.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final (preferences, reminderScheduler, logger) = await (
+  final (preferences, logger) = await (
     SharedPreferences.getInstance(),
-    ReminderScheduler.initialize(),
     AppLogger.openInApplicationSupportDirectory(),
   ).wait;
+  // Not awaited: a slow or failing notifications setup must never delay or block the first
+  // frame. Until it is ready reminder calls wait; if it fails reminders are unavailable.
+  final reminderScheduler = ReminderScheduler.startInitializing(
+    startAfter: WidgetsBinding.instance.endOfFrame,
+    onInitializationFailed: (error, stackTrace) =>
+        unawaited(logger.logError(event: 'reminder_init_failed', error: error, stackTrace: stackTrace)),
+  );
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
     unawaited(logger.logError(event: 'flutter_error', error: details.exception, stackTrace: details.stack));

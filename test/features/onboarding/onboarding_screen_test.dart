@@ -56,10 +56,11 @@ void main() {
     await tester.enterText(find.byType(TextField), 'Paul');
     await tester.tap(find.text('Continue'));
     await tester.pumpAndSettle();
-    expect(find.text('A gentle nudge in the evening?'), findsOneWidget);
-    expect(find.text('Allow notifications'), findsOneWidget);
+    expect(find.text('Reminders, only if you want them'), findsOneWidget);
+    // No system dialog here: the permission is asked when a habit's reminder is turned on.
+    expect(find.textContaining('optional'), findsOneWidget);
 
-    await tester.tap(find.text('Later'));
+    await tester.tap(find.text('Get started'));
     await tester.pumpAndSettle();
 
     expect(find.text(_homeText), findsOneWidget);
@@ -76,7 +77,7 @@ void main() {
     await tester.enterText(find.byType(TextField), 'Typo');
     await tester.tap(find.text('Skip'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Later'));
+    await tester.tap(find.text('Get started'));
     await tester.pumpAndSettle();
 
     expect(SettingsRepository(preferences).readSettings().userName, isNull);

@@ -8,6 +8,7 @@
         android:label="Komit"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
+        android:localeConfig="@xml/locales_config"
         android:enableOnBackInvokedCallback="true">
         <activity
             android:name=".MainActivity"
@@ -38,7 +39,21 @@
         <receiver
             android:name=".UpdateInstallStatusReceiver"
             android:exported="false" />
-        <!-- Daily habit reminders, rescheduled after a reboot or an app update. -->
+        <!-- Rebuilds the week of one-shot reminders in Dart after a reboot, an update or a
+             time-zone change; the plugin's own boot receiver below only re-arms them. -->
+        <receiver
+            android:name=".ReminderRebuildReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+            </intent-filter>
+        </receiver>
+        <!-- Habit reminders and their buttons, re-armed after a reboot or an app update. -->
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver"
+            android:exported="false" />
         <receiver
             android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"
             android:exported="false" />

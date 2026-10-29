@@ -11,6 +11,7 @@ import 'data/repositories/note_repository.dart';
 import 'data/repositories/settings_repository.dart';
 import 'domain/habit_statistics.dart';
 import 'services/app_update_service.dart';
+import 'services/notification_permission_service.dart';
 import 'services/reminder_scheduler.dart';
 
 /// Overridden in `main` once the database and preferences are opened.
@@ -25,6 +26,14 @@ final habitRepositoryProvider = Provider(
 final noteRepositoryProvider = Provider((ref) => NoteRepository(ref.watch(appDatabaseProvider)));
 final backupRepositoryProvider = Provider((ref) => BackupRepository(ref.watch(appDatabaseProvider)));
 final appUpdateServiceProvider = Provider((ref) => AppUpdateService());
+final notificationPermissionServiceProvider = Provider(
+  (ref) => NotificationPermissionService(ref.watch(reminderSchedulerProvider)),
+);
+
+/// Invalidated when the app resumes: the user may have changed it in the system settings.
+final notificationStatusProvider = FutureProvider(
+  (ref) => ref.watch(notificationPermissionServiceProvider).readNotificationStatus(),
+);
 
 class SettingsController extends Notifier<AppSettings> {
   SettingsRepository get _repository => ref.read(settingsRepositoryProvider);

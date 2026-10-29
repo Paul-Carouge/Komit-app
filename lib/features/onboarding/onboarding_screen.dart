@@ -37,7 +37,8 @@ enum _OnboardingStep {
 }
 
 /// Three short steps led by Komo: hello (or restore a backup), first name, reminders.
-/// Notification permission is explained before Android asks for it, and can be skipped.
+/// The reminders step only explains them: Android's permission dialog appears later, in
+/// context, when the user turns on the reminder of a habit.
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -59,16 +60,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   void _showStep(_OnboardingStep step) {
     unawaited(KomitHaptics.selection());
     setState(() => _step = step);
-  }
-
-  Future<void> _requestNotificationsAndFinish() async {
-    try {
-      await ref.read(reminderSchedulerProvider).requestPermission();
-    } on Object catch (error) {
-      // A refused or failed request only means no reminders yet; the editor asks again later.
-      developer.log('Notification permission request failed', name: 'komit.onboarding', error: error);
-    }
-    await _finish();
   }
 
   Future<void> _finish({String? userName}) async {
@@ -232,11 +223,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         title: localizations.onboardingRemindersTitle,
         message: localizations.onboardingRemindersMessage,
         primaryAction: FilledButton.icon(
-          onPressed: _isFinishing ? null : _requestNotificationsAndFinish,
-          icon: const Icon(LucideIcons.bellRing),
-          label: Text(localizations.allowNotifications),
+          onPressed: _isFinishing ? null : _finish,
+          icon: const Icon(LucideIcons.arrowRight),
+          label: Text(localizations.getStarted),
         ),
-        secondaryAction: TextButton(onPressed: _isFinishing ? null : _finish, child: Text(localizations.later)),
       ),
     };
   }
@@ -311,7 +301,7 @@ class _StepParts {
     required this.title,
     required this.message,
     required this.primaryAction,
-    required this.secondaryAction,
+    this.secondaryAction,
     this.field,
   });
 
@@ -319,7 +309,7 @@ class _StepParts {
   final String message;
   final Widget? field;
   final Widget primaryAction;
-  final Widget secondaryAction;
+  final Widget? secondaryAction;
 }
 
 class _StepText extends StatelessWidget {
@@ -362,7 +352,8 @@ class _StepActions extends StatelessWidget {
       children: [
         parts.primaryAction,
         const SizedBox(height: AppSpacing.small),
-        parts.secondaryAction,
+        // Keeps the primary button where it was on the previous steps.
+        parts.secondaryAction ?? const SizedBox(height: AppSizes.minimumTouchTarget),
       ],
     );
   }

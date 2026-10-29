@@ -60,4 +60,11 @@ void main() {
       );
     });
   });
+
+  test('installFailureReasonNamed reads the native names and falls back to a generic failure', () {
+    expect(installFailureReasonNamed('installCancelled'), AppUpdateFailureReason.installCancelled);
+    expect(installFailureReasonNamed('installStorage'), AppUpdateFailureReason.installStorage);
+    expect(installFailureReasonNamed('somethingNew'), AppUpdateFailureReason.installFailed);
+    expect(installFailureReasonNamed(42), AppUpdateFailureReason.installFailed);
+  });
 }

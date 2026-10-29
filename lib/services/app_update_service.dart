@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'dart:io';
 
 import 'package:flutter/services.dart';
@@ -27,8 +29,20 @@ class AvailableUpdate {
   final int apkSizeBytes;
 }
 
-/// Why an update failed, so the UI can explain it in the user's language.
-enum AppUpdateFailureReason { installPermissionRequired, network, invalidRelease, corruptedDownload, installFailed }
+/// Why an update failed, so the UI can explain it in the user's language. The install*
+/// names after [installFailed] are sent by UpdateInstallStatusReceiver.kt.
+enum AppUpdateFailureReason {
+  installPermissionRequired,
+  network,
+  invalidRelease,
+  corruptedDownload,
+  installFailed,
+  installCancelled,
+  installConflict,
+  installIncompatible,
+  installStorage,
+  installBlocked,
+}
 
 class AppUpdateException implements Exception {
   const AppUpdateException(this.reason, this.technicalDetail);
@@ -45,6 +59,27 @@ class AppUpdateException implements Exception {
 /// Self-update from the public GitHub Releases of Komit-app (Android only).
 class AppUpdateService {
   bool get isSupported => Platform.isAndroid;
+
+  StreamController<AppUpdateFailureReason>? _installFailures;
+
+  /// Failures Android reports once its installer took over, after [downloadAndInstall] returned.
+  Stream<AppUpdateFailureReason> get installFailures {
+    final existingFailures = _installFailures;
+    if (existingFailures != null) return existingFailures.stream;
+    final failures = StreamController<AppUpdateFailureReason>.broadcast();
+    _installFailures = failures;
+    _appUpdateChannel.setMethodCallHandler((call) async {
+      if (call.method != 'installFailed') throw MissingPluginException(call.method);
+      failures.add(installFailureReasonNamed(call.arguments));
+    });
+    return failures.stream;
+  }
+
+  Future<bool> canInstallPackages() async => await _appUpdateChannel.invokeMethod<bool>('canInstallPackages') ?? false;
+
+  Future<void> openInstallPermissionSettings() => _appUpdateChannel.invokeMethod<void>('openInstallPermissionSettings');
+
+  Future<void> openReleasesPage() => _appUpdateChannel.invokeMethod<void>('openReleasesPage');
 
   Future<String> readInstalledVersion() async =>
       await _appUpdateChannel.invokeMethod<String>('currentVersionName') ??
@@ -71,12 +106,43 @@ class AppUpdateService {
 
   /// Downloads the APK to the cache, then the native side checks its SHA-256 and starts the installer.
   Future<void> downloadAndInstall(AvailableUpdate update, {required void Function(double progress) onProgress}) async {
-    final canInstall = await _appUpdateChannel.invokeMethod<bool>('canInstallPackages') ?? false;
-    if (!canInstall) {
-      await _appUpdateChannel.invokeMethod<void>('openInstallPermissionSettings');
+    if (!await canInstallPackages()) {
       throw const AppUpdateException(AppUpdateFailureReason.installPermissionRequired, 'Install permission missing');
     }
     final apkFile = File('${(await getTemporaryDirectory()).path}/komit-update.apk');
+    try {
+      await _downloadApk(update, apkFile, onProgress: onProgress);
+      await _appUpdateChannel.invokeMethod<void>('installApk', {
+        'apkPath': apkFile.path,
+        'expectedSha256': update.apkSha256,
+      });
+    } on PlatformException catch (error) {
+      await _deleteLeftoverApk(apkFile);
+      final reason = error.code == 'checksum_mismatch'
+          ? AppUpdateFailureReason.corruptedDownload
+          : AppUpdateFailureReason.installFailed;
+      throw AppUpdateException(reason, error.message ?? error.code);
+    } on Object {
+      // A partial or refused download must not stay in the cache.
+      await _deleteLeftoverApk(apkFile);
+      rethrow;
+    }
+  }
+
+  Future<void> _deleteLeftoverApk(File apkFile) async {
+    try {
+      if (await apkFile.exists()) await apkFile.delete();
+    } on FileSystemException catch (error) {
+      // The cache is cleared by Android anyway; the failure that brought us here matters more.
+      developer.log('Leftover update APK not deleted', name: 'komit.update', error: error.runtimeType);
+    }
+  }
+
+  Future<void> _downloadApk(
+    AvailableUpdate update,
+    File apkFile, {
+    required void Function(double progress) onProgress,
+  }) async {
     final client = HttpClient()..connectionTimeout = _networkTimeout;
     try {
       final response = await (await client.getUrl(update.apkDownloadUrl)).close().timeout(_networkTimeout);
@@ -105,19 +171,12 @@ class AppUpdateService {
     } finally {
       client.close();
     }
-    try {
-      await _appUpdateChannel.invokeMethod<void>('installApk', {
-        'apkPath': apkFile.path,
-        'expectedSha256': update.apkSha256,
-      });
-    } on PlatformException catch (error) {
-      final reason = error.code == 'checksum_mismatch'
-          ? AppUpdateFailureReason.corruptedDownload
-          : AppUpdateFailureReason.installFailed;
-      throw AppUpdateException(reason, error.message ?? error.code);
-    }
   }
 }
+
+/// Reads a failure sent by the native installer receiver; anything unknown is a generic failure.
+AppUpdateFailureReason installFailureReasonNamed(Object? name) =>
+    (name is String ? AppUpdateFailureReason.values.asNameMap()[name] : null) ?? AppUpdateFailureReason.installFailed;
 
 /// Reads the GitHub "latest release" payload; the APK asset must carry a sha256 digest.
 AvailableUpdate parseLatestRelease(String jsonText) {

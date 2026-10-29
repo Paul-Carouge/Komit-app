@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
@@ -64,11 +65,50 @@ Future<void> checkForUpdate(BuildContext context, WidgetRef ref, {required bool 
     builder: (context) => _UpdateAvailableDialog(update: update!),
   );
   if (isInstallRequested != true || !context.mounted) return;
+  if (!await _ensureInstallPermission(context, updateService) || !context.mounted) return;
   await showDialog<void>(
     context: context,
     barrierDismissible: false,
     builder: (context) => _UpdateProgressDialog(update: update!, updateService: updateService),
   );
+}
+
+/// Explains the "install unknown apps" permission, opens its settings page, then waits for the
+/// user to come back. The chosen update stays in this call meanwhile, so it continues on its
+/// own once the permission is granted. Returns false when the user stopped or refused.
+Future<bool> _ensureInstallPermission(BuildContext context, AppUpdateService updateService) async {
+  final localizations = AppLocalizations.of(context);
+  try {
+    if (await updateService.canInstallPackages()) return true;
+    if (!context.mounted) return false;
+    final isRationaleAccepted = await showPermissionRationaleSheet(
+      context,
+      icon: LucideIcons.shieldCheck,
+      title: localizations.installPermissionTitle,
+      message: localizations.installPermissionMessage,
+      confirmLabel: localizations.openSettings,
+    );
+    if (!isRationaleAccepted) return false;
+    final userReturned = Completer<void>();
+    final lifecycleListener = AppLifecycleListener(
+      onResume: () {
+        if (!userReturned.isCompleted) userReturned.complete();
+      },
+    );
+    try {
+      await updateService.openInstallPermissionSettings();
+      await userReturned.future;
+    } finally {
+      lifecycleListener.dispose();
+    }
+    if (await updateService.canInstallPackages()) return true;
+    if (context.mounted) showMessageSnackBar(context, localizations.updateErrorInstallPermission);
+    return false;
+  } on Object catch (error) {
+    developer.log('Install permission flow failed', name: 'komit.update', error: error);
+    if (context.mounted) showMessageSnackBar(context, localizations.settingsUnavailable);
+    return false;
+  }
 }
 
 class _UpdateAvailableDialog extends StatelessWidget {
@@ -120,12 +160,25 @@ class _UpdateProgressDialog extends StatefulWidget {
 
 class _UpdateProgressDialogState extends State<_UpdateProgressDialog> {
   double _progress = 0;
+  bool _isWaitingForSystemInstaller = false;
   AppUpdateFailureReason? _failureReason;
+  late final StreamSubscription<AppUpdateFailureReason> _installFailureSubscription;
 
   @override
   void initState() {
     super.initState();
+    // Listened before installing, so a fast refusal from Android is not missed.
+    _installFailureSubscription = widget.updateService.installFailures.listen((reason) {
+      developer.log('Installer reported ${reason.name}', name: 'komit.update');
+      if (mounted) setState(() => _failureReason = reason);
+    });
     unawaited(_install());
+  }
+
+  @override
+  void dispose() {
+    unawaited(_installFailureSubscription.cancel());
+    super.dispose();
   }
 
   Future<void> _install() async {
@@ -136,8 +189,8 @@ class _UpdateProgressDialogState extends State<_UpdateProgressDialog> {
           if (mounted) setState(() => _progress = progress);
         },
       );
-      // The system installer takes over from here.
-      if (mounted) Navigator.of(context).pop();
+      // Android shows its own confirmation now; a refusal comes back through installFailures.
+      if (mounted) setState(() => _isWaitingForSystemInstaller = true);
     } on Object catch (error) {
       developer.log('Update install failed', name: 'komit.update', error: error);
       final reason = error is AppUpdateException ? error.reason : AppUpdateFailureReason.installFailed;
@@ -149,27 +202,37 @@ class _UpdateProgressDialogState extends State<_UpdateProgressDialog> {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final failureReason = _failureReason;
+    final isDone = failureReason != null || _isWaitingForSystemInstaller;
     return AlertDialog(
-      content: failureReason != null
-          ? Text(
-              localizations.updateFailed(switch (failureReason) {
-                AppUpdateFailureReason.installPermissionRequired => localizations.updateErrorInstallPermission,
-                AppUpdateFailureReason.network => localizations.updateErrorNetwork,
-                AppUpdateFailureReason.invalidRelease => localizations.updateErrorInvalidRelease,
-                AppUpdateFailureReason.corruptedDownload => localizations.updateErrorCorruptedDownload,
-                AppUpdateFailureReason.installFailed => localizations.updateErrorInstallFailed,
-              }),
-            )
-          : Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(localizations.downloadingUpdate((_progress * 100).round())),
-                const SizedBox(height: AppSpacing.large),
-                LinearProgressIndicator(value: _progress == 0 ? null : _progress),
-              ],
-            ),
+      content: switch (failureReason) {
+        // Already a full sentence that says what to do.
+        AppUpdateFailureReason.installPermissionRequired => Text(localizations.updateErrorInstallPermission),
+        final reason? => Text(
+          localizations.updateFailed(switch (reason) {
+            AppUpdateFailureReason.installPermissionRequired => localizations.updateErrorInstallPermission,
+            AppUpdateFailureReason.network => localizations.updateErrorNetwork,
+            AppUpdateFailureReason.invalidRelease => localizations.updateErrorInvalidRelease,
+            AppUpdateFailureReason.corruptedDownload => localizations.updateErrorCorruptedDownload,
+            AppUpdateFailureReason.installFailed => localizations.updateErrorInstallFailed,
+            AppUpdateFailureReason.installCancelled => localizations.updateErrorInstallCancelled,
+            AppUpdateFailureReason.installConflict => localizations.updateErrorInstallConflict,
+            AppUpdateFailureReason.installIncompatible => localizations.updateErrorInstallIncompatible,
+            AppUpdateFailureReason.installStorage => localizations.updateErrorInstallStorage,
+            AppUpdateFailureReason.installBlocked => localizations.updateErrorInstallBlocked,
+          }),
+        ),
+        null when _isWaitingForSystemInstaller => Text(localizations.confirmInstallInSystemWindow),
+        null => Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(localizations.downloadingUpdate((_progress * 100).round())),
+            const SizedBox(height: AppSpacing.large),
+            LinearProgressIndicator(value: _progress == 0 ? null : _progress),
+          ],
+        ),
+      },
       actions: [
-        if (failureReason != null)
+        if (isDone)
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: Text(MaterialLocalizations.of(context).closeButtonLabel),

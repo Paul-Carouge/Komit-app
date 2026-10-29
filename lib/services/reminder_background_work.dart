@@ -1,0 +1,99 @@
+import 'dart:developer' as developer;
+import 'dart:ui';
+
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../core/app_logger.dart';
+import '../data/database/app_database.dart';
+import '../data/repositories/habit_repository.dart';
+import '../data/repositories/settings_repository.dart';
+import '../domain/reminder_planning.dart';
+import '../l10n/app_localizations.dart';
+import 'reminder_scheduler.dart';
+
+/// The Android receiver that starts [rebuildRemindersAfterSystemEvent] waits for this call
+/// to stop its engine (see ReminderRebuildReceiver.kt).
+const MethodChannel _reminderRebuildChannel = MethodChannel('com.paulcarouge.komit/reminder_rebuild');
+
+/// One per background isolate: the plugin keeps its isolate alive between button taps.
+final ReminderScheduler _backgroundReminderScheduler = ReminderScheduler.startInitializing(
+  onInitializationFailed: (error, _) =>
+      developer.log('Reminders unavailable in the background', name: 'komit.reminders', error: error.runtimeType),
+);
+
+/// Handles the "Done", objective and "Later" buttons of a reminder in a background isolate,
+/// whether or not the app is running. Logs go through [HabitRepository], so a future day or
+/// an objective of another habit is refused there like anywhere else.
+@pragma('vm:entry-point')
+Future<void> handleReminderResponseInBackground(NotificationResponse response) async {
+  final command = reminderResponseCommandFor(payload: response.payload, actionId: response.actionId);
+  if (command == null) {
+    developer.log('Ignored a malformed reminder response', name: 'komit.reminders');
+    return;
+  }
+  await _runWithDatabase(event: 'reminder_action_failed', (repository, localizations) async {
+    switch (command) {
+      case LogObjectiveFromReminder(:final habitId, :final objectiveId, :final day):
+        await repository.logObjectiveForDay(habitId: habitId, objectiveId: objectiveId, day: day);
+        // Dismisses a snoozed copy and refreshes the streak shown in the next reminders.
+        await _backgroundReminderScheduler.rebuildReminders(repository, localizations);
+      case SnoozeReminder(:final habitId):
+        await _backgroundReminderScheduler.snoozeReminder(repository, localizations, habitId: habitId);
+      case OpenHabitFromReminder():
+        // A plain tap opens the app, which navigates; nothing to do in the background.
+        break;
+    }
+  });
+}
+
+/// Started by ReminderRebuildReceiver.kt in a headless engine after a reboot, an app update or
+/// a time-zone change, so the one-shot reminders keep coming without opening the app.
+@pragma('vm:entry-point')
+Future<void> rebuildRemindersAfterSystemEvent() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  DartPluginRegistrant.ensureInitialized();
+  try {
+    await _runWithDatabase(
+      event: 'reminder_system_rebuild_failed',
+      (repository, localizations) => _backgroundReminderScheduler.rebuildReminders(repository, localizations),
+    );
+  } finally {
+    await _reminderRebuildChannel.invokeMethod<void>('finished');
+  }
+}
+
+/// Opens the database through [AppDatabase], which shares the app's connection when it runs
+/// (see docs/adr/0004), and records failures in the private error log instead of losing them.
+Future<void> _runWithDatabase(
+  Future<void> Function(HabitRepository repository, AppLocalizations localizations) work, {
+  required String event,
+}) async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final database = AppDatabase();
+  try {
+    final preferences = await SharedPreferences.getInstance();
+    // The app may have changed the language since this isolate cached the preferences.
+    await preferences.reload();
+    final localizations = appLocalizationsFor(SettingsRepository(preferences).readSettings().languageCode);
+    await work(HabitRepository(database), localizations);
+  } on Object catch (error, stackTrace) {
+    final logger = await AppLogger.openInApplicationSupportDirectory();
+    await logger.logError(event: event, error: error, stackTrace: stackTrace);
+  } finally {
+    await database.close();
+  }
+}
+
+/// The user's chosen language, else the device's, else English: outside the widget tree there
+/// is no Localizations widget to resolve it.
+AppLocalizations appLocalizationsFor(String? languageCode) {
+  final wantedLanguageCode = languageCode ?? PlatformDispatcher.instance.locale.languageCode;
+  final locale = AppLocalizations.supportedLocales.firstWhere(
+    (supportedLocale) => supportedLocale.languageCode == wantedLanguageCode,
+    orElse: () => AppLocalizations.supportedLocales.first,
+  );
+  return lookupAppLocalizations(locale);
+}
