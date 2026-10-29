@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+ splash: Komo's two pill eyes (same paths as ic_launcher_foreground.xml) blink
+     once. 400 ms open, 150 ms closing, 250 ms opening: 800 ms, the splash animation duration. -->
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt">
+    <aapt:attr name="android:drawable">
+        <vector
+            android:width="108dp"
+            android:height="108dp"
+            android:viewportWidth="108"
+            android:viewportHeight="108">
+            <!-- Pivot on the eyes' vertical center, so they close toward their middle. -->
+            <group
+                android:name="eyes"
+                android:pivotX="54"
+                android:pivotY="47.5">
+                <path
+                    android:fillColor="@color/komo_eye"
+                    android:pathData="M36,43 A5.5,5.5 0 0 1 47,43 L47,52 A5.5,5.5 0 0 1 36,52 Z M61,43 A5.5,5.5 0 0 1 72,43 L72,52 A5.5,5.5 0 0 1 61,52 Z" />
+            </group>
+        </vector>
+    </aapt:attr>
+    <target android:name="eyes">
+        <aapt:attr name="android:animation">
+            <set android:ordering="sequentially">
+                <!-- Closed eyes keep 15 % of their height, like Komo's closed eyes in the app. -->
+                <objectAnimator
+                    android:duration="150"
+                    android:interpolator="@android:interpolator/accelerate_quad"
+                    android:propertyName="scaleY"
+                    android:startOffset="400"
+                    android:valueFrom="1"
+                    android:valueTo="0.15"
+                    android:valueType="floatType" />
+                <objectAnimator
+                    android:duration="250"
+                    android:interpolator="@android:interpolator/decelerate_cubic"
+                    android:propertyName="scaleY"
+                    android:valueFrom="0.15"
+                    android:valueTo="1"
+                    android:valueType="floatType" />
+            </set>
+        </aapt:attr>
+    </target>
+</animated-vector>

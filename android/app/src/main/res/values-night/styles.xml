@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Shown while the process starts; Flutter removes it when it draws its first frame. -->
+    <!-- Splash before Android 12: Komo's face, orange with its two pill eyes, like the icon.
+         Flutter removes it on its first frame, which shows the same face and fades it away. -->
     <style name="LaunchTheme" parent="@android:style/Theme.Black.NoTitleBar">
         <item name="android:windowBackground">@drawable/launch_background</item>
     </style>
-    <!-- Behind the Flutter UI: the brand background avoids a white or black flash on start. -->
+    <!-- Behind the Flutter UI: the page color, so resizing or a slow frame never flashes orange. -->
     <style name="NormalTheme" parent="@android:style/Theme.Black.NoTitleBar">
-        <item name="android:windowBackground">@color/komit_launch_background</item>
+        <item name="android:windowBackground">@color/komit_surface</item>
     </style>
 </resources>

@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Splash before Android 12: Komo's face fills the screen, orange with its two pill eyes. -->
+<!-- Splash before Android 12: Komo's face fills the screen, orange with its two pill eyes.
+     288 dp is the size Android 12+ gives the splash icon, and the size Flutter's first frame
+     repeats (lib/features/splash/splash_handoff.dart), so the handoff never jumps. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/komit_launch_background" />
     <item
-        android:width="216dp"
-        android:height="216dp"
+        android:width="288dp"
+        android:height="288dp"
         android:drawable="@drawable/ic_launcher_foreground"
         android:gravity="center" />
 </layer-list>

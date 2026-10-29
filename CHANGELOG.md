@@ -20,8 +20,14 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
 - Komit keeps a small error log on the phone only, to help fix crashes. It never contains
   your habit names, notes or first name, and it never leaves the device.
 - A freshly logged day pops into its square; cards gently sink when you press them.
+- A livelier start: on the splash screen Komo blinks once, then its face fades away to
+  reveal the app instead of cutting to it. With animations turned off, the app appears
+  at once.
 
 ### Changed
+- Komit now draws behind transparent status and navigation bars on every Android
+  version, and the screen behind the app has the page color, so there is no orange flash
+  after the splash screen.
 - Importing a backup made by this version now refuses a file with a day logged in the
   future, or with a description or note longer than the app allows. Backups from the
   original Komit app still import in full.

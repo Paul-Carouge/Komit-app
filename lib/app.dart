@@ -2,12 +2,14 @@ import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'core/theme/app_theme.dart';
 import 'data/repositories/habit_repository.dart';
+import 'features/splash/splash_handoff.dart';
 import 'l10n/app_localizations.dart';
 import 'providers.dart';
 import 'router.dart';
@@ -46,7 +48,11 @@ class _KomitAppState extends ConsumerState<KomitApp> {
         GlobalCupertinoLocalizations.delegate,
       ],
       routerConfig: _router,
-      builder: (context, child) => _ReminderSynchronizer(child: child!),
+      builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
+        // Screens without an app bar still get transparent bars with readable icons.
+        value: systemUiOverlayStyleFor(Theme.of(context).brightness),
+        child: SplashHandoff(child: _ReminderSynchronizer(child: child!)),
+      ),
     );
   }
 }

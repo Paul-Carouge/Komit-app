@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -28,6 +29,8 @@ Future<void> main() async {
     // Handled: the error is recorded, and letting it propagate would only kill the isolate.
     return true;
   };
+  // Edge-to-edge on every Android version, not only on 15 and later where the system forces it.
+  unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge));
   runApp(
     ProviderScope(
       overrides: [

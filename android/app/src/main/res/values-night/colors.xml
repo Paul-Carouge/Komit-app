@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Night variants, mirrored from lib/core/theme/app_theme.dart (darkAppTheme). -->
+<resources>
+    <!-- darkAppTheme colorScheme.surface. -->
+    <color name="komit_surface">#FF0F0E0D</color>
+</resources>

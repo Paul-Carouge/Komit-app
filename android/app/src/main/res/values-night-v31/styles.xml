@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Android 12+ system splash screen: orange like the icon, with Komo's pill eyes. -->
+    <!-- Android 12+ system splash: the orange icon grows into Komo's face, which blinks once.
+         The duration matches splash_komo_blink.xml, so the blink is never cut short. -->
     <style name="LaunchTheme" parent="@android:style/Theme.Black.NoTitleBar">
         <item name="android:windowSplashScreenBackground">@color/komit_launch_background</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_komo_blink</item>
+        <item name="android:windowSplashScreenAnimationDuration">800</item>
         <item name="android:windowBackground">@color/komit_launch_background</item>
     </style>
+    <!-- Behind the Flutter UI: the page color, so resizing or a slow frame never flashes orange. -->
     <style name="NormalTheme" parent="@android:style/Theme.Black.NoTitleBar">
-        <item name="android:windowBackground">@color/komit_launch_background</item>
+        <item name="android:windowBackground">@color/komit_surface</item>
     </style>
 </resources>

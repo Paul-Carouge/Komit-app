@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Brand colors, mirrored from lib/core/theme/app_theme.dart (_BrandColors). -->
+<!-- Brand and surface colors, mirrored from lib/core/theme/app_theme.dart
+     (test/core/android_resource_colors_test.dart keeps them in sync). -->
 <resources>
     <color name="komit_orange">#FFFF8C1A</color>
     <color name="komo_eye">#FF1A1A1A</color>
     <color name="komit_launch_background">#FFFF8C1A</color>
+    <!-- lightAppTheme colorScheme.surface: the window behind Flutter matches the first screen. -->
+    <color name="komit_surface">#FFF6F4F1</color>
 </resources>
