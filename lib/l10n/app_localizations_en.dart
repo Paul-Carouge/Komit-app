@@ -210,6 +210,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reminderNotificationBody => 'How did it go today? Log it in Komit.';
 
   @override
+  String get reminderLockedNotificationTitle => 'Time for a habit';
+
+  @override
+  String get reminderLockedNotificationBody => 'Open Komit to log it.';
+
+  @override
   String get reminderChannelName => 'Habit reminders';
 
   @override
@@ -989,7 +995,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get appLockSettingDescription =>
-      'Ask for your fingerprint, face or screen lock when Komit opens and after a minute away.';
+      'Ask for your fingerprint, face or screen lock when Komit opens and after a minute away. Reminders and the widget then hide your habits.';
 
   @override
   String get appLockUnavailable => 'Set up a screen lock in your phone\'s settings to use this.';

@@ -15,11 +15,23 @@ const MethodChannel _homeWidgetChannel = MethodChannel('com.paulcarouge.komit/ho
 /// The "Today" widget's checklist as JSON: the active habits scheduled on [today], in the
 /// dashboard's order, with whether each is logged. Only titles and colors leave the database,
 /// never descriptions or notes, as the file lives outside it.
+///
+/// With [isAppLockEnabled] the snapshot holds no habit at all: anyone holding the unlocked phone
+/// sees the widget, so it only offers to open Komit, which asks for the lock.
 String encodeTodayWidgetSnapshot({
   required List<HabitWithObjectives> habits,
   required Map<int, Map<CalendarDay, int>> objectiveIdByDayByHabitId,
   required CalendarDay today,
+  required bool isAppLockEnabled,
 }) {
+  if (isAppLockEnabled) {
+    return jsonEncode({
+      'version': todayWidgetSnapshotFormatVersion,
+      'day': today.daysSinceEpoch,
+      'isLocked': true,
+      'habits': const <Object?>[],
+    });
+  }
   final scheduledHabits = habits.where(
     // A habit without objectives cannot be logged with one tap, so the widget leaves it to the app.
     (habit) => habit.habit.archivedAt == null && habit.objectives.isNotEmpty && isHabitScheduledOn(habit, today),

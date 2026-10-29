@@ -32,6 +32,13 @@ class TodayWidgetSnapshotTest {
     }
 
     @Test
+    fun `reads the locked flag, absent from snapshots written before the app lock`() {
+        val lockedJson = """{"version":$TODAY_WIDGET_SNAPSHOT_FORMAT_VERSION,"day":20755,"isLocked":true,"habits":[]}"""
+        assertEquals(parseTodayWidgetSnapshot(lockedJson)?.isLocked, true)
+        assertEquals(parseTodayWidgetSnapshot(snapshotJson(""))?.isLocked, false)
+    }
+
+    @Test
     fun `parses a day with nothing scheduled`() {
         assertEquals(parseTodayWidgetSnapshot(snapshotJson(""))?.habits, emptyList<TodayWidgetHabit>())
     }

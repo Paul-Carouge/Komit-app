@@ -16,10 +16,14 @@ data class TodayWidgetHabit(
     val isLoggedToday: Boolean,
 )
 
-/** What Dart last wrote for the widget: the habits scheduled on [daysSinceEpoch], in order. */
+/**
+ * What Dart last wrote for the widget: the habits scheduled on [daysSinceEpoch], in order.
+ * [isLocked] is true while the app lock is on; Dart then writes no habit at all.
+ */
 data class TodayWidgetSnapshot(
     val daysSinceEpoch: Long,
     val habits: List<TodayWidgetHabit>,
+    val isLocked: Boolean = false,
 ) {
     fun withHabitLoggedToday(habitId: Long): TodayWidgetSnapshot =
         copy(habits = habits.map { if (it.habitId == habitId) it.copy(isLoggedToday = true) else it })
@@ -50,7 +54,11 @@ fun parseTodayWidgetSnapshot(json: String): TodayWidgetSnapshot? =
                         isLoggedToday = habitJson.getBoolean("isLoggedToday"),
                     )
                 }
-            TodayWidgetSnapshot(daysSinceEpoch = root.getLong("day"), habits = habits)
+            TodayWidgetSnapshot(
+                daysSinceEpoch = root.getLong("day"),
+                habits = habits,
+                isLocked = root.optBoolean("isLocked", false),
+            )
         }
     } catch (exception: JSONException) {
         null

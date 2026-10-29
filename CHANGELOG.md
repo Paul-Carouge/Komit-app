@@ -87,6 +87,8 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
   screen lock when it opens and after a minute away, with a sleepy Komo guarding the
   screen. Recent apps shows a blank card for Komit on Android 13 and later. The option is
   greyed out, with an explanation, until the phone has a screen lock.
+  While it is on, the "Today" widget and reminders no longer name your habits or log them:
+  they only open Komit, which asks to unlock.
 - "Hide from screenshots" blocks screenshots and screen recordings of Komit.
 - A "Your privacy" screen explains what stays on your phone, what leaves it (only the
   update check), how backups and exports work, and why Komit needs each permission. Open it

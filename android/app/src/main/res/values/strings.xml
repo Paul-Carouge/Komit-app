@@ -5,6 +5,7 @@
     <string name="widget_today_title">Today</string>
     <string name="widget_description">Today\'s habits, logged with one tap</string>
     <string name="widget_open_komit_to_refresh">Open Komit to show today\'s habits</string>
+    <string name="widget_unlock_komit">Open Komit to see today\'s habits. The app lock hides them here</string>
     <string name="widget_nothing_planned_today">Nothing planned today</string>
     <string name="widget_more_habits">%1$d more in Komit</string>
     <string name="widget_progress" translatable="false">%1$d/%2$d</string>

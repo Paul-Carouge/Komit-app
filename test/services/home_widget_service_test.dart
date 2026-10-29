@@ -33,8 +33,14 @@ HabitWithObjectives _habit(
 );
 
 Map<String, Object?> _decodedSnapshot(List<HabitWithObjectives> habits, Map<int, Map<CalendarDay, int>> logs) =>
-    jsonDecode(encodeTodayWidgetSnapshot(habits: habits, objectiveIdByDayByHabitId: logs, today: _thursday))
-        as Map<String, Object?>;
+    jsonDecode(
+      encodeTodayWidgetSnapshot(
+        habits: habits,
+        objectiveIdByDayByHabitId: logs,
+        today: _thursday,
+        isAppLockEnabled: false,
+      ),
+    ) as Map<String, Object?>;
 
 void main() {
   test('lists only the active habits scheduled today, in order, with whether each is logged', () {
@@ -64,7 +70,12 @@ void main() {
   });
 
   test('never writes descriptions, icons or objectives outside the database', () {
-    final json = encodeTodayWidgetSnapshot(habits: [_habit(1)], objectiveIdByDayByHabitId: const {}, today: _thursday);
+    final json = encodeTodayWidgetSnapshot(
+      habits: [_habit(1)],
+      objectiveIdByDayByHabitId: const {},
+      today: _thursday,
+      isAppLockEnabled: false,
+    );
 
     expect(json, isNot(contains('private description')));
     expect(json, isNot(contains('Done')));
@@ -74,5 +85,24 @@ void main() {
     final snapshot = _decodedSnapshot([_habit(1, scheduledWeekdayMask: _mondayOnlyMask)], const {});
 
     expect(snapshot['habits'], isEmpty);
+  });
+
+  test('with the app lock on, names no habit and offers nothing to log', () {
+    final json = encodeTodayWidgetSnapshot(
+      habits: [_habit(1)],
+      objectiveIdByDayByHabitId: {
+        1: {_thursday: 10},
+      },
+      today: _thursday,
+      isAppLockEnabled: true,
+    );
+
+    expect(json, isNot(contains('Habit 1')));
+    expect(jsonDecode(json), {
+      'version': todayWidgetSnapshotFormatVersion,
+      'day': _thursday.daysSinceEpoch,
+      'isLocked': true,
+      'habits': <Object?>[],
+    });
   });
 }

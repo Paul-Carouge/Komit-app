@@ -446,6 +446,18 @@ abstract class AppLocalizations {
   /// **'How did it go today? Log it in Komit.'**
   String get reminderNotificationBody;
 
+  /// No description provided for @reminderLockedNotificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Time for a habit'**
+  String get reminderLockedNotificationTitle;
+
+  /// No description provided for @reminderLockedNotificationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Komit to log it.'**
+  String get reminderLockedNotificationBody;
+
   /// No description provided for @reminderChannelName.
   ///
   /// In en, this message translates to:
@@ -1715,7 +1727,7 @@ abstract class AppLocalizations {
   /// No description provided for @appLockSettingDescription.
   ///
   /// In en, this message translates to:
-  /// **'Ask for your fingerprint, face or screen lock when Komit opens and after a minute away.'**
+  /// **'Ask for your fingerprint, face or screen lock when Komit opens and after a minute away. Reminders and the widget then hide your habits.'**
   String get appLockSettingDescription;
 
   /// No description provided for @appLockUnavailable.

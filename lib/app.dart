@@ -134,7 +134,11 @@ class _ReminderSynchronizerState extends ConsumerState<_ReminderSynchronizer> {
     unawaited(
       ref
           .read(reminderSchedulerProvider)
-          .rebuildReminders(ref.read(habitRepositoryProvider), AppLocalizations.of(context))
+          .rebuildReminders(
+            ref.read(habitRepositoryProvider),
+            AppLocalizations.of(context),
+            isAppLockEnabled: ref.read(settingsControllerProvider).isAppLockEnabled,
+          )
           .catchError(
             (Object error, StackTrace stackTrace) => ref
                 .read(appLoggerProvider)
@@ -148,8 +152,14 @@ class _ReminderSynchronizerState extends ConsumerState<_ReminderSynchronizer> {
     final habits = ref.watch(activeHabitsProvider).value;
     final recentLogs = ref.watch(recentObjectiveIdByDayByHabitIdProvider).value;
     // Records compare their fields with ==, which is identity for the list and the map: any
-    // new database emission, a new day or another language triggers one rebuild.
-    final inputs = (habits, recentLogs, ref.watch(currentCalendarDayProvider), Localizations.localeOf(context));
+    // new database emission, a new day, another language or the app lock triggers one rebuild.
+    final inputs = (
+      habits,
+      recentLogs,
+      ref.watch(currentCalendarDayProvider),
+      Localizations.localeOf(context),
+      ref.watch(settingsControllerProvider.select((settings) => settings.isAppLockEnabled)),
+    );
     if (habits != null && recentLogs != null && inputs != _lastSynchronizedInputs) {
       _lastSynchronizedInputs = inputs;
       _rebuildReminders();
@@ -181,6 +191,7 @@ class _HomeWidgetSynchronizerState extends ConsumerState<_HomeWidgetSynchronizer
         habits: habits,
         objectiveIdByDayByHabitId: recentLogs,
         today: ref.watch(currentCalendarDayProvider),
+        isAppLockEnabled: ref.watch(settingsControllerProvider.select((settings) => settings.isAppLockEnabled)),
       );
       if (snapshotJson != _lastSavedSnapshotJson) {
         _lastSavedSnapshotJson = snapshotJson;

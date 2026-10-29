@@ -36,14 +36,27 @@ Future<void> handleReminderResponseInBackground(NotificationResponse response) a
     developer.log('Ignored a malformed reminder response', name: 'komit.reminders');
     return;
   }
-  await _runWithDatabase(event: 'reminder_action_failed', (repository, localizations) async {
+  await _runWithDatabase(event: 'reminder_action_failed', (repository, localizations, settings) async {
+    final isAppLockEnabled = settings.isAppLockEnabled;
     switch (command) {
+      // A reminder shown before the lock was turned on still has log buttons: they must not bypass it.
+      case LogObjectiveFromReminder() when isAppLockEnabled:
+        developer.log('Ignored a log from a reminder while the app lock is on', name: 'komit.reminders');
       case LogObjectiveFromReminder(:final habitId, :final objectiveId, :final day):
         await repository.logObjectiveForDay(habitId: habitId, objectiveId: objectiveId, day: day);
         // Dismisses a snoozed copy and refreshes the streak shown in the next reminders.
-        await _backgroundReminderScheduler.rebuildReminders(repository, localizations);
+        await _backgroundReminderScheduler.rebuildReminders(
+          repository,
+          localizations,
+          isAppLockEnabled: isAppLockEnabled,
+        );
       case SnoozeReminder(:final habitId):
-        await _backgroundReminderScheduler.snoozeReminder(repository, localizations, habitId: habitId);
+        await _backgroundReminderScheduler.snoozeReminder(
+          repository,
+          localizations,
+          habitId: habitId,
+          isAppLockEnabled: isAppLockEnabled,
+        );
       case OpenHabitFromReminder():
         // A plain tap opens the app, which navigates; nothing to do in the background.
         break;
@@ -60,7 +73,11 @@ Future<void> rebuildRemindersAfterSystemEvent() async {
   try {
     await _runWithDatabase(
       event: 'reminder_system_rebuild_failed',
-      (repository, localizations) => _backgroundReminderScheduler.rebuildReminders(repository, localizations),
+      (repository, localizations, settings) => _backgroundReminderScheduler.rebuildReminders(
+        repository,
+        localizations,
+        isAppLockEnabled: settings.isAppLockEnabled,
+      ),
     );
   } finally {
     await _reminderRebuildChannel.invokeMethod<void>('finished');
@@ -78,9 +95,11 @@ Future<void> updateHomeWidgetInBackground(List<String> arguments) async {
   WidgetsFlutterBinding.ensureInitialized();
   DartPluginRegistrant.ensureInitialized();
   try {
-    await _runWithDatabase(event: 'home_widget_background_failed', (repository, localizations) async {
+    await _runWithDatabase(event: 'home_widget_background_failed', (repository, localizations, settings) async {
       final today = CalendarDay.fromDateTime(DateTime.now());
-      final habitIdToLog = arguments.isEmpty ? null : int.tryParse(arguments.first);
+      final isAppLockEnabled = settings.isAppLockEnabled;
+      // A widget drawn before the lock was turned on still has log buttons: they must not bypass it.
+      final habitIdToLog = arguments.isEmpty || isAppLockEnabled ? null : int.tryParse(arguments.first);
       if (habitIdToLog != null) {
         await _logFirstObjectiveTodayUnlessLogged(repository, habitId: habitIdToLog, today: today);
       }
@@ -91,10 +110,17 @@ Future<void> updateHomeWidgetInBackground(List<String> arguments) async {
           habits: await repository.watchActiveHabits().first,
           objectiveIdByDayByHabitId: await repository.watchObjectiveIdByDayForAllHabitsSince(today).first,
           today: today,
+          isAppLockEnabled: isAppLockEnabled,
         ),
       );
       // Dismisses today's reminder of the logged habit and refreshes the streaks of the others.
-      if (habitIdToLog != null) await _backgroundReminderScheduler.rebuildReminders(repository, localizations);
+      if (habitIdToLog != null) {
+        await _backgroundReminderScheduler.rebuildReminders(
+          repository,
+          localizations,
+          isAppLockEnabled: isAppLockEnabled,
+        );
+      }
     });
   } finally {
     await _homeWidgetBackgroundChannel.invokeMethod<void>('finished');
@@ -118,7 +144,7 @@ Future<void> _logFirstObjectiveTodayUnlessLogged(
 /// Opens the database through [AppDatabase], which shares the app's connection when it runs
 /// (see docs/adr/0004), and records failures in the private error log instead of losing them.
 Future<void> _runWithDatabase(
-  Future<void> Function(HabitRepository repository, AppLocalizations localizations) work, {
+  Future<void> Function(HabitRepository repository, AppLocalizations localizations, AppSettings settings) work, {
   required String event,
 }) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -127,8 +153,8 @@ Future<void> _runWithDatabase(
     final preferences = await SharedPreferences.getInstance();
     // The app may have changed the language since this isolate cached the preferences.
     await preferences.reload();
-    final localizations = appLocalizationsFor(SettingsRepository(preferences).readSettings().languageCode);
-    await work(HabitRepository(database), localizations);
+    final settings = SettingsRepository(preferences).readSettings();
+    await work(HabitRepository(database), appLocalizationsFor(settings.languageCode), settings);
   } on Object catch (error, stackTrace) {
     final logger = await AppLogger.openInApplicationSupportDirectory();
     await logger.logError(event: event, error: error, stackTrace: stackTrace);

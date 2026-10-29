@@ -3,6 +3,7 @@
     <string name="widget_today_title">Aujourd\'hui</string>
     <string name="widget_description">Les habitudes du jour, cochées d\'un geste</string>
     <string name="widget_open_komit_to_refresh">Ouvrez Komit pour afficher les habitudes du jour</string>
+    <string name="widget_unlock_komit">Ouvrez Komit pour voir les habitudes du jour. Le verrouillage les masque ici</string>
     <string name="widget_nothing_planned_today">Rien de prévu aujourd\'hui</string>
     <string name="widget_more_habits">%1$d de plus dans Komit</string>
     <!-- Chosen by the number of habits scheduled today. -->

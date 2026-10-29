@@ -222,6 +222,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get reminderNotificationBody => 'Comment ça s\'est passé aujourd\'hui ? Note-le dans Komit.';
 
   @override
+  String get reminderLockedNotificationTitle => 'C\'est l\'heure d\'une habitude';
+
+  @override
+  String get reminderLockedNotificationBody => 'Ouvrez Komit pour la noter.';
+
+  @override
   String get reminderChannelName => 'Rappels d\'habitudes';
 
   @override
@@ -1004,7 +1010,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get appLockSettingDescription =>
-      'Demander votre empreinte, votre visage ou le verrouillage de l\'écran à l\'ouverture de Komit et après une minute d\'absence.';
+      'Demander votre empreinte, votre visage ou le verrouillage de l\'écran à l\'ouverture de Komit et après une minute d\'absence. Les rappels et le widget masquent alors vos habitudes.';
 
   @override
   String get appLockUnavailable =>

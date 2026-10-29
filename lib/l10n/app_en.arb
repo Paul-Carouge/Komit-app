@@ -108,6 +108,8 @@
     }
   },
   "reminderNotificationBody": "How did it go today? Log it in Komit.",
+  "reminderLockedNotificationTitle": "Time for a habit",
+  "reminderLockedNotificationBody": "Open Komit to log it.",
   "reminderChannelName": "Habit reminders",
   "notificationsDenied": "Reminders need notifications, which are off for Komit. You can turn them on in the system settings.",
   "secondBrain": "Second brain",
@@ -704,7 +706,7 @@
   "unlock": "Unlock",
   "privacyAndSecurity": "Privacy & security",
   "appLockSetting": "Lock Komit",
-  "appLockSettingDescription": "Ask for your fingerprint, face or screen lock when Komit opens and after a minute away.",
+  "appLockSettingDescription": "Ask for your fingerprint, face or screen lock when Komit opens and after a minute away. Reminders and the widget then hide your habits.",
   "appLockUnavailable": "Set up a screen lock in your phone's settings to use this.",
   "hideScreenContentSetting": "Hide from screenshots",
   "hideScreenContentSettingDescription": "Blocks screenshots and screen recordings, and blanks Komit in recent apps.",

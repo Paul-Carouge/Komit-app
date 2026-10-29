@@ -115,36 +115,48 @@ class ReminderScheduler {
   ///
   /// Calls run one at a time: two overlapping rebuilds could otherwise interleave their
   /// cancel and schedule steps and resurrect the reminder of a deleted habit.
-  Future<void> rebuildReminders(HabitRepository repository, AppLocalizations localizations) =>
-      _reminderRebuilds.run(() async {
-        final plugin = await _pluginWhenReady;
-        if (plugin == null) return;
-        await _rebuildRemindersNow(plugin, repository, localizations);
-      });
+  ///
+  /// With [isAppLockEnabled] reminders name no habit and offer no log button: the notification
+  /// shade of an unlocked phone is open to whoever holds it, and a tap opens the locked app.
+  Future<void> rebuildReminders(
+    HabitRepository repository,
+    AppLocalizations localizations, {
+    required bool isAppLockEnabled,
+  }) => _reminderRebuilds.run(() async {
+    final plugin = await _pluginWhenReady;
+    if (plugin == null) return;
+    await _rebuildRemindersNow(plugin, repository, localizations, isAppLockEnabled: isAppLockEnabled);
+  });
 
   /// Shows the reminder of [habitId] again after [reminderSnoozeDuration].
-  Future<void> snoozeReminder(HabitRepository repository, AppLocalizations localizations, {required int habitId}) =>
-      _reminderRebuilds.run(() async {
-        final plugin = await _pluginWhenReady;
-        if (plugin == null) return;
-        final habit = await repository.watchHabitWithObjectives(habitId).first;
-        if (habit == null || habit.habit.archivedAt != null) return;
-        final now = tz.TZDateTime.now(tz.local);
-        final content = await _reminderContentFor(
-          habit,
-          repository,
-          localizations,
-          day: CalendarDay.fromDate(now.year, now.month, now.day),
-          scheduledAt: now.add(reminderSnoozeDuration),
-        );
-        await _schedule(plugin, snoozedReminderNotificationIdFor(habitId), content);
-      });
+  Future<void> snoozeReminder(
+    HabitRepository repository,
+    AppLocalizations localizations, {
+    required int habitId,
+    required bool isAppLockEnabled,
+  }) => _reminderRebuilds.run(() async {
+    final plugin = await _pluginWhenReady;
+    if (plugin == null) return;
+    final habit = await repository.watchHabitWithObjectives(habitId).first;
+    if (habit == null || habit.habit.archivedAt != null) return;
+    final now = tz.TZDateTime.now(tz.local);
+    final content = await _reminderContentFor(
+      habit,
+      repository,
+      localizations,
+      day: CalendarDay.fromDate(now.year, now.month, now.day),
+      scheduledAt: now.add(reminderSnoozeDuration),
+      isAppLockEnabled: isAppLockEnabled,
+    );
+    await _schedule(plugin, snoozedReminderNotificationIdFor(habitId), content);
+  });
 
   Future<void> _rebuildRemindersNow(
     FlutterLocalNotificationsPlugin plugin,
     HabitRepository repository,
-    AppLocalizations localizations,
-  ) async {
+    AppLocalizations localizations, {
+    required bool isAppLockEnabled,
+  }) async {
     final now = tz.TZDateTime.now(tz.local);
     final today = CalendarDay.fromDate(now.year, now.month, now.day);
     final (activeHabits, archivedHabits, logsSinceToday) = await (
@@ -173,6 +185,7 @@ class ReminderScheduler {
           localizations,
           day: reminder.day,
           scheduledAt: reminder.scheduledAt,
+          isAppLockEnabled: isAppLockEnabled,
         ),
     };
     final (pendingRequests, displayedNotifications) = await (
@@ -206,6 +219,7 @@ class ReminderScheduler {
     AppLocalizations localizations, {
     required CalendarDay day,
     required tz.TZDateTime scheduledAt,
+    required bool isAppLockEnabled,
   }) async {
     final streak = computeScheduledStreakSummary(
       await repository.watchObjectiveIdByDayForHabit(habit.habit.id).first,
@@ -214,18 +228,27 @@ class ReminderScheduler {
       targetDaysPerWeek: habit.habit.targetDaysPerWeek,
       today: day,
     );
-    final title = localizations.reminderNotificationTitle(habit.habit.title);
+    final title = isAppLockEnabled
+        ? localizations.reminderLockedNotificationTitle
+        : localizations.reminderNotificationTitle(habit.habit.title);
     final body = switch ((streak.currentStreakLength, streak.unit)) {
+      _ when isAppLockEnabled => localizations.reminderLockedNotificationBody,
       (0, _) => localizations.reminderNotificationBody,
       (final length, StreakUnit.days) => localizations.reminderNotificationBodyWithDayStreak(length),
       (final length, StreakUnit.weeks) => localizations.reminderNotificationBodyWithWeekStreak(length),
     };
     final actions = [
-      if (habit.objectives.length == 1)
-        AndroidNotificationAction(logObjectiveActionIdFor(habit.objectives.single.id), localizations.reminderActionDone)
-      else
-        for (final objective in habit.objectives.take(_maximumObjectiveButtonsOnReminder))
-          AndroidNotificationAction(logObjectiveActionIdFor(objective.id), objective.title),
+      // Objective titles may say as much as the habit's, and logging must go through the lock.
+      if (!isAppLockEnabled) ...[
+        if (habit.objectives.length == 1)
+          AndroidNotificationAction(
+            logObjectiveActionIdFor(habit.objectives.single.id),
+            localizations.reminderActionDone,
+          )
+        else
+          for (final objective in habit.objectives.take(_maximumObjectiveButtonsOnReminder))
+            AndroidNotificationAction(logObjectiveActionIdFor(objective.id), objective.title),
+      ],
       AndroidNotificationAction(snoozeReminderActionId, localizations.reminderActionLater),
     ];
     final fingerprint = contentFingerprintOf(

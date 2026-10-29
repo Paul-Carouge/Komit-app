@@ -129,12 +129,17 @@ private fun todayWidgetViews(
 ): RemoteViews {
     val views = RemoteViews(context.packageName, R.layout.widget_today)
     views.setOnClickPendingIntent(R.id.widget_header, openTodayPendingIntent(context))
+    views.setOnClickPendingIntent(R.id.widget_message, openTodayPendingIntent(context))
     views.removeAllViews(R.id.widget_habit_rows)
     val habits = snapshot?.habits.orEmpty()
     val message =
         when {
             snapshot == null -> {
                 context.getString(R.string.widget_open_komit_to_refresh)
+            }
+
+            snapshot.isLocked -> {
+                context.getString(R.string.widget_unlock_komit)
             }
 
             habits.isEmpty() -> {
@@ -151,7 +156,7 @@ private fun todayWidgetViews(
         }
     views.setTextViewText(R.id.widget_message, message.orEmpty())
     views.setViewVisibility(R.id.widget_message, if (message == null) View.GONE else View.VISIBLE)
-    if (snapshot == null) {
+    if (snapshot == null || snapshot.isLocked) {
         views.setViewVisibility(R.id.widget_progress, View.GONE)
     } else {
         val doneCount = habits.count { it.isLoggedToday }
