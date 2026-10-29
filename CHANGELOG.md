@@ -80,6 +80,9 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
   when something changed, Komit keeps a copy of your data on the phone. The 10 most recent
   copies can be restored from Settings → Data & storage → "Restore an automatic backup".
 - Settings reminds you to export your data when the last export is more than 30 days old.
+- Export with a passphrase: Settings → Data & storage can now save an encrypted file that
+  only opens with the passphrase you choose. Importing such a file asks for it. Plain
+  exports stay the default, since a forgotten passphrase cannot be recovered.
 
 ### Changed
 - Screens slide in and out again, with Android's back gesture preview: an update of the

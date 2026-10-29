@@ -944,4 +944,55 @@ class AppLocalizationsFr extends AppLocalizations {
   String lastExportDaysAgo(int days) {
     return 'Dernier export : il y a $days jours';
   }
+
+  @override
+  String get exportEncryptedData => 'Exporter avec une phrase secrète';
+
+  @override
+  String get exportEncryptedDataDescription => 'Seule une personne qui la connaît peut ouvrir le fichier.';
+
+  @override
+  String get encryptBackupTitle => 'Protéger l\'export';
+
+  @override
+  String get encryptBackupMessage =>
+      'Choisissez une phrase secrète. Komit ne peut pas la retrouver : sans elle, ce fichier ne pourra jamais être importé.';
+
+  @override
+  String get decryptBackupTitle => 'Sauvegarde chiffrée';
+
+  @override
+  String get decryptBackupMessage => 'Saisissez la phrase secrète choisie lors de l\'export de ce fichier.';
+
+  @override
+  String get passphrase => 'Phrase secrète';
+
+  @override
+  String get confirmPassphrase => 'Phrase secrète, à nouveau';
+
+  @override
+  String get showPassphrase => 'Afficher la phrase secrète';
+
+  @override
+  String get hidePassphrase => 'Masquer la phrase secrète';
+
+  @override
+  String passphraseTooShort(int count) {
+    return 'Utilisez au moins $count caractères.';
+  }
+
+  @override
+  String get passphraseRequired => 'Saisissez la phrase secrète.';
+
+  @override
+  String get passphrasesDoNotMatch => 'Les deux phrases secrètes sont différentes.';
+
+  @override
+  String get wrongBackupPassphrase => 'Phrase secrète incorrecte, ou fichier endommagé.';
+
+  @override
+  String get encryptAndExport => 'Chiffrer et exporter';
+
+  @override
+  String get unlock => 'Déverrouiller';
 }

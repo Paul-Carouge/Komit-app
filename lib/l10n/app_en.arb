@@ -678,5 +678,28 @@
         "type": "int"
       }
     }
-  }
+  },
+  "exportEncryptedData": "Export with a passphrase",
+  "exportEncryptedDataDescription": "Only someone who knows it can open the file.",
+  "encryptBackupTitle": "Protect the export",
+  "encryptBackupMessage": "Choose a passphrase. Komit cannot recover it: without it, this file can never be imported.",
+  "decryptBackupTitle": "Encrypted backup",
+  "decryptBackupMessage": "Enter the passphrase chosen when this file was exported.",
+  "passphrase": "Passphrase",
+  "confirmPassphrase": "Passphrase again",
+  "showPassphrase": "Show passphrase",
+  "hidePassphrase": "Hide passphrase",
+  "passphraseTooShort": "Use at least {count} characters.",
+  "@passphraseTooShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "passphraseRequired": "Enter the passphrase.",
+  "passphrasesDoNotMatch": "The two passphrases differ.",
+  "wrongBackupPassphrase": "Wrong passphrase, or the file was damaged.",
+  "encryptAndExport": "Encrypt and export",
+  "unlock": "Unlock"
 }

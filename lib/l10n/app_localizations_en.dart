@@ -929,4 +929,55 @@ class AppLocalizationsEn extends AppLocalizations {
   String lastExportDaysAgo(int days) {
     return 'Last export: $days days ago';
   }
+
+  @override
+  String get exportEncryptedData => 'Export with a passphrase';
+
+  @override
+  String get exportEncryptedDataDescription => 'Only someone who knows it can open the file.';
+
+  @override
+  String get encryptBackupTitle => 'Protect the export';
+
+  @override
+  String get encryptBackupMessage =>
+      'Choose a passphrase. Komit cannot recover it: without it, this file can never be imported.';
+
+  @override
+  String get decryptBackupTitle => 'Encrypted backup';
+
+  @override
+  String get decryptBackupMessage => 'Enter the passphrase chosen when this file was exported.';
+
+  @override
+  String get passphrase => 'Passphrase';
+
+  @override
+  String get confirmPassphrase => 'Passphrase again';
+
+  @override
+  String get showPassphrase => 'Show passphrase';
+
+  @override
+  String get hidePassphrase => 'Hide passphrase';
+
+  @override
+  String passphraseTooShort(int count) {
+    return 'Use at least $count characters.';
+  }
+
+  @override
+  String get passphraseRequired => 'Enter the passphrase.';
+
+  @override
+  String get passphrasesDoNotMatch => 'The two passphrases differ.';
+
+  @override
+  String get wrongBackupPassphrase => 'Wrong passphrase, or the file was damaged.';
+
+  @override
+  String get encryptAndExport => 'Encrypt and export';
+
+  @override
+  String get unlock => 'Unlock';
 }

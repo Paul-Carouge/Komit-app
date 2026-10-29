@@ -251,5 +251,21 @@
   "restoreAutomaticBackupConfirmationTitle": "Restaurer cette sauvegarde ?",
   "restoreAutomaticBackupConfirmationMessage": "Tout le contenu de l'application sera remplacé par la copie du {date}. Vos données actuelles sont d'abord enregistrées dans une sauvegarde automatique.",
   "preImportBackupFailed": "Rien n'a été remplacé : Komit n'a pas pu enregistrer d'abord une copie de vos données actuelles. Libérez de l'espace et réessayez.",
-  "lastExportDaysAgo": "Dernier export : il y a {days} jours"
+  "lastExportDaysAgo": "Dernier export : il y a {days} jours",
+  "exportEncryptedData": "Exporter avec une phrase secrète",
+  "exportEncryptedDataDescription": "Seule une personne qui la connaît peut ouvrir le fichier.",
+  "encryptBackupTitle": "Protéger l'export",
+  "encryptBackupMessage": "Choisissez une phrase secrète. Komit ne peut pas la retrouver : sans elle, ce fichier ne pourra jamais être importé.",
+  "decryptBackupTitle": "Sauvegarde chiffrée",
+  "decryptBackupMessage": "Saisissez la phrase secrète choisie lors de l'export de ce fichier.",
+  "passphrase": "Phrase secrète",
+  "confirmPassphrase": "Phrase secrète, à nouveau",
+  "showPassphrase": "Afficher la phrase secrète",
+  "hidePassphrase": "Masquer la phrase secrète",
+  "passphraseTooShort": "Utilisez au moins {count} caractères.",
+  "passphraseRequired": "Saisissez la phrase secrète.",
+  "passphrasesDoNotMatch": "Les deux phrases secrètes sont différentes.",
+  "wrongBackupPassphrase": "Phrase secrète incorrecte, ou fichier endommagé.",
+  "encryptAndExport": "Chiffrer et exporter",
+  "unlock": "Déverrouiller"
 }

@@ -15,6 +15,7 @@ import '../updates/update_prompt.dart';
 import '../../services/notification_permission_service.dart';
 import 'automatic_backups_sheet.dart';
 import 'backup_actions.dart';
+import 'backup_passphrase_dialog.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -182,7 +183,7 @@ class _DataAndStorageCard extends ConsumerStatefulWidget {
   ConsumerState<_DataAndStorageCard> createState() => _DataAndStorageCardState();
 }
 
-enum _BackupOperation { export, import, restore }
+enum _BackupOperation { export, encryptedExport, import, restore }
 
 class _DataAndStorageCardState extends ConsumerState<_DataAndStorageCard> {
   _BackupOperation? _runningOperation;
@@ -194,6 +195,15 @@ class _DataAndStorageCardState extends ConsumerState<_DataAndStorageCard> {
     } finally {
       if (mounted) setState(() => _runningOperation = null);
     }
+  }
+
+  Future<void> _askPassphraseAndExportEncrypted() async {
+    final passphrase = await showBackupPassphraseDialog(context, purpose: BackupPassphrasePurpose.encrypt);
+    if (passphrase == null || !mounted) return;
+    await _run(
+      _BackupOperation.encryptedExport,
+      () => exportBackupToUserChosenFile(context, ref, passphrase: passphrase),
+    );
   }
 
   Future<void> _chooseAndRestoreAutomaticBackup() async {
@@ -236,6 +246,14 @@ class _DataAndStorageCardState extends ConsumerState<_DataAndStorageCard> {
             trailing: trailingFor(_BackupOperation.export),
             enabled: isIdle,
             onTap: () => _run(_BackupOperation.export, () => exportBackupToUserChosenFile(context, ref)),
+          ),
+          ListTile(
+            leading: HabitIconBadge(icon: LucideIcons.lockKeyhole, color: komitColors.mutedText),
+            title: Text(localizations.exportEncryptedData),
+            subtitle: Text(localizations.exportEncryptedDataDescription),
+            trailing: trailingFor(_BackupOperation.encryptedExport),
+            enabled: isIdle,
+            onTap: _askPassphraseAndExportEncrypted,
           ),
           ListTile(
             // Neutral like export: the confirmation dialog carries the warning.

@@ -15,6 +15,7 @@ import 'domain/habit_statistics.dart';
 import 'domain/weekly_recap.dart';
 import 'services/app_update_service.dart';
 import 'services/automatic_backup_service.dart';
+import 'services/backup_encryption_service.dart';
 import 'services/notification_permission_service.dart';
 import 'services/reminder_scheduler.dart';
 
@@ -41,6 +42,7 @@ final automaticBackupServiceProvider = Provider(
 final automaticBackupsProvider = FutureProvider.autoDispose(
   (ref) => ref.watch(automaticBackupServiceProvider).listBackupsNewestFirst(),
 );
+final backupEncryptionServiceProvider = Provider((ref) => BackupEncryptionService());
 final appUpdateServiceProvider = Provider((ref) => AppUpdateService());
 final notificationPermissionServiceProvider = Provider(
   (ref) => NotificationPermissionService(ref.watch(reminderSchedulerProvider)),

@@ -1603,6 +1603,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Last export: {days} days ago'**
   String lastExportDaysAgo(int days);
+
+  /// No description provided for @exportEncryptedData.
+  ///
+  /// In en, this message translates to:
+  /// **'Export with a passphrase'**
+  String get exportEncryptedData;
+
+  /// No description provided for @exportEncryptedDataDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Only someone who knows it can open the file.'**
+  String get exportEncryptedDataDescription;
+
+  /// No description provided for @encryptBackupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Protect the export'**
+  String get encryptBackupTitle;
+
+  /// No description provided for @encryptBackupMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a passphrase. Komit cannot recover it: without it, this file can never be imported.'**
+  String get encryptBackupMessage;
+
+  /// No description provided for @decryptBackupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypted backup'**
+  String get decryptBackupTitle;
+
+  /// No description provided for @decryptBackupMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the passphrase chosen when this file was exported.'**
+  String get decryptBackupMessage;
+
+  /// No description provided for @passphrase.
+  ///
+  /// In en, this message translates to:
+  /// **'Passphrase'**
+  String get passphrase;
+
+  /// No description provided for @confirmPassphrase.
+  ///
+  /// In en, this message translates to:
+  /// **'Passphrase again'**
+  String get confirmPassphrase;
+
+  /// No description provided for @showPassphrase.
+  ///
+  /// In en, this message translates to:
+  /// **'Show passphrase'**
+  String get showPassphrase;
+
+  /// No description provided for @hidePassphrase.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide passphrase'**
+  String get hidePassphrase;
+
+  /// No description provided for @passphraseTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Use at least {count} characters.'**
+  String passphraseTooShort(int count);
+
+  /// No description provided for @passphraseRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the passphrase.'**
+  String get passphraseRequired;
+
+  /// No description provided for @passphrasesDoNotMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'The two passphrases differ.'**
+  String get passphrasesDoNotMatch;
+
+  /// No description provided for @wrongBackupPassphrase.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong passphrase, or the file was damaged.'**
+  String get wrongBackupPassphrase;
+
+  /// No description provided for @encryptAndExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypt and export'**
+  String get encryptAndExport;
+
+  /// No description provided for @unlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock'**
+  String get unlock;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

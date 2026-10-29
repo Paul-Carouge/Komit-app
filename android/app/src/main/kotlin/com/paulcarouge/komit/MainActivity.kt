@@ -14,11 +14,13 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import java.io.File
 import java.security.MessageDigest
+import javax.crypto.AEADBadTagException
 import java.util.concurrent.Executors
 
 private const val APP_UPDATE_CHANNEL = "com.paulcarouge.komit/app_update"
 private const val NOTIFICATION_SETTINGS_CHANNEL = "com.paulcarouge.komit/notification_settings"
 private const val LAUNCH_DESTINATION_CHANNEL = "com.paulcarouge.komit/launch_destination"
+private const val BACKUP_ENCRYPTION_CHANNEL = "com.paulcarouge.komit/backup_encryption"
 private const val RELEASES_PAGE_URL = "https://github.com/Paul-Carouge/Komit-app/releases"
 private val SHA256_HEX_PATTERN = Regex("^[0-9a-f]{64}$")
 
@@ -86,6 +88,14 @@ class MainActivity : FlutterActivity() {
                     result.notImplemented()
                 }
             }
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, BACKUP_ENCRYPTION_CHANNEL)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "seal" -> runBackupEncryption(result) { sealBackup(call) }
+                    "open" -> runBackupEncryption(result) { openBackup(call) }
+                    else -> result.notImplemented()
+                }
+            }
         initialLaunchDestination = intent.launchDestination()
         launchDestinationChannel =
             MethodChannel(flutterEngine.dartExecutor.binaryMessenger, LAUNCH_DESTINATION_CHANNEL).apply {
@@ -124,6 +134,46 @@ class MainActivity : FlutterActivity() {
             if (isSaved) refreshTodayWidgets(applicationContext)
             runOnUiThread { result.success(isSaved) }
         }
+    }
+
+    /** The key derivation takes about a second on purpose: never on the main thread. */
+    private fun runBackupEncryption(
+        result: MethodChannel.Result,
+        operation: () -> Any,
+    ) {
+        backgroundExecutor.execute {
+            try {
+                val output = operation()
+                runOnUiThread { result.success(output) }
+            } catch (exception: AEADBadTagException) {
+                runOnUiThread { result.error("wrong_passphrase", "Wrong passphrase or damaged file", null) }
+            } catch (exception: IllegalArgumentException) {
+                runOnUiThread { result.error("invalid_arguments", exception.message, null) }
+            } catch (exception: Exception) {
+                // Always answer: an unanswered call would leave the export spinning forever.
+                runOnUiThread { result.error("encryption_failed", exception.javaClass.simpleName, null) }
+            }
+        }
+    }
+
+    private fun sealBackup(call: MethodCall): Map<String, ByteArray> {
+        val plaintext = requireNotNull(call.argument<ByteArray>("plaintext")) { "plaintext missing" }
+        val passphrase = requireNotNull(call.argument<String>("passphrase")) { "passphrase missing" }
+        val iterationCount = requireNotNull(call.argument<Int>("iterationCount")) { "iterationCount missing" }
+        val sealed = BackupEncryption.seal(plaintext, passphrase.toCharArray(), iterationCount)
+        return mapOf("salt" to sealed.salt, "nonce" to sealed.nonce, "ciphertext" to sealed.ciphertext)
+    }
+
+    private fun openBackup(call: MethodCall): ByteArray {
+        val sealed =
+            SealedBackup(
+                salt = requireNotNull(call.argument<ByteArray>("salt")) { "salt missing" },
+                nonce = requireNotNull(call.argument<ByteArray>("nonce")) { "nonce missing" },
+                ciphertext = requireNotNull(call.argument<ByteArray>("ciphertext")) { "ciphertext missing" },
+            )
+        val passphrase = requireNotNull(call.argument<String>("passphrase")) { "passphrase missing" }
+        val iterationCount = requireNotNull(call.argument<Int>("iterationCount")) { "iterationCount missing" }
+        return BackupEncryption.open(sealed, passphrase.toCharArray(), iterationCount)
     }
 
     override fun onDestroy() {

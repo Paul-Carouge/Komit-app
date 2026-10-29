@@ -111,7 +111,8 @@ void main() {
           scrollable: find.byType(Scrollable).first,
         );
         expect(find.text(expectedText), findsOneWidget);
-        await tester.drag(find.byType(Scrollable).first, const Offset(0, -200));
+        // Centered, so neither the app bar nor the screen edge covers it, however long Settings is.
+        await Scrollable.ensureVisible(tester.element(find.text('Open system settings')), alignment: 0.5);
         await tester.pumpAndSettle();
         await tester.tap(find.text('Open system settings'));
         await tester.pumpAndSettle();
