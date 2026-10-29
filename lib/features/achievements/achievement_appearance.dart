@@ -46,7 +46,9 @@ AchievementFamily achievementFamily(Achievement achievement) => switch (achievem
   Achievement.threeObjectivesOnOneHabit => AchievementFamily.variety,
   Achievement.weekendWarrior ||
   Achievement.newYearsDay ||
+  Achievement.halloween ||
   Achievement.christmasDay ||
+  Achievement.easterSunday ||
   Achievement.leapDay => AchievementFamily.calendar,
   Achievement.comeback || Achievement.phoenix => AchievementFamily.resilience,
 };
@@ -76,7 +78,9 @@ IconData achievementIcon(Achievement achievement) => switch (achievement) {
   Achievement.threeObjectivesOnOneHabit => KomitIcons.palette,
   Achievement.weekendWarrior => KomitIcons.sun,
   Achievement.newYearsDay => KomitIcons.partyPopper,
+  Achievement.halloween => KomitIcons.ghost,
   Achievement.christmasDay => KomitIcons.gift,
+  Achievement.easterSunday => KomitIcons.egg,
   Achievement.leapDay => KomitIcons.rabbit,
   Achievement.comeback => KomitIcons.rotateCcw,
   Achievement.phoenix => KomitIcons.bird,

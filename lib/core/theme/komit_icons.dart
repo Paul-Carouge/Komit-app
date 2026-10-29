@@ -44,6 +44,7 @@ abstract final class KomitIcons {
   static const IconData dollarSign = IconData(0xe0b1, fontFamily: _fontFamily);
   static const IconData download = IconData(0xe0b2, fontFamily: _fontFamily);
   static const IconData dumbbell = IconData(0xe3a1, fontFamily: _fontFamily);
+  static const IconData egg = IconData(0xe25d, fontFamily: _fontFamily);
   static const IconData ellipsis = IconData(0xe0b6, fontFamily: _fontFamily);
   static const IconData eraser = IconData(0xe28f, fontFamily: _fontFamily);
   static const IconData externalLink = IconData(0xe0b9, fontFamily: _fontFamily);
@@ -56,6 +57,7 @@ abstract final class KomitIcons {
   static const IconData footprints = IconData(0xe3b9, fontFamily: _fontFamily);
   static const IconData frown = IconData(0xe0db, fontFamily: _fontFamily);
   static const IconData gem = IconData(0xe242, fontFamily: _fontFamily);
+  static const IconData ghost = IconData(0xe20e, fontFamily: _fontFamily);
   static const IconData gift = IconData(0xe0e1, fontFamily: _fontFamily);
   static const IconData glassWater = IconData(0xe2d5, fontFamily: _fontFamily);
   static const IconData globe = IconData(0xe0e8, fontFamily: _fontFamily);

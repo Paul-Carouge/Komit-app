@@ -1009,6 +1009,27 @@ class AppLocalizationsFr extends AppLocalizations {
   String get achievementPhoenixDescription => 'Reprendre une habitude après un mois de jours manqués.';
 
   @override
+  String get achievementHalloweenTitle => 'Un bonbon ou un sort';
+
+  @override
+  String get achievementHalloweenDescription => 'Un jour réussi le soir d’Halloween.';
+
+  @override
+  String get achievementEasterSundayTitle => 'Chasse aux œufs';
+
+  @override
+  String get achievementEasterSundayDescription => 'Un jour réussi le dimanche de Pâques.';
+
+  @override
+  String get seasonGreetingHalloween => 'Joyeux Halloween';
+
+  @override
+  String get seasonGreetingChristmas => 'Joyeuses fêtes';
+
+  @override
+  String get seasonGreetingEaster => 'Joyeuses Pâques';
+
+  @override
   String get weeklyRecapTitle => 'La semaine dernière';
 
   @override

@@ -633,6 +633,13 @@
   "achievementLeapDayDescription": "A success day on February 29th.",
   "achievementPhoenixTitle": "Phoenix",
   "achievementPhoenixDescription": "Back on a habit after a month of missed days.",
+  "achievementHalloweenTitle": "Trick or treat",
+  "achievementHalloweenDescription": "A success day on Halloween.",
+  "achievementEasterSundayTitle": "Egg hunt",
+  "achievementEasterSundayDescription": "A success day on Easter Sunday.",
+  "seasonGreetingHalloween": "Happy Halloween",
+  "seasonGreetingChristmas": "Happy holidays",
+  "seasonGreetingEaster": "Happy Easter",
   "weeklyRecapTitle": "Last week",
   "weeklyRecapSuccessDays": "{count, plural, =0{No success days} =1{1 success day} other{{count} success days}}",
   "@weeklyRecapSuccessDays": {

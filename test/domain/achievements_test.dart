@@ -299,6 +299,18 @@ void main() {
       expect(unlocked, containsAll([Achievement.christmasDay, Achievement.newYearsDay, Achievement.leapDay]));
       expect(
         computeUnlockedAchievements([
+          _history(1, [CalendarDay.fromDate(2025, 10, 31), CalendarDay.fromDate(2025, 4, 20)], startDay: start),
+        ], today: _today),
+        containsAll([Achievement.halloween, Achievement.easterSunday]),
+      );
+      expect(
+        computeUnlockedAchievements([
+          _history(1, [CalendarDay.fromDate(2025, 4, 21)], startDay: start),
+        ], today: _today),
+        isNot(contains(Achievement.easterSunday)),
+      );
+      expect(
+        computeUnlockedAchievements([
           _history(1, [CalendarDay.fromDate(2025, 3, 1)], startDay: start),
         ], today: _today),
         isNot(anyOf(contains(Achievement.leapDay), contains(Achievement.christmasDay))),

@@ -1778,6 +1778,48 @@ abstract class AppLocalizations {
   /// **'Back on a habit after a month of missed days.'**
   String get achievementPhoenixDescription;
 
+  /// No description provided for @achievementHalloweenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Trick or treat'**
+  String get achievementHalloweenTitle;
+
+  /// No description provided for @achievementHalloweenDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'A success day on Halloween.'**
+  String get achievementHalloweenDescription;
+
+  /// No description provided for @achievementEasterSundayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Egg hunt'**
+  String get achievementEasterSundayTitle;
+
+  /// No description provided for @achievementEasterSundayDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'A success day on Easter Sunday.'**
+  String get achievementEasterSundayDescription;
+
+  /// No description provided for @seasonGreetingHalloween.
+  ///
+  /// In en, this message translates to:
+  /// **'Happy Halloween'**
+  String get seasonGreetingHalloween;
+
+  /// No description provided for @seasonGreetingChristmas.
+  ///
+  /// In en, this message translates to:
+  /// **'Happy holidays'**
+  String get seasonGreetingChristmas;
+
+  /// No description provided for @seasonGreetingEaster.
+  ///
+  /// In en, this message translates to:
+  /// **'Happy Easter'**
+  String get seasonGreetingEaster;
+
   /// No description provided for @weeklyRecapTitle.
   ///
   /// In en, this message translates to:

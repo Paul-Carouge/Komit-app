@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import '../core/calendar_day.dart';
 import 'habit_history.dart';
 import 'habit_statistics.dart';
+import 'seasons.dart';
 
 /// Long-term goals across every habit. They are derived from the logs each time, never stored,
 /// so an import, an edit or a cleared day always shows the truth. The order is the display order.
@@ -79,8 +80,14 @@ enum Achievement {
   /// A success day on the first of January.
   newYearsDay,
 
+  /// A success day on Halloween.
+  halloween,
+
   /// A success day on Christmas Day.
   christmasDay,
+
+  /// A success day on Easter Sunday.
+  easterSunday,
 
   /// A success day on the twenty-ninth of February.
   leapDay,
@@ -162,7 +169,9 @@ Set<Achievement> computeUnlockedAchievements(List<HabitHistory> histories, {requ
     if (pastHistories.any(_hasThreeSuccessObjectivesLogged)) Achievement.threeObjectivesOnOneHabit,
     if (pastHistories.any(_hasSuccessfulWeekend)) Achievement.weekendWarrior,
     if (successDays.any((day) => _isOn(day, DateTime.january, 1))) Achievement.newYearsDay,
+    if (successDays.any((day) => _isOn(day, DateTime.october, 31))) Achievement.halloween,
     if (successDays.any((day) => _isOn(day, DateTime.december, 25))) Achievement.christmasDay,
+    if (successDays.any((day) => day == easterSundayOf(day.year))) Achievement.easterSunday,
     if (successDays.any((day) => _isOn(day, DateTime.february, 29))) Achievement.leapDay,
     if (pastHistories.any((history) => _hasComebackAfter(history, comebackMissedScheduledDayCount)))
       Achievement.comeback,

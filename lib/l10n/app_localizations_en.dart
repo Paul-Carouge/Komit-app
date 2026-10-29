@@ -993,6 +993,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get achievementPhoenixDescription => 'Back on a habit after a month of missed days.';
 
   @override
+  String get achievementHalloweenTitle => 'Trick or treat';
+
+  @override
+  String get achievementHalloweenDescription => 'A success day on Halloween.';
+
+  @override
+  String get achievementEasterSundayTitle => 'Egg hunt';
+
+  @override
+  String get achievementEasterSundayDescription => 'A success day on Easter Sunday.';
+
+  @override
+  String get seasonGreetingHalloween => 'Happy Halloween';
+
+  @override
+  String get seasonGreetingChristmas => 'Happy holidays';
+
+  @override
+  String get seasonGreetingEaster => 'Happy Easter';
+
+  @override
   String get weeklyRecapTitle => 'Last week';
 
   @override
