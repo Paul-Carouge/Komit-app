@@ -225,14 +225,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get reminderLockedNotificationTitle => 'C\'est l\'heure d\'une habitude';
 
   @override
-  String get reminderLockedNotificationBody => 'Ouvrez Komit pour la noter.';
+  String get reminderLockedNotificationBody => 'Ouvre Komit pour la noter.';
 
   @override
   String get reminderChannelName => 'Rappels d\'habitudes';
 
   @override
   String get notificationsDenied =>
-      'Les rappels ont besoin des notifications, désactivées pour Komit. Vous pouvez les activer dans les paramètres du système.';
+      'Les rappels ont besoin des notifications, désactivées pour Komit. Tu peux les activer dans les paramètres du système.';
 
   @override
   String get secondBrain => 'Second cerveau';
@@ -368,7 +368,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get updateErrorInstallPermission =>
-      'Komit n’a pas encore le droit d’installer des applications. Autorisez-le dans les paramètres, puis réessayez.';
+      'Komit n’a pas encore le droit d’installer des applications. Autorise-le dans les paramètres, puis réessaie.';
 
   @override
   String get updateErrorNetwork => 'le téléchargement a été interrompu. Vérifie ta connexion et réessaie.';
@@ -398,11 +398,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get onboardingNameMessage => 'Ton prénom s\'affiche seulement sur ton accueil. Tu peux passer cette étape.';
 
   @override
-  String get onboardingRemindersTitle => 'Des rappels, seulement si vous le voulez';
+  String get onboardingRemindersTitle => 'Des rappels, seulement si tu le veux';
 
   @override
   String get onboardingRemindersMessage =>
-      'Les rappels sont facultatifs et se règlent habitude par habitude, à l’heure de votre choix. Komit demande l’autorisation seulement quand vous en activez un.';
+      'Les rappels sont facultatifs et se règlent habitude par habitude, à l’heure de ton choix. Komit demande l’autorisation seulement quand tu en actives un.';
 
   @override
   String get continueAction => 'Continuer';
@@ -660,8 +660,8 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Série de $count jours. Continuez aujourd’hui.',
-      one: 'Premier jour de série validé. Continuez aujourd’hui.',
+      other: 'Série de $count jours. Continue aujourd’hui.',
+      one: 'Premier jour de série validé. Continue aujourd’hui.',
     );
     return '$_temp0';
   }
@@ -671,8 +671,8 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Série de $count semaines. Continuez aujourd’hui.',
-      one: 'Série d’une semaine. Continuez aujourd’hui.',
+      other: 'Série de $count semaines. Continue aujourd’hui.',
+      one: 'Série d’une semaine. Continue aujourd’hui.',
     );
     return '$_temp0';
   }
@@ -689,12 +689,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String reminderPermissionTitle(String habit) {
-    return 'Vous rappeler $habit ?';
+    return 'Te rappeler $habit ?';
   }
 
   @override
   String reminderPermissionMessage(String time) {
-    return 'Komit enverra une notification à $time les jours où cette habitude est prévue, avec des boutons pour la noter tout de suite. Android vous demande ensuite l’autorisation.';
+    return 'Komit enverra une notification à $time les jours où cette habitude est prévue, avec des boutons pour la noter tout de suite. Android te demande ensuite l’autorisation.';
   }
 
   @override
@@ -707,10 +707,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get notifications => 'Notifications';
 
   @override
-  String get notificationsStatusEnabled => 'Activées : vos rappels peuvent s’afficher.';
+  String get notificationsStatusEnabled => 'Activées : tes rappels peuvent s’afficher.';
 
   @override
-  String get notificationsStatusDisabled => 'Désactivées : vos rappels ne s’afficheront pas.';
+  String get notificationsStatusDisabled => 'Désactivées : tes rappels ne s’afficheront pas.';
 
   @override
   String get notificationsStatusUnavailable => 'Non disponibles sur cet appareil.';
@@ -738,23 +738,23 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get installPermissionMessage =>
-      'Android ouvre ensuite une page de paramètres. Activez « Autoriser cette source », puis revenez : la mise à jour reprend toute seule.';
+      'Android ouvre ensuite une page de paramètres. Active « Autoriser cette source », puis reviens : la mise à jour reprend toute seule.';
 
   @override
-  String get confirmInstallInSystemWindow => 'Confirmez l’installation dans la fenêtre d’Android.';
+  String get confirmInstallInSystemWindow => 'Confirme l’installation dans la fenêtre d’Android.';
 
   @override
   String get updateErrorInstallCancelled => 'l’installation a été annulée.';
 
   @override
   String get updateErrorInstallConflict =>
-      'une autre version de Komit sur ce téléphone l’empêche. Désinstallez-la après avoir exporté vos données, puis réessayez.';
+      'une autre version de Komit sur ce téléphone l’empêche. Désinstalle-la après avoir exporté tes données, puis réessaie.';
 
   @override
-  String get updateErrorInstallIncompatible => 'cette version n’est pas compatible avec votre téléphone.';
+  String get updateErrorInstallIncompatible => 'cette version n’est pas compatible avec ton téléphone.';
 
   @override
-  String get updateErrorInstallStorage => 'il n’y a pas assez d’espace libre sur votre téléphone.';
+  String get updateErrorInstallStorage => 'il n’y a pas assez d’espace libre sur ton téléphone.';
 
   @override
   String get updateErrorInstallBlocked => 'Android a bloqué l’installation.';
@@ -794,10 +794,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get celebrationKeepGoingTomorrow => 'Continuez demain pour la prolonger.';
+  String get celebrationKeepGoingTomorrow => 'Continue demain pour la prolonger.';
 
   @override
-  String get celebrationKeepGoingNextWeek => 'Continuez la semaine prochaine pour la prolonger.';
+  String get celebrationKeepGoingNextWeek => 'Continue la semaine prochaine pour la prolonger.';
 
   @override
   String get dismissCelebration => 'fermer';
@@ -817,7 +817,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get achievementsIntro => 'Les succès suivent vos suivis : effacer des jours peut en verrouiller un à nouveau.';
+  String get achievementsIntro => 'Les succès suivent tes suivis : effacer des jours peut en verrouiller un à nouveau.';
 
   @override
   String get achievementUnlockedStatus => 'Débloqué';
@@ -835,7 +835,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get achievementPerfectWeekTitle => 'Semaine parfaite';
 
   @override
-  String get achievementPerfectWeekDescription => 'Toutes vos habitudes ont suivi leur programme une semaine entière.';
+  String get achievementPerfectWeekDescription => 'Toutes tes habitudes ont suivi leur programme une semaine entière.';
 
   @override
   String get achievementHundredSuccessDaysTitle => '100 jours';
@@ -853,13 +853,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get achievementOneYearVeteranTitle => 'Un an';
 
   @override
-  String get achievementOneYearVeteranDescription => 'Votre premier suivi a un an.';
+  String get achievementOneYearVeteranDescription => 'Ton premier suivi a un an.';
 
   @override
   String get achievementFirstStepTitle => 'Premier pas';
 
   @override
-  String get achievementFirstStepDescription => 'Votre premier jour réussi.';
+  String get achievementFirstStepDescription => 'Ton premier jour réussi.';
 
   @override
   String get achievementMonthStreakTitle => 'Un mois d’affilée';
@@ -908,13 +908,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get achievementTwoYearVeteranTitle => 'Deux ans';
 
   @override
-  String get achievementTwoYearVeteranDescription => 'Votre premier suivi a deux ans.';
+  String get achievementTwoYearVeteranDescription => 'Ton premier suivi a deux ans.';
 
   @override
   String get achievementFirstMonthWithKomitTitle => 'Un mois ensemble';
 
   @override
-  String get achievementFirstMonthWithKomitDescription => 'Votre premier suivi a un mois.';
+  String get achievementFirstMonthWithKomitDescription => 'Ton premier suivi a un mois.';
 
   @override
   String get achievementTwoWeekStreakTitle => 'Deux semaines d’affilée';
@@ -1069,14 +1069,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String automaticBackupsExplanation(int count) {
-    return 'Komit garde une copie de vos données sur ce téléphone avant chaque import ou mise à jour, et une fois par jour quand quelque chose a changé. Les $count plus récentes sont conservées.';
+    return 'Komit garde une copie de tes données sur ce téléphone avant chaque import ou mise à jour, et une fois par jour quand quelque chose a changé. Les $count plus récentes sont conservées.';
   }
 
   @override
   String get noAutomaticBackupsTitle => 'Aucune sauvegarde automatique';
 
   @override
-  String get noAutomaticBackupsMessage => 'La première est faite aujourd\'hui, dès que vous aurez noté quelque chose.';
+  String get noAutomaticBackupsMessage => 'La première est faite aujourd\'hui, dès que tu auras noté quelque chose.';
 
   @override
   String get automaticBackupBeforeImport => 'Avant un import';
@@ -1092,12 +1092,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String restoreAutomaticBackupConfirmationMessage(String date) {
-    return 'Tout le contenu de l\'application sera remplacé par la copie du $date. Vos données actuelles sont d\'abord enregistrées dans une sauvegarde automatique.';
+    return 'Tout le contenu de l\'application sera remplacé par la copie du $date. Tes données actuelles sont d\'abord enregistrées dans une sauvegarde automatique.';
   }
 
   @override
   String get preImportBackupFailed =>
-      'Rien n\'a été remplacé : Komit n\'a pas pu enregistrer d\'abord une copie de vos données actuelles. Libérez de l\'espace et réessayez.';
+      'Rien n\'a été remplacé : Komit n\'a pas pu enregistrer d\'abord une copie de tes données actuelles. Libère de l\'espace et réessaie.';
 
   @override
   String lastExportDaysAgo(int days) {
@@ -1115,13 +1115,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get encryptBackupMessage =>
-      'Choisissez une phrase secrète. Komit ne peut pas la retrouver : sans elle, ce fichier ne pourra jamais être importé.';
+      'Choisis une phrase secrète. Komit ne peut pas la retrouver : sans elle, ce fichier ne pourra jamais être importé.';
 
   @override
   String get decryptBackupTitle => 'Sauvegarde chiffrée';
 
   @override
-  String get decryptBackupMessage => 'Saisissez la phrase secrète choisie lors de l\'export de ce fichier.';
+  String get decryptBackupMessage => 'Saisis la phrase secrète choisie lors de l\'export de ce fichier.';
 
   @override
   String get passphrase => 'Phrase secrète';
@@ -1137,11 +1137,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String passphraseTooShort(int count) {
-    return 'Utilisez au moins $count caractères.';
+    return 'Utilise au moins $count caractères.';
   }
 
   @override
-  String get passphraseRequired => 'Saisissez la phrase secrète.';
+  String get passphraseRequired => 'Saisis la phrase secrète.';
 
   @override
   String get passphrasesDoNotMatch => 'Les deux phrases secrètes sont différentes.';
@@ -1163,11 +1163,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get appLockSettingDescription =>
-      'Demander votre empreinte, votre visage ou le verrouillage de l\'écran à l\'ouverture de Komit et après une minute d\'absence. Les rappels et le widget masquent alors vos habitudes.';
+      'Demander ton empreinte, ton visage ou le verrouillage de l\'écran à l\'ouverture de Komit et après une minute d\'absence. Les rappels et le widget masquent alors tes habitudes.';
 
   @override
   String get appLockUnavailable =>
-      'Configurez un verrouillage de l\'écran dans les réglages du téléphone pour l\'utiliser.';
+      'Configure un verrouillage de l\'écran dans les réglages du téléphone pour l\'utiliser.';
 
   @override
   String get hideScreenContentSetting => 'Masquer des captures d\'écran';
@@ -1180,60 +1180,60 @@ class AppLocalizationsFr extends AppLocalizations {
   String get appLockTitle => 'Komit est verrouillé';
 
   @override
-  String get appLockMessage => 'Komo garde vos habitudes à l\'abri pendant votre absence.';
+  String get appLockMessage => 'Komo garde tes habitudes à l\'abri pendant ton absence.';
 
   @override
   String get appLockCancelled =>
-      'Le déverrouillage a été annulé. Vos habitudes restent masquées jusqu\'au déverrouillage.';
+      'Le déverrouillage a été annulé. Tes habitudes restent masquées jusqu\'au déverrouillage.';
 
   @override
-  String get appLockFailed => 'Komit n\'a pas pu être déverrouillé. Patientez un instant, puis réessayez.';
+  String get appLockFailed => 'Komit n\'a pas pu être déverrouillé. Patiente un instant, puis réessaie.';
 
   @override
   String get appLockPromptTitle => 'Déverrouiller Komit';
 
   @override
-  String get appLockPromptSubtitle => 'Utilisez votre empreinte, votre visage ou le verrouillage de l\'écran';
+  String get appLockPromptSubtitle => 'Utilise ton empreinte, ton visage ou le verrouillage de l\'écran';
 
   @override
   String get tryAgain => 'Réessayer';
 
   @override
-  String get privacyTitle => 'Votre vie privée';
+  String get privacyTitle => 'Ta vie privée';
 
   @override
-  String get privacyLink => 'Ce qui reste sur votre téléphone';
+  String get privacyLink => 'Ce qui reste sur ton téléphone';
 
   @override
   String get privacyIntroduction =>
-      'Komit n\'a ni compte, ni publicité, ni statistiques d\'usage. Vos habitudes, vos notes et votre prénom sont enregistrés uniquement dans l\'espace privé de Komit sur ce téléphone.';
+      'Komit n\'a ni compte, ni publicité, ni statistiques d\'usage. Tes habitudes, tes notes et ton prénom sont enregistrés uniquement dans l\'espace privé de Komit sur ce téléphone.';
 
   @override
-  String get privacyWhatLeavesTitle => 'Ce qui quitte votre téléphone';
+  String get privacyWhatLeavesTitle => 'Ce qui quitte ton téléphone';
 
   @override
   String get privacyUpdateCheckTitle => 'La recherche de mises à jour, rien d\'autre';
 
   @override
   String get privacyUpdateCheckBody =>
-      'Une fois par jour au plus, Komit demande sa dernière version à GitHub, qui voit alors votre adresse IP. Une mise à jour acceptée est aussi téléchargée depuis GitHub. Désactivez la recherche automatique dans les Réglages, rubrique Mises à jour.';
+      'Une fois par jour au plus, Komit demande sa dernière version à GitHub, qui voit alors ton adresse IP. Une mise à jour acceptée est aussi téléchargée depuis GitHub. Désactive la recherche automatique dans les Réglages, rubrique Mises à jour.';
 
   @override
   String get privacyNoTrackingTitle => 'Aucun pistage';
 
   @override
   String get privacyNoTrackingBody =>
-      'Rien sur vos habitudes, vos notes ou votre usage de l\'application n\'est jamais envoyé nulle part.';
+      'Rien sur tes habitudes, tes notes ou ton usage de l\'application n\'est jamais envoyé nulle part.';
 
   @override
   String get privacyBackupsTitle => 'Sauvegardes et exports';
 
   @override
-  String get privacyCloudBackupTitle => 'Absent de votre sauvegarde cloud';
+  String get privacyCloudBackupTitle => 'Absent de ta sauvegarde cloud';
 
   @override
   String get privacyCloudBackupBody =>
-      'La sauvegarde Android vers le cloud de Google ignore Komit. Le transfert vers un nouveau téléphone par câble ou Wi-Fi copie quand même tout (Android 9 et plus) ; sinon, utilisez un export.';
+      'La sauvegarde Android vers le cloud de Google ignore Komit. Le transfert vers un nouveau téléphone par câble ou Wi-Fi copie quand même tout (Android 9 et plus) ; sinon, utilise un export.';
 
   @override
   String privacyAutomaticBackupsBody(int count) {
@@ -1245,21 +1245,21 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get privacyPlainExportBody =>
-      'Un export simple est un fichier lisible : toute personne qui l\'ouvre peut lire vos habitudes et vos notes. Gardez-le en lieu sûr.';
+      'Un export simple est un fichier lisible : toute personne qui l\'ouvre peut lire tes habitudes et tes notes. Garde-le en lieu sûr.';
 
   @override
   String get privacyEncryptedExportTitle => 'Exports avec phrase secrète';
 
   @override
   String get privacyEncryptedExportBody =>
-      'Chiffrés en AES-256 sur ce téléphone. Seule votre phrase secrète ouvre le fichier, et personne ne peut en retrouver une oubliée.';
+      'Chiffrés en AES-256 sur ce téléphone. Seule ta phrase secrète ouvre le fichier, et personne ne peut en retrouver une oubliée.';
 
   @override
   String get privacyErrorLogTitle => 'Journal d\'erreurs';
 
   @override
   String get privacyErrorLogBody =>
-      'Komit note ses propres erreurs sur ce téléphone, sans le nom de vos habitudes, vos notes ni votre prénom. Ce journal n\'est jamais envoyé.';
+      'Komit note ses propres erreurs sur ce téléphone, sans le nom de tes habitudes, tes notes ni ton prénom. Ce journal n\'est jamais envoyé.';
 
   @override
   String get privacyPermissionsTitle => 'Autorisations';
@@ -1269,21 +1269,21 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get permissionNotificationsBody =>
-      'Pour les rappels que vous programmez. Komit ne demande qu\'au premier rappel ajouté.';
+      'Pour les rappels que tu programmes. Komit ne demande qu\'au premier rappel ajouté.';
 
   @override
   String get permissionStartupTitle => 'Lancement au démarrage';
 
   @override
   String get permissionStartupBody =>
-      'Remet vos rappels en place après un redémarrage du téléphone ou un changement de fuseau horaire.';
+      'Remet tes rappels en place après un redémarrage du téléphone ou un changement de fuseau horaire.';
 
   @override
   String get permissionInstallTitle => 'Installation d\'applications';
 
   @override
   String get permissionInstallBody =>
-      'Uniquement pour installer une mise à jour de Komit que vous avez acceptée. Android vous le demande une fois.';
+      'Uniquement pour installer une mise à jour de Komit que tu as acceptée. Android te le demande une fois.';
 
   @override
   String get permissionInternetTitle => 'Internet';
@@ -1296,7 +1296,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get permissionVibrationBody =>
-      'De légères vibrations quand vous notez un jour, selon les réglages du téléphone.';
+      'De légères vibrations quand tu notes un jour, selon les réglages du téléphone.';
 
   @override
   String get permissionBiometricTitle => 'Empreinte et visage';
