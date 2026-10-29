@@ -894,4 +894,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get dismissWeeklyRecap => 'Masquer le bilan';
+
+  @override
+  String get checkForUpdatesAutomatically => 'Rechercher les mises à jour automatiquement';
+
+  @override
+  String get checkForUpdatesAutomaticallyDescription =>
+      'Une fois par jour au plus, en demandant la dernière version à GitHub.';
 }

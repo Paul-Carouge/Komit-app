@@ -1519,6 +1519,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dismiss the recap'**
   String get dismissWeeklyRecap;
+
+  /// No description provided for @checkForUpdatesAutomatically.
+  ///
+  /// In en, this message translates to:
+  /// **'Check for updates automatically'**
+  String get checkForUpdatesAutomatically;
+
+  /// No description provided for @checkForUpdatesAutomaticallyDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'At most once a day, by asking GitHub for the latest version.'**
+  String get checkForUpdatesAutomaticallyDescription;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

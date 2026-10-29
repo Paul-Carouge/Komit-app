@@ -643,5 +643,7 @@
       }
     }
   },
-  "dismissWeeklyRecap": "Dismiss the recap"
+  "dismissWeeklyRecap": "Dismiss the recap",
+  "checkForUpdatesAutomatically": "Check for updates automatically",
+  "checkForUpdatesAutomaticallyDescription": "At most once a day, by asking GitHub for the latest version."
 }

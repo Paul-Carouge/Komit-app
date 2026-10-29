@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../core/current_calendar_day.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
@@ -16,7 +17,8 @@ final installedVersionProvider = FutureProvider<String?>((ref) async {
   return updateService.isSupported ? updateService.readInstalledVersion() : null;
 });
 
-/// Checks once per launch, silently: a failed check must never bother the user.
+/// Checks at launch, at most once a day and only when the user allows it (see
+/// [claimAutomaticUpdateCheck]), silently: a failed check must never bother the user.
 class StartupUpdateCheck extends ConsumerStatefulWidget {
   const StartupUpdateCheck({required this.child, super.key});
 
@@ -27,16 +29,16 @@ class StartupUpdateCheck extends ConsumerStatefulWidget {
 }
 
 class _StartupUpdateCheckState extends ConsumerState<StartupUpdateCheck> {
-  static bool _hasCheckedThisLaunch = false;
-
   @override
   void initState() {
     super.initState();
-    if (_hasCheckedThisLaunch) return;
-    _hasCheckedThisLaunch = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) unawaited(checkForUpdate(context, ref, isUserInitiated: false));
-    });
+    if (!ref.read(appUpdateServiceProvider).isSupported) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_checkIfDue()));
+  }
+
+  Future<void> _checkIfDue() async {
+    final isDue = await claimAutomaticUpdateCheck(ref.read(settingsRepositoryProvider), now: ref.read(clockProvider)());
+    if (isDue && mounted) await checkForUpdate(context, ref, isUserInitiated: false);
   }
 
   @override

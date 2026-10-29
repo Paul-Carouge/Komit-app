@@ -114,11 +114,25 @@ class SettingsScreen extends ConsumerWidget {
                   SectionTitle(localizations.updates),
                   SoftCard(
                     padding: EdgeInsets.zero,
-                    child: ListTile(
-                      leading: HabitIconBadge(icon: LucideIcons.refreshCw, color: colorScheme.primary),
-                      title: Text(localizations.checkForUpdates),
-                      trailing: const Icon(LucideIcons.chevronRight),
-                      onTap: () => checkForUpdate(context, ref, isUserInitiated: true),
+                    child: Column(
+                      children: [
+                        ListTile(
+                          leading: HabitIconBadge(icon: LucideIcons.refreshCw, color: colorScheme.primary),
+                          title: Text(localizations.checkForUpdates),
+                          trailing: const Icon(LucideIcons.chevronRight),
+                          onTap: () => checkForUpdate(context, ref, isUserInitiated: true),
+                        ),
+                        SwitchListTile(
+                          secondary: HabitIconBadge(icon: LucideIcons.calendarClock, color: komitColors.mutedText),
+                          title: Text(localizations.checkForUpdatesAutomatically),
+                          subtitle: Text(localizations.checkForUpdatesAutomaticallyDescription),
+                          value: settings.isAutomaticUpdateCheckEnabled,
+                          onChanged: (isEnabled) {
+                            unawaited(KomitHaptics.selection());
+                            settingsController.updateAutomaticUpdateCheckEnabled(isEnabled: isEnabled);
+                          },
+                        ),
+                      ],
                     ),
                   ),
                 ],

@@ -64,6 +64,11 @@ class SettingsController extends Notifier<AppSettings> {
     await _repository.saveLanguageCode(languageCode);
     state = _repository.readSettings();
   }
+
+  Future<void> updateAutomaticUpdateCheckEnabled({required bool isEnabled}) async {
+    await _repository.saveAutomaticUpdateCheckEnabled(isEnabled: isEnabled);
+    state = _repository.readSettings();
+  }
 }
 
 final settingsControllerProvider = NotifierProvider<SettingsController, AppSettings>(SettingsController.new);

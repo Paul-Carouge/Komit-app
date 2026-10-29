@@ -237,5 +237,7 @@
   "weeklyRecapHabitProgress": "{doneCount} sur {expectedCount}",
   "weeklyRecapHabitProgressSemantics": "{habitTitle} : {doneCount} sur {expectedCount}",
   "weeklyRecapBestStreak": "Plus longue série : {habitTitle}, {streak}",
-  "dismissWeeklyRecap": "Masquer le bilan"
+  "dismissWeeklyRecap": "Masquer le bilan",
+  "checkForUpdatesAutomatically": "Rechercher les mises à jour automatiquement",
+  "checkForUpdatesAutomaticallyDescription": "Une fois par jour au plus, en demandant la dernière version à GitHub."
 }

@@ -6,9 +6,15 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../data/repositories/settings_repository.dart';
+
 const String _latestReleaseApiUrl = 'https://api.github.com/repos/Paul-Carouge/Komit-app/releases/latest';
 const MethodChannel _appUpdateChannel = MethodChannel('com.paulcarouge.komit/app_update');
 const Duration _networkTimeout = Duration(seconds: 20);
+
+/// The automatic check runs at most this often, so GitHub sees the device's IP address at
+/// most once a day however often Komit is opened.
+const Duration minimumIntervalBetweenAutomaticUpdateChecks = Duration(hours: 24);
 
 /// Far above a real Komit APK (~25 MB); only guards the cache against a bogus asset.
 const int _maximumApkSizeBytes = 200 * 1024 * 1024;
@@ -172,6 +178,21 @@ class AppUpdateService {
       client.close();
     }
   }
+}
+
+/// Returns true, and records [now] as the last check, when an automatic check should run now:
+/// it is turned on and none ran in the last [minimumIntervalBetweenAutomaticUpdateChecks]. A
+/// last check in the future (the clock was set back) does not block checks forever.
+Future<bool> claimAutomaticUpdateCheck(SettingsRepository settingsRepository, {required DateTime now}) async {
+  if (!settingsRepository.readSettings().isAutomaticUpdateCheckEnabled) return false;
+  final lastCheckedAt = settingsRepository.readLastAutomaticUpdateCheckAt();
+  final hasCheckedRecently =
+      lastCheckedAt != null &&
+      !lastCheckedAt.isAfter(now) &&
+      now.difference(lastCheckedAt) < minimumIntervalBetweenAutomaticUpdateChecks;
+  if (hasCheckedRecently) return false;
+  await settingsRepository.saveLastAutomaticUpdateCheckAt(now);
+  return true;
 }
 
 /// Reads a failure sent by the native installer receiver; anything unknown is a generic failure.

@@ -72,6 +72,10 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
   round button to log it with its first objective, without opening the app; tap the
   title to open Komit. It follows dark mode and, on Android 12 and later, your wallpaper
   colors. It never appears on the lock screen and holds only habit names and colors.
+- Backups of your phone to Google's cloud no longer include Komit's data, which stays on the
+  phone. Moving to a new phone with a cable or Wi-Fi transfer still copies everything.
+- Turn off "Check for updates automatically" in Settings. When it is on, Komit asks GitHub
+  at most once a day instead of at every launch.
 
 ### Changed
 - Screens slide in and out again, with Android's back gesture preview: an update of the

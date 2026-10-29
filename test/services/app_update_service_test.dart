@@ -1,7 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:komit/data/repositories/settings_repository.dart';
 import 'package:komit/services/app_update_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 const String _validSha256 = 'ab12ab12ab12ab12ab12ab12ab12ab12ab12ab12ab12ab12ab12ab12ab12ab12';
 
@@ -18,6 +20,44 @@ String buildReleaseJson({
 });
 
 void main() {
+  group('claimAutomaticUpdateCheck', () {
+    final firstLaunch = DateTime(2026, 10, 28, 9);
+    late SettingsRepository settingsRepository;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      settingsRepository = SettingsRepository(await SharedPreferences.getInstance());
+    });
+
+    test('runs once, then not again until 24 hours have passed', () async {
+      expect(await claimAutomaticUpdateCheck(settingsRepository, now: firstLaunch), isTrue);
+      expect(
+        await claimAutomaticUpdateCheck(
+          settingsRepository,
+          now: firstLaunch.add(const Duration(hours: 23, minutes: 59)),
+        ),
+        isFalse,
+      );
+      expect(
+        await claimAutomaticUpdateCheck(settingsRepository, now: firstLaunch.add(const Duration(hours: 24))),
+        isTrue,
+      );
+    });
+
+    test('never runs while the toggle is off', () async {
+      await settingsRepository.saveAutomaticUpdateCheckEnabled(isEnabled: false);
+
+      expect(await claimAutomaticUpdateCheck(settingsRepository, now: firstLaunch), isFalse);
+      expect(settingsRepository.readLastAutomaticUpdateCheckAt(), isNull);
+    });
+
+    test('runs when the last check is in the future, after the clock was set back', () async {
+      await settingsRepository.saveLastAutomaticUpdateCheckAt(firstLaunch.add(const Duration(days: 3)));
+
+      expect(await claimAutomaticUpdateCheck(settingsRepository, now: firstLaunch), isTrue);
+    });
+  });
+
   group('isVersionNewer', () {
     test('compares each numeric part, not text', () {
       expect(isVersionNewer('1.10.0', than: '1.9.0'), isTrue);

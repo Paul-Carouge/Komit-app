@@ -880,4 +880,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dismissWeeklyRecap => 'Dismiss the recap';
+
+  @override
+  String get checkForUpdatesAutomatically => 'Check for updates automatically';
+
+  @override
+  String get checkForUpdatesAutomaticallyDescription => 'At most once a day, by asking GitHub for the latest version.';
 }
