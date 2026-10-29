@@ -10,7 +10,7 @@ import 'komo_painter.dart';
 
 export 'komo_mood.dart';
 
-/// Komo, Komit's mascot: a living day cell drawn in code, no image asset.
+/// Komo, Komit's mascot: an orange rounded square with two pill eyes, like the app icon.
 ///
 /// It plays its [mood] animation for [AppDurations.mascotAnimationBudget], then rests, so a
 /// screen left open stops drawing frames. Tapping Komo plays it again. With system animations
@@ -78,7 +78,6 @@ class _KomoMascotState extends State<KomoMascot> with SingleTickerProviderStateM
   @override
   Widget build(BuildContext context) {
     final komitColors = KomitColors.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
     final mascot = GestureDetector(
       onTap: _replay,
       child: RepaintBoundary(
@@ -89,14 +88,8 @@ class _KomoMascotState extends State<KomoMascot> with SingleTickerProviderStateM
             animation: _controller,
             palette: KomoPalette(
               body: komitColors.mascotBody,
-              bodyShade: komitColors.mascotBodyShade,
-              face: komitColors.mascotFace,
-              eyeHighlight: komitColors.mascotEyeHighlight,
-              cheek: komitColors.mascotCheek,
-              sprout: komitColors.mascotSprout,
+              eyes: komitColors.mascotFace,
               groundShadow: komitColors.mascotGroundShadow,
-              dozeLetter: komitColors.mutedText,
-              sparkles: [colorScheme.secondary, komitColors.mascotSprout, colorScheme.primary, komitColors.mascotCheek],
             ),
           ),
         ),

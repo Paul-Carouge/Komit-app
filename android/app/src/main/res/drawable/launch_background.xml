@@ -1,16 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Splash before Android 12: Komo's face in a sunburst circle, centered on the brand background
-     (cream, or night indigo in dark mode), matching the Android 12+ system splash. -->
+<!-- Splash before Android 12: Komo's face fills the screen, orange with its two pill eyes. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/komit_launch_background" />
-    <item
-        android:width="144dp"
-        android:height="144dp"
-        android:gravity="center">
-        <shape android:shape="oval">
-            <solid android:color="@color/komo_body" />
-        </shape>
-    </item>
     <item
         android:width="216dp"
         android:height="216dp"

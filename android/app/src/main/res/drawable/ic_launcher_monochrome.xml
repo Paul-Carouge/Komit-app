@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Android 13+ themed icon: only Komo's eyes, with their highlights cut out; the launcher tints them. -->
+<!-- Komo's two pill-shaped eyes, centered in the adaptive icon safe zone. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
@@ -7,6 +7,5 @@
     android:viewportHeight="108">
     <path
         android:fillColor="#FFFFFFFF"
-        android:fillType="evenOdd"
-        android:pathData="M33,51 a9,12.5 0 1,0 18,0 a9,12.5 0 1,0 -18,0 Z M57,51 a9,12.5 0 1,0 18,0 a9,12.5 0 1,0 -18,0 Z M41.4,46 a3.5,3.5 0 1,0 7,0 a3.5,3.5 0 1,0 -7,0 Z M65.4,46 a3.5,3.5 0 1,0 7,0 a3.5,3.5 0 1,0 -7,0 Z M37.1,56.2 a1.7,1.7 0 1,0 3.4,0 a1.7,1.7 0 1,0 -3.4,0 Z M61.1,56.2 a1.7,1.7 0 1,0 3.4,0 a1.7,1.7 0 1,0 -3.4,0 Z" />
+        android:pathData="M36,43 A5.5,5.5 0 0 1 47,43 L47,52 A5.5,5.5 0 0 1 36,52 Z M61,43 A5.5,5.5 0 0 1 72,43 L72,52 A5.5,5.5 0 0 1 61,52 Z" />
 </vector>

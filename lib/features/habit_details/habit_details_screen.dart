@@ -37,7 +37,7 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
-    final habit = ref.watch(habitProvider(widget.habitId));
+    final habit = ref.watch(habitWithObjectivesProvider(widget.habitId));
     final today = ref.watch(currentCalendarDayProvider);
     final objectiveIdByDay = ref.watch(objectiveIdByDayForHabitProvider(widget.habitId));
     return Scaffold(

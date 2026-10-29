@@ -2,49 +2,32 @@ import 'dart:math' as math;
 
 import 'komo_mood.dart';
 
-enum KomoEyes { open, smiling, closed }
-
-enum KomoMouth { smile, grin, soft }
-
 /// Everything that moves on Komo at one instant of a mood's animation cycle.
 ///
-/// Every value is a periodic function of the cycle progress, so progress 0 and 1 give the
-/// same resting pose: the animation can stop on any cycle boundary without a visible jump.
+/// Komo is only an orange rounded square with two pill eyes, so moods live in motion and in
+/// the eyes. Every value is a periodic function of the cycle progress, so progress 0 and 1
+/// give the same resting pose: the animation can stop on any cycle boundary without a jump.
 class KomoPose {
   const KomoPose({
     required this.bodyLift,
     required this.stretchX,
     required this.stretchY,
-    required this.eyes,
+    required this.tiltRadians,
     required this.eyeOpenness,
-    required this.mouth,
-    required this.sproutTiltRadians,
-    this.leftArmAngleRadians,
-    this.rightArmAngleRadians,
-    this.sparkleProgress,
-    this.dozeProgress,
+    required this.eyeGlanceX,
   });
 
-  /// Vertical offset of the body in design units; negative is up.
+  /// Vertical offset of the body, as a share of Komo's size; negative is up.
   final double bodyLift;
   final double stretchX;
   final double stretchY;
-  final KomoEyes eyes;
+  final double tiltRadians;
 
-  /// 1 is fully open, 0 is a closed blink.
+  /// 1 is a full pill, 0 a closed eye drawn as a thin line.
   final double eyeOpenness;
-  final KomoMouth mouth;
-  final double sproutTiltRadians;
 
-  /// Null hides the arm; 0 points right, negative angles point up.
-  final double? leftArmAngleRadians;
-  final double? rightArmAngleRadians;
-
-  /// Null shows no celebration sparkles.
-  final double? sparkleProgress;
-
-  /// Null shows no sleeping "z".
-  final double? dozeProgress;
+  /// Horizontal shift of both eyes, as a share of Komo's size; looking sideways.
+  final double eyeGlanceX;
 
   factory KomoPose.of(KomoMood mood, double cycleProgress) {
     final turn = 2 * math.pi * cycleProgress;
@@ -53,65 +36,53 @@ class KomoPose {
       case KomoMood.idle:
         return KomoPose(
           bodyLift: 0,
-          stretchX: 1 - _breathStretchX * breath,
-          stretchY: 1 + _breathStretchY * breath,
-          eyes: KomoEyes.open,
+          stretchX: 1 - _breathStretch * breath,
+          stretchY: 1 + _breathStretch * breath,
+          tiltRadians: 0,
           eyeOpenness: _blinkOpenness(cycleProgress, blinkCenter: _idleBlinkCenter),
-          mouth: KomoMouth.smile,
-          sproutTiltRadians: _sproutSwayRadians * math.cos(turn),
+          eyeGlanceX: 0,
         );
       case KomoMood.happy:
         final hop = math.sin(math.pi * cycleProgress);
-        final wiggle = _armWiggleRadians * math.sin(turn * 2);
+        // Squash on landing and take-off, stretch at the top of the hop.
+        final landingSquash = math.pow(math.cos(math.pi * cycleProgress), 8).toDouble();
         return KomoPose(
           bodyLift: -_hopHeight * hop,
-          stretchX: 1 - _hopStretchX * hop,
-          stretchY: 1 + _hopStretchY * hop,
-          eyes: KomoEyes.smiling,
-          eyeOpenness: 1,
-          mouth: KomoMouth.grin,
-          sproutTiltRadians: _sproutSwayRadians * math.sin(turn),
-          leftArmAngleRadians: -_raisedArmRadians - math.pi / 3 + wiggle,
-          rightArmAngleRadians: -_raisedArmRadians + wiggle,
-          sparkleProgress: cycleProgress,
+          stretchX: 1 + _hopSquash * landingSquash - _hopStretch * hop,
+          stretchY: 1 - _hopSquash * landingSquash + _hopStretch * hop,
+          tiltRadians: 0,
+          eyeOpenness: 1 - _happySquint * hop,
+          eyeGlanceX: 0,
         );
       case KomoMood.sleepy:
         return KomoPose(
-          bodyLift: _sleepySinkHeight,
-          stretchX: 1 - _breathStretchX * breath,
-          stretchY: 1 + _sleepyBreathStretchY * breath,
-          eyes: KomoEyes.closed,
-          eyeOpenness: 1,
-          mouth: KomoMouth.soft,
-          sproutTiltRadians: _droopedSproutRadians + _sproutSwayRadians * breath,
-          dozeProgress: cycleProgress,
+          bodyLift: _sleepySink,
+          stretchX: 1 + _breathStretch * breath,
+          stretchY: 1 - _breathStretch * breath,
+          tiltRadians: 0,
+          eyeOpenness: 0,
+          eyeGlanceX: 0,
         );
       case KomoMood.waving:
         return KomoPose(
           bodyLift: 0,
-          stretchX: 1 - _breathStretchX * breath,
-          stretchY: 1 + _breathStretchY * breath,
-          eyes: KomoEyes.open,
+          stretchX: 1,
+          stretchY: 1,
+          tiltRadians: _greetingTiltRadians * math.sin(turn),
           eyeOpenness: _blinkOpenness(cycleProgress, blinkCenter: _wavingBlinkCenter),
-          mouth: KomoMouth.smile,
-          sproutTiltRadians: _sproutSwayRadians * math.sin(turn),
-          rightArmAngleRadians: -_raisedArmRadians + _waveAmplitudeRadians * math.sin(turn * 2),
+          eyeGlanceX: _greetingGlance * math.sin(turn),
         );
     }
   }
 
-  static const double _breathStretchX = 0.012;
-  static const double _breathStretchY = 0.025;
-  static const double _sleepyBreathStretchY = 0.035;
-  static const double _hopHeight = 10;
-  static const double _hopStretchX = 0.03;
-  static const double _hopStretchY = 0.05;
-  static const double _sleepySinkHeight = 2;
-  static const double _sproutSwayRadians = 0.06;
-  static const double _droopedSproutRadians = 0.4;
-  static const double _raisedArmRadians = math.pi / 3;
-  static const double _armWiggleRadians = 0.18;
-  static const double _waveAmplitudeRadians = 0.45;
+  static const double _breathStretch = 0.02;
+  static const double _hopHeight = 0.12;
+  static const double _hopStretch = 0.05;
+  static const double _hopSquash = 0.08;
+  static const double _happySquint = 0.35;
+  static const double _sleepySink = 0.02;
+  static const double _greetingTiltRadians = 0.12;
+  static const double _greetingGlance = 0.04;
   static const double _idleBlinkCenter = 0.65;
   static const double _wavingBlinkCenter = 0.85;
 

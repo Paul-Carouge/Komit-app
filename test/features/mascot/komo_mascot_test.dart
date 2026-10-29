@@ -17,17 +17,9 @@ void _expectSamePose(KomoPose actual, KomoPose expected) {
   expect(actual.bodyLift, moreOrLessEquals(expected.bodyLift));
   expect(actual.stretchX, moreOrLessEquals(expected.stretchX));
   expect(actual.stretchY, moreOrLessEquals(expected.stretchY));
-  expect(actual.eyes, expected.eyes);
+  expect(actual.tiltRadians, moreOrLessEquals(expected.tiltRadians));
   expect(actual.eyeOpenness, moreOrLessEquals(expected.eyeOpenness));
-  expect(actual.sproutTiltRadians, moreOrLessEquals(expected.sproutTiltRadians));
-  expect(
-    actual.leftArmAngleRadians,
-    expected.leftArmAngleRadians == null ? isNull : moreOrLessEquals(expected.leftArmAngleRadians!),
-  );
-  expect(
-    actual.rightArmAngleRadians,
-    expected.rightArmAngleRadians == null ? isNull : moreOrLessEquals(expected.rightArmAngleRadians!),
-  );
+  expect(actual.eyeGlanceX, moreOrLessEquals(expected.eyeGlanceX));
 }
 
 void main() {

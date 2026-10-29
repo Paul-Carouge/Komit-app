@@ -1,24 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Komo's face filling the icon: big eyes, cheeks and a tiny smile, inside the 66dp safe circle.
-     Source: docs/design/komit-launcher-icon.svg. Also the Android 12+ splash icon, on a komo_body circle. -->
+<!-- Komo's two pill-shaped eyes, centered in the adaptive icon safe zone. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
     <path
-        android:fillAlpha="0.8"
-        android:fillColor="@color/komo_cheek"
-        android:pathData="M24,64.5 a5.5,3.4 0 1,0 11,0 a5.5,3.4 0 1,0 -11,0 Z M73,64.5 a5.5,3.4 0 1,0 11,0 a5.5,3.4 0 1,0 -11,0 Z" />
-    <path
-        android:fillColor="@color/komo_face"
-        android:pathData="M33,51 a9,12.5 0 1,0 18,0 a9,12.5 0 1,0 -18,0 Z M57,51 a9,12.5 0 1,0 18,0 a9,12.5 0 1,0 -18,0 Z" />
-    <path
-        android:fillColor="@color/komo_eye_highlight"
-        android:pathData="M41.4,46 a3.5,3.5 0 1,0 7,0 a3.5,3.5 0 1,0 -7,0 Z M65.4,46 a3.5,3.5 0 1,0 7,0 a3.5,3.5 0 1,0 -7,0 Z M37.1,56.2 a1.7,1.7 0 1,0 3.4,0 a1.7,1.7 0 1,0 -3.4,0 Z M61.1,56.2 a1.7,1.7 0 1,0 3.4,0 a1.7,1.7 0 1,0 -3.4,0 Z" />
-    <path
-        android:pathData="M49.5,66 Q54,71 58.5,66"
-        android:strokeWidth="3.2"
-        android:strokeColor="@color/komo_face"
-        android:strokeLineCap="round" />
+        android:fillColor="@color/komo_eye"
+        android:pathData="M36,43 A5.5,5.5 0 0 1 47,43 L47,52 A5.5,5.5 0 0 1 36,52 Z M61,43 A5.5,5.5 0 0 1 72,43 L72,52 A5.5,5.5 0 0 1 61,52 Z" />
 </vector>

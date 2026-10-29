@@ -31,7 +31,7 @@ class HabitStatisticsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final localizations = AppLocalizations.of(context);
-    final habit = ref.watch(habitProvider(habitId));
+    final habit = ref.watch(habitWithObjectivesProvider(habitId));
     final objectiveIdByDay = ref.watch(objectiveIdByDayForHabitProvider(habitId));
     return Scaffold(
       appBar: AppBar(title: Text(localizations.statisticsTitle(year))),

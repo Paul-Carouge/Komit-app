@@ -1,27 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Komo's sunburst body, edge to edge: the icon is Komo's face, not Komo on a background.
-     Source: docs/design/komit-launcher-icon.svg (gradient #FFCB45 to #FFAA10 around komo_body). -->
+<!-- Komo's body, edge to edge: the icon is Komo's face. Source: docs/design/komit-launcher-icon.svg -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path android:pathData="M0,0 H108 V108 H0 Z">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:endX="54"
-                android:endY="108"
-                android:startX="54"
-                android:startY="0"
-                android:type="linear">
-                <item
-                    android:color="#FFFFCB45"
-                    android:offset="0" />
-                <item
-                    android:color="#FFFFAA10"
-                    android:offset="1" />
-            </gradient>
-        </aapt:attr>
-    </path>
+    <path
+        android:fillColor="@color/komit_orange"
+        android:pathData="M0,0 H108 V108 H0 Z" />
 </vector>

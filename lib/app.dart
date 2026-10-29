@@ -67,7 +67,7 @@ class _ReminderSynchronizerState extends ConsumerState<_ReminderSynchronizer> {
 
   @override
   Widget build(BuildContext context) {
-    final habits = ref.watch(allHabitsProvider).value;
+    final habits = ref.watch(allHabitsWithObjectivesProvider).value;
     final locale = Localizations.localeOf(context);
     if (habits != null && (!identical(habits, _scheduledHabits) || locale != _scheduledLocale)) {
       _scheduledHabits = habits;

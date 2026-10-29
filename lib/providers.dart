@@ -51,9 +51,11 @@ class SettingsController extends Notifier<AppSettings> {
 
 final settingsControllerProvider = NotifierProvider<SettingsController, AppSettings>(SettingsController.new);
 
-final allHabitsProvider = StreamProvider((ref) => ref.watch(habitRepositoryProvider).watchAllHabitsWithObjectives());
+final allHabitsWithObjectivesProvider = StreamProvider(
+  (ref) => ref.watch(habitRepositoryProvider).watchAllHabitsWithObjectives(),
+);
 
-final habitProvider = StreamProvider.family<HabitWithObjectives?, int>(
+final habitWithObjectivesProvider = StreamProvider.family<HabitWithObjectives?, int>(
   (ref, habitId) => ref.watch(habitRepositoryProvider).watchHabitWithObjectives(habitId),
 );
 
@@ -64,7 +66,7 @@ final objectiveIdByDayForHabitProvider = StreamProvider.family<Map<CalendarDay, 
 /// Days shown on each dashboard card.
 const int dashboardRecentDayCount = 28;
 
-final recentLogsForAllHabitsProvider = StreamProvider((ref) {
+final recentObjectiveIdByDayByHabitIdProvider = StreamProvider((ref) {
   final firstDay = ref.watch(currentCalendarDayProvider).addDays(-(dashboardRecentDayCount - 1));
   return ref.watch(habitRepositoryProvider).watchObjectiveIdByDayForAllHabitsSince(firstDay);
 });

@@ -1,24 +1,6 @@
-<!-- Komit launcher icon, source of truth. Komo's face fills the whole icon: there is no character
-     on a background, only Komo's sunburst body color edge to edge, its big eyes, cheeks and a tiny smile.
-     Coordinates are the 108-unit adaptive icon grid; the face stays inside the 66-unit safe circle.
-     Mirrored by android/app/src/main/res/drawable/ic_launcher_background.xml (gradient),
-     ic_launcher_foreground.xml (face) and ic_launcher_monochrome.xml (eyes only).
-     The legacy PNGs are rendered from the 18..90 square of this file by tool/render_launcher_icons.swift. -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" width="432" height="432">
-  <defs>
-    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#FFCB45"/>
-      <stop offset="1" stop-color="#FFAA10"/>
-    </linearGradient>
-  </defs>
-  <rect width="108" height="108" fill="url(#body)"/>
-  <ellipse cx="29.5" cy="64.5" rx="5.5" ry="3.4" fill="#FF7F6B" fill-opacity="0.8"/>
-  <ellipse cx="78.5" cy="64.5" rx="5.5" ry="3.4" fill="#FF7F6B" fill-opacity="0.8"/>
-  <ellipse cx="42" cy="51" rx="9" ry="12.5" fill="#2A1F3D"/>
-  <ellipse cx="66" cy="51" rx="9" ry="12.5" fill="#2A1F3D"/>
-  <circle cx="44.9" cy="46" r="3.5" fill="#FFFFFF"/>
-  <circle cx="68.9" cy="46" r="3.5" fill="#FFFFFF"/>
-  <circle cx="38.8" cy="56.2" r="1.7" fill="#FFFFFF"/>
-  <circle cx="62.8" cy="56.2" r="1.7" fill="#FFFFFF"/>
-  <path d="M49.5,66 Q54,71 58.5,66" stroke="#2A1F3D" stroke-width="3.2" stroke-linecap="round" fill="none"/>
+<!-- Komit launcher icon: Komo's face is the whole icon. Solid orange, two pill-shaped eyes.
+     108-unit adaptive icon grid; launchers show the central 72 units. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="108" height="108" viewBox="0 0 108 108">
+  <rect width="108" height="108" fill="#FF8C1A"/>
+  <path d="M36,43 A5.5,5.5 0 0 1 47,43 L47,52 A5.5,5.5 0 0 1 36,52 Z M61,43 A5.5,5.5 0 0 1 72,43 L72,52 A5.5,5.5 0 0 1 61,52 Z" fill="#1A1A1A"/>
 </svg>

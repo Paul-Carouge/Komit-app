@@ -1,6 +1,10 @@
+import 'dart:async';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/haptics.dart';
 import '../../core/theme/app_motion.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
@@ -46,7 +50,8 @@ class HabitIconBadge extends StatelessWidget {
   }
 }
 
-/// A tappable card that sinks slightly while pressed, so every card answers the finger the same way.
+/// A tappable card lifted by a soft shadow, that sinks while pressed and springs back on release,
+/// so every card answers the finger the same way.
 class PressableCard extends StatefulWidget {
   const PressableCard({required this.onTap, required this.child, this.color, this.shape, this.gradient, super.key});
 
@@ -68,25 +73,113 @@ class _PressableCardState extends State<PressableCard> {
   @override
   Widget build(BuildContext context) {
     final gradient = widget.gradient;
+    final shape = widget.shape ?? Theme.of(context).cardTheme.shape!;
+    final isTransparent = widget.color == Colors.transparent;
     final inkWell = InkWell(
-      onTap: widget.onTap,
+      onTap: () {
+        unawaited(KomitHaptics.selection());
+        widget.onTap();
+      },
       onHighlightChanged: (isPressed) => setState(() => _isPressed = isPressed),
       child: widget.child,
     );
     return AnimatedScale(
       scale: _isPressed ? pressedScale : 1,
-      duration: motionAwareDuration(context, AppDurations.quick),
-      curve: AppCurves.standard,
+      // Quick to sink, springy to come back: the press feels physical.
+      duration: motionAwareDuration(context, _isPressed ? AppDurations.quick : AppDurations.emphasized),
+      curve: _isPressed ? AppCurves.standard : AppCurves.spring,
+      child: DecoratedBox(
+        decoration: ShapeDecoration(
+          shape: shape,
+          shadows: isTransparent ? null : AppShadows.card(KomitColors.of(context).cardShadow),
+        ),
+        child: Card(
+          color: widget.color,
+          shape: shape,
+          clipBehavior: Clip.antiAlias,
+          child: gradient == null
+              ? inkWell
+              : Ink(
+                  decoration: BoxDecoration(gradient: gradient),
+                  child: inkWell,
+                ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A surface floating above the page: soft shadow and generous radius, not tappable.
+class SoftCard extends StatelessWidget {
+  const SoftCard({required this.child, this.padding = const EdgeInsets.all(AppSpacing.large), super.key});
+
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+
+  @override
+  Widget build(BuildContext context) {
+    final shape = Theme.of(context).cardTheme.shape!;
+    return DecoratedBox(
+      decoration: ShapeDecoration(shape: shape, shadows: AppShadows.card(KomitColors.of(context).cardShadow)),
       child: Card(
-        color: widget.color,
-        shape: widget.shape,
-        clipBehavior: Clip.antiAlias,
-        child: gradient == null
-            ? inkWell
-            : Ink(
-                decoration: BoxDecoration(gradient: gradient),
-                child: inkWell,
-              ),
+        child: Padding(padding: padding, child: child),
+      ),
+    );
+  }
+}
+
+/// Blurs whatever scrolls behind [child], like iOS bars, with a translucent page-colored veil.
+class FrostedGlass extends StatelessWidget {
+  const FrostedGlass({required this.child, super.key});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final surface = Theme.of(context).colorScheme.surface;
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: AppBlur.frostedSigma, sigmaY: AppBlur.frostedSigma),
+        child: ColoredBox(
+          color: surface.withValues(alpha: AppOpacity.frostedSurface),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+/// iOS-style large title that collapses into a frosted bar when the content scrolls under it.
+class LargeTitleSliverAppBar extends StatelessWidget {
+  const LargeTitleSliverAppBar({required this.title, this.leading, this.actions, super.key});
+
+  final String title;
+  final Widget? leading;
+  final List<Widget>? actions;
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverAppBar.large(
+      pinned: true,
+      leading: leading,
+      automaticallyImplyLeading: leading == null,
+      actions: actions,
+      backgroundColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      flexibleSpace: FrostedGlass(
+        child: FlexibleSpaceBar(
+          titlePadding: const EdgeInsetsDirectional.only(start: AppSpacing.screenGutter, bottom: AppSpacing.large),
+          expandedTitleScale: 1.6,
+          title: Semantics(
+            header: true,
+            child: Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+          ),
+        ),
       ),
     );
   }

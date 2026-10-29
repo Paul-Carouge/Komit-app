@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Brand colors, mirrored from lib/core/theme/app_theme.dart (_BrandColors and KomitColors). -->
+<!-- Brand colors, mirrored from lib/core/theme/app_theme.dart (_BrandColors). -->
 <resources>
-    <color name="komit_launch_background">#FFFFF4DC</color>
-    <color name="komo_body">#FFFFBC1F</color>
-    <color name="komo_face">#FF2A1F3D</color>
-    <color name="komo_eye_highlight">#FFFFFFFF</color>
-    <color name="komo_cheek">#FFFF7F6B</color>
+    <color name="komit_orange">#FFFF8C1A</color>
+    <color name="komo_eye">#FF1A1A1A</color>
+    <color name="komit_launch_background">#FFFF8C1A</color>
 </resources>

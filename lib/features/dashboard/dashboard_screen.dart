@@ -28,65 +28,49 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final localizations = AppLocalizations.of(context);
     final userName = ref.watch(settingsControllerProvider.select((settings) => settings.userName));
-    final habits = ref.watch(allHabitsProvider);
+    final habits = ref.watch(allHabitsWithObjectivesProvider);
     final hasHabits = habits.value?.isNotEmpty ?? false;
     return Scaffold(
-      body: SafeArea(
-        bottom: false,
-        child: CustomScrollView(
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.screenGutter,
-                AppSpacing.extraLarge,
-                AppSpacing.small,
-                AppSpacing.large,
+      body: CustomScrollView(
+        slivers: [
+          LargeTitleSliverAppBar(
+            title: userName == null ? localizations.greetingWithoutName : localizations.greeting(userName),
+            leading: hasHabits
+                ? const Padding(
+                    padding: EdgeInsetsDirectional.only(start: AppSpacing.small),
+                    child: _DashboardKomo(),
+                  )
+                : const SizedBox.shrink(),
+            actions: [
+              IconButton(
+                tooltip: localizations.settingsTooltip,
+                onPressed: () => context.push(AppRoutes.settings),
+                icon: const Icon(LucideIcons.settings),
               ),
-              sliver: SliverToBoxAdapter(
-                child: Row(
-                  children: [
-                    if (hasHabits) ...[const _DashboardKomo(), const SizedBox(width: AppSpacing.medium)],
-                    Expanded(
-                      child: Semantics(
-                        header: true,
-                        child: Text(
-                          userName == null ? localizations.greetingWithoutName : localizations.greeting(userName),
-                          style: Theme.of(context).textTheme.headlineSmall,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      tooltip: localizations.settingsTooltip,
-                      onPressed: () => context.push(AppRoutes.settings),
-                      icon: const Icon(LucideIcons.settings),
-                    ),
-                  ],
+              const SizedBox(width: AppSpacing.small),
+            ],
+          ),
+          switch (habits) {
+            AsyncData(value: final habits) when habits.isEmpty => SliverFillRemaining(
+              hasScrollBody: false,
+              child: KomoEmptyState(
+                mood: KomoMood.waving,
+                title: localizations.dashboardEmptyTitle,
+                message: localizations.dashboardEmptyMessage,
+                action: FilledButton.icon(
+                  onPressed: () => context.push(AppRoutes.newHabit),
+                  icon: const Icon(LucideIcons.plus),
+                  label: Text(localizations.createFirstHabit),
                 ),
               ),
             ),
-            switch (habits) {
-              AsyncData(value: final habits) when habits.isEmpty => SliverFillRemaining(
-                hasScrollBody: false,
-                child: KomoEmptyState(
-                  mood: KomoMood.waving,
-                  title: localizations.dashboardEmptyTitle,
-                  message: localizations.dashboardEmptyMessage,
-                  action: FilledButton.icon(
-                    onPressed: () => context.push(AppRoutes.newHabit),
-                    icon: const Icon(LucideIcons.plus),
-                    label: Text(localizations.createFirstHabit),
-                  ),
-                ),
-              ),
-              AsyncData(value: final habits) => _HabitCardGrid(habits: habits),
-              _ => SliverFillRemaining(
-                hasScrollBody: false,
-                child: AsyncValueView(value: habits, builder: (_) => const SizedBox()),
-              ),
-            },
-          ],
-        ),
+            AsyncData(value: final habits) => _HabitCardGrid(habits: habits),
+            _ => SliverFillRemaining(
+              hasScrollBody: false,
+              child: AsyncValueView(value: habits, builder: (_) => const SizedBox()),
+            ),
+          },
+        ],
       ),
     );
   }
@@ -99,11 +83,11 @@ class _DashboardKomo extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final today = ref.watch(currentCalendarDayProvider);
-    final habits = ref.watch(allHabitsProvider).value ?? const [];
-    final recentLogsByHabitId = ref.watch(recentLogsForAllHabitsProvider).value ?? const {};
+    final habits = ref.watch(allHabitsWithObjectivesProvider).value ?? const [];
+    final recentLogsByHabitId = ref.watch(recentObjectiveIdByDayByHabitIdProvider).value ?? const {};
     final isEveryHabitLoggedToday =
         habits.isNotEmpty && habits.every((habit) => recentLogsByHabitId[habit.habit.id]?.containsKey(today) ?? false);
-    return KomoMascot(mood: isEveryHabitLoggedToday ? KomoMood.happy : KomoMood.idle, size: AppSizes.mascotSmall);
+    return KomoMascot(mood: isEveryHabitLoggedToday ? KomoMood.happy : KomoMood.idle, size: AppSizes.iconBadge);
   }
 }
 
@@ -114,11 +98,17 @@ class _HabitCardGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final recentLogsByHabitId = ref.watch(recentLogsForAllHabitsProvider).value ?? const {};
+    final recentLogsByHabitId = ref.watch(recentObjectiveIdByDayByHabitIdProvider).value ?? const {};
     final lastLoggedDayByHabitId = ref.watch(lastLoggedDayByHabitIdProvider).value ?? const {};
     final today = ref.watch(currentCalendarDayProvider);
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.screenGutter, 0, AppSpacing.screenGutter, AppSpacing.extraLarge),
+      // The bottom inset is the frosted navigation bar the grid scrolls under.
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.screenGutter,
+        AppSpacing.small,
+        AppSpacing.screenGutter,
+        AppSpacing.extraLarge + MediaQuery.paddingOf(context).bottom,
+      ),
       sliver: SliverGrid.builder(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: _cardsPerRow,

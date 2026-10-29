@@ -25,10 +25,13 @@ abstract final class AppCurves {
 
   /// Slight overshoot: things the user just created land with a little bounce.
   static const Curve emphasized = Curves.easeOutBack;
+
+  /// Underdamped spring, like Material 3 Expressive motion: settles with a soft wobble.
+  static const Curve spring = ElasticOutCurve(0.8);
 }
 
 /// Pressed cards and buttons shrink to this scale.
-const double pressedScale = 0.97;
+const double pressedScale = 0.96;
 
 /// [Duration.zero] when the user asked the system to remove animations.
 Duration motionAwareDuration(BuildContext context, Duration duration) =>
