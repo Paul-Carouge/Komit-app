@@ -22,6 +22,9 @@ import 'automatic_backups_sheet.dart';
 import 'backup_actions.dart';
 import 'backup_passphrase_dialog.dart';
 
+/// Stands for a null language code, which RadioGroup cannot tell apart from no selection.
+const String _followPhoneLanguageCode = '';
+
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -81,20 +84,35 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ),
                 SectionTitle(localizations.language),
-                SegmentedButton<String?>(
-                  segments: [
-                    // Null follows the phone, including Android's per-app language setting.
-                    ButtonSegment(value: null, label: Text(localizations.languageSystem)),
-                    // Each language is named in itself, so it can be found whatever the current one.
-                    const ButtonSegment(value: 'en', label: Text('English')),
-                    const ButtonSegment(value: 'fr', label: Text('Français')),
-                  ],
-                  selected: {settings.languageCode},
-                  selectedIcon: const Icon(KomitIcons.check),
-                  onSelectionChanged: (selection) {
-                    unawaited(KomitHaptics.selection());
-                    settingsController.updateLanguageCode(selection.single);
-                  },
+                // A list rather than segments: three labels side by side wrapped mid-word in French.
+                SoftCard(
+                  padding: EdgeInsets.zero,
+                  child: RadioGroup<String>(
+                    groupValue: settings.languageCode ?? _followPhoneLanguageCode,
+                    onChanged: (languageCode) {
+                      if (languageCode == null) return;
+                      unawaited(KomitHaptics.selection());
+                      settingsController.updateLanguageCode(
+                        languageCode == _followPhoneLanguageCode ? null : languageCode,
+                      );
+                    },
+                    child: Column(
+                      children: [
+                        for (final (languageCode, label) in [
+                          // Following the phone includes Android's per-app language setting.
+                          (_followPhoneLanguageCode, localizations.languageSystem),
+                          // Each language is named in itself, so it can be found whatever the current one.
+                          ('en', 'English'),
+                          ('fr', 'Français'),
+                        ])
+                          RadioListTile<String>(
+                            value: languageCode,
+                            title: Text(label),
+                            controlAffinity: ListTileControlAffinity.trailing,
+                          ),
+                      ],
+                    ),
+                  ),
                 ),
                 SectionTitle(localizations.notifications),
                 const _NotificationSettingsCard(),
