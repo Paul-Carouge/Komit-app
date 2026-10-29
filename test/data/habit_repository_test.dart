@@ -167,7 +167,7 @@ void main() {
   test('saves the schedule, the weekly target and which objectives count as a success', () async {
     const mondayWednesdayFridayMask = 0x15;
     final habitId = await repository.saveHabit(
-      HabitDraft(
+      const HabitDraft(
         id: null,
         title: 'Gym',
         description: '',
@@ -175,7 +175,7 @@ void main() {
         iconName: 'dumbbell',
         reminderMinuteOfDay: null,
         scheduledWeekdayMask: mondayWednesdayFridayMask,
-        objectives: const [
+        objectives: [
           ObjectiveDraft(id: null, title: 'Done', colorArgb: 1),
           ObjectiveDraft(id: null, title: 'Skipped', colorArgb: 2, countsAsSuccess: false),
         ],
