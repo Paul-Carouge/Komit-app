@@ -9,6 +9,17 @@ class StreakSummary {
   final int currentStreakLength;
   final int bestStreakLength;
   final StreakUnit unit;
+
+  // Value equality lets a dashboard row skip its rebuild when another habit's log recomputes it.
+  @override
+  bool operator ==(Object other) =>
+      other is StreakSummary &&
+      other.currentStreakLength == currentStreakLength &&
+      other.bestStreakLength == bestStreakLength &&
+      other.unit == unit;
+
+  @override
+  int get hashCode => Object.hash(currentStreakLength, bestStreakLength, unit);
 }
 
 /// Streak lengths worth celebrating; 1 celebrates the very first success.

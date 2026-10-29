@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' show lerpDouble;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -286,8 +287,6 @@ class _ReorderableHabitListState extends ConsumerState<_ReorderableHabitList> {
   @override
   Widget build(BuildContext context) {
     final habits = _droppedOrder ?? widget.habits;
-    final recentLogsByHabitId = ref.watch(recentObjectiveIdByDayByHabitIdProvider).value ?? const {};
-    final lastLoggedDayByHabitId = ref.watch(lastLoggedDayByHabitIdProvider).value ?? const {};
     final today = ref.watch(currentCalendarDayProvider);
     _entranceChoreographer.updateRowIds(habits.map((habit) => habit.habit.id));
     return SliverReorderableList(
@@ -307,8 +306,6 @@ class _ReorderableHabitListState extends ConsumerState<_ReorderableHabitList> {
               child: _HabitRow(
                 habit: habit,
                 today: today,
-                recentObjectiveIdByDay: recentLogsByHabitId[habit.habit.id] ?? const {},
-                lastLoggedDay: lastLoggedDayByHabitId[habit.habit.id],
                 onMoveUp: index == 0 ? null : () => _move(habits, index, index - 1),
                 onMoveDown: index == habits.length - 1 ? null : () => _move(habits, index, index + 1),
               ),
@@ -344,19 +341,10 @@ class _ReorderableHabitListState extends ConsumerState<_ReorderableHabitList> {
 }
 
 class _HabitRow extends ConsumerWidget {
-  const _HabitRow({
-    required this.habit,
-    required this.today,
-    required this.recentObjectiveIdByDay,
-    required this.lastLoggedDay,
-    required this.onMoveUp,
-    required this.onMoveDown,
-  });
+  const _HabitRow({required this.habit, required this.today, required this.onMoveUp, required this.onMoveDown});
 
   final HabitWithObjectives habit;
   final CalendarDay today;
-  final Map<CalendarDay, int> recentObjectiveIdByDay;
-  final CalendarDay? lastLoggedDay;
   final VoidCallback? onMoveUp;
   final VoidCallback? onMoveDown;
 
@@ -366,7 +354,17 @@ class _HabitRow extends ConsumerWidget {
     final komitColors = KomitColors.of(context);
     final textTheme = Theme.of(context).textTheme;
     final title = habit.habit.title;
-    final streak = ref.watch(streakSummaryForHabitProvider(habit.habit.id));
+    final habitId = habit.habit.id;
+    // Each row selects its own logs, so logging one habit rebuilds only that habit's row.
+    final recentObjectiveIdByDay = ref
+        .watch(
+          recentObjectiveIdByDayByHabitIdProvider.select(
+            (logsByHabitId) => _ObjectiveIdByDayComparedByEntries(logsByHabitId.value?[habitId] ?? const {}),
+          ),
+        )
+        .objectiveIdByDay;
+    final lastLoggedDay = ref.watch(lastLoggedDayByHabitIdProvider.select((days) => days.value?[habitId]));
+    final streak = ref.watch(streakSummaryForHabitProvider(habitId));
     final isScheduledToday = isHabitScheduledOn(habit, today);
     final todayObjectiveId = recentObjectiveIdByDay[today];
     final todayObjective = todayObjectiveId == null ? null : habit.objectiveWithId(todayObjectiveId);
@@ -383,7 +381,7 @@ class _HabitRow extends ConsumerWidget {
           countSuccessDaysInWeekOf(recentObjectiveIdByDay, successObjectiveIds: habit.successObjectiveIds, day: today),
           targetDaysPerWeek,
         ),
-      _lastActivityText(context, localizations),
+      _lastActivityText(context, localizations, lastLoggedDay),
     ];
     final todayState = switch (todayObjective) {
       final objective? => localizations.habitRowLoggedToday(title, objective.title),
@@ -457,7 +455,7 @@ class _HabitRow extends ConsumerWidget {
                 columnCount: recentDayCountShownOnDashboard,
                 minimumRowExtent: AppSizes.minimumTouchTarget,
                 cellTapActionLabel: localizations.logThisDayAction,
-                cells: _recentDayCells(context, localizations, komitColors, ref),
+                cells: _recentDayCells(context, localizations, komitColors, ref, recentObjectiveIdByDay),
               ),
             ),
           ],
@@ -490,8 +488,7 @@ class _HabitRow extends ConsumerWidget {
     unawaited(logDayFromSheet(context, ref, habit: habit, day: day, currentObjectiveId: currentObjectiveId));
   }
 
-  String _lastActivityText(BuildContext context, AppLocalizations localizations) {
-    final lastLoggedDay = this.lastLoggedDay;
+  String _lastActivityText(BuildContext context, AppLocalizations localizations, CalendarDay? lastLoggedDay) {
     if (lastLoggedDay == null) return localizations.noActivityYet;
     final daysAgo = today.daysSinceEpoch - lastLoggedDay.daysSinceEpoch;
     return switch (daysAgo) {
@@ -508,11 +505,12 @@ class _HabitRow extends ConsumerWidget {
     AppLocalizations localizations,
     KomitColors komitColors,
     WidgetRef ref,
+    Map<CalendarDay, int> recentObjectiveIdByDay,
   ) {
     final firstDay = firstDayShownOnDashboard(today);
     return [
       for (var offset = 0; offset < recentDayCountShownOnDashboard; offset++)
-        _recentDayCell(context, localizations, komitColors, ref, firstDay.addDays(offset)),
+        _recentDayCell(context, localizations, komitColors, ref, firstDay.addDays(offset), recentObjectiveIdByDay),
     ];
   }
 
@@ -522,6 +520,7 @@ class _HabitRow extends ConsumerWidget {
     KomitColors komitColors,
     WidgetRef ref,
     CalendarDay day,
+    Map<CalendarDay, int> recentObjectiveIdByDay,
   ) {
     final date = formatWeekdayAndDate(context, day);
     final objectiveId = recentObjectiveIdByDay[day];
@@ -542,6 +541,23 @@ class _HabitRow extends ConsumerWidget {
       onTap: () => _openLogSheet(context, ref, day, objectiveId),
     );
   }
+}
+
+/// One habit's recent logs, equal to another with the same entries: a fresh map from the
+/// database then only notifies the row when this habit's logs really changed.
+@immutable
+class _ObjectiveIdByDayComparedByEntries {
+  const _ObjectiveIdByDayComparedByEntries(this.objectiveIdByDay);
+
+  final Map<CalendarDay, int> objectiveIdByDay;
+
+  @override
+  bool operator ==(Object other) =>
+      other is _ObjectiveIdByDayComparedByEntries && mapEquals(other.objectiveIdByDay, objectiveIdByDay);
+
+  @override
+  int get hashCode =>
+      Object.hashAllUnordered(objectiveIdByDay.entries.map((entry) => Object.hash(entry.key, entry.value)));
 }
 
 class _StreakChip extends StatelessWidget {

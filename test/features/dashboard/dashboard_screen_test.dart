@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:komit/core/calendar_day.dart';
 import 'package:komit/core/theme/app_theme.dart';
@@ -222,6 +222,53 @@ void main() {
     final habits = await tester.runAsync(() => _repositoryOf(environment).watchActiveHabits().first);
     expect(habits!.map((habit) => habit.habit.title), ['Read before bed', 'Morning run']);
     semantics.dispose();
+    await environment.dispose(tester);
+  });
+
+  testWidgets('logging one habit rebuilds and repaints only that habit\'s day strip', (tester) async {
+    const habitTitles = ['Morning run', 'Read before bed', 'Drink water', 'Stretch'];
+    final environment = await KomitTestEnvironment.create(tester, additionalHabitTitles: habitTitles.sublist(2));
+    // Tall enough for every row to be built.
+    await pumpKomitApp(tester, environment, theme: lightAppTheme, logicalSize: const Size(360, 1600));
+    Finder stripOf(String habitTitle) => find.descendant(of: _rowOf(habitTitle), matching: find.byType(DayGrid));
+    final habitTitleByStripRenderObject = {
+      for (final title in habitTitles)
+        tester.renderObject(find.descendant(of: stripOf(title), matching: find.byType(CustomPaint)).first): title,
+    };
+    // A DayGrid element's own render object is its LayoutBuilder's, above the CustomPaint.
+    final habitTitleByStripRootRenderObject = {
+      for (final title in habitTitles) tester.renderObject(stripOf(title)): title,
+    };
+    final paintCountByHabitTitle = {for (final title in habitTitles) title: 0};
+    final buildCountByHabitTitle = {for (final title in habitTitles) title: 0};
+    debugOnProfilePaint = (renderObject) {
+      final title = habitTitleByStripRenderObject[renderObject];
+      if (title != null) paintCountByHabitTitle[title] = paintCountByHabitTitle[title]! + 1;
+    };
+    debugOnRebuildDirtyWidget = (element, builtOnce) {
+      if (element.widget is! DayGrid) return;
+      final title = habitTitleByStripRootRenderObject[element.findRenderObject()];
+      if (title != null) buildCountByHabitTitle[title] = buildCountByHabitTitle[title]! + 1;
+    };
+    expect(habitTitleByStripRootRenderObject, hasLength(habitTitles.length));
+
+    final drinkWater = await _habitTitled(tester, environment, 'Drink water');
+    await tester.runAsync(
+      () => _repositoryOf(environment)
+          .logObjectiveForDay(habitId: drinkWater.habit.id, objectiveId: drinkWater.objectives.first.id, day: _today),
+    );
+    await settleWithDatabaseWork(tester);
+
+    // Reset before the test ends: the binding fails a test that leaves a debug hook set.
+    debugOnProfilePaint = null;
+    debugOnRebuildDirtyWidget = null;
+    printOnFailure('Strip paints: $paintCountByHabitTitle, strip builds: $buildCountByHabitTitle');
+    expect(paintCountByHabitTitle['Drink water'], greaterThan(0));
+    expect(buildCountByHabitTitle['Drink water'], greaterThan(0));
+    for (final title in habitTitles.where((title) => title != 'Drink water')) {
+      expect(paintCountByHabitTitle[title], 0, reason: '$title strip repainted');
+      expect(buildCountByHabitTitle[title], 0, reason: '$title strip rebuilt');
+    }
     await environment.dispose(tester);
   });
 }
