@@ -32,6 +32,10 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
 - Screen transitions follow Android's back gesture preview on Android 14 and later.
 - When animations are turned off in the system settings, Komit stops animating too.
 
+### Fixed
+- A screen left open overnight now always moves to the new day at midnight, even when
+  the phone wakes its timer a moment early.
+
 ## [2.0.0] - 2026-10-28
 
 Complete rewrite of Komit.
