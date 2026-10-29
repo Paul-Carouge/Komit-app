@@ -1,36 +1,35 @@
 import 'dart:async';
+import 'dart:math' as math;
+import 'dart:ui' show lerpDouble;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
-
-import '../../core/theme/komit_icons.dart';
 
 import '../../core/habit_appearance.dart';
 import '../../core/haptics.dart';
 import '../../core/theme/app_motion.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/komit_icons.dart';
 import '../../data/database/app_database.dart';
 import '../../data/repositories/habit_repository.dart';
 import '../../l10n/app_localizations.dart';
-import '../../domain/habit_schedule.dart';
 import '../../providers.dart';
 import '../../services/notification_permission_service.dart';
 import '../mascot/komo_empty_state.dart';
 import '../mascot/komo_mascot.dart';
 import '../shared/shared_widgets.dart';
 import 'appearance_pickers.dart';
+import 'schedule_picker.dart';
 
 const int _defaultReminderMinuteOfDay = 20 * Duration.minutesPerHour;
 
 /// Offered when switching to a weekly target: most people aim for about half the week.
 const int _defaultTargetDaysPerWeek = 3;
 
-/// 2024-01-01 was a Monday: adding `weekday - 1` days gives a date to format any weekday's name.
-final DateTime _referenceMonday = DateTime(2024);
-
-enum _ScheduleKind { everyDay, someDays, perWeek }
+/// The first objective of a new habit: green, the color of a day that went well.
+const int _firstObjectiveColorIndex = 9;
 
 class HabitEditorScreen extends ConsumerStatefulWidget {
   const HabitEditorScreen({required this.habitId, super.key});
@@ -57,19 +56,28 @@ class _EditableObjective {
 
 class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
   final _titleController = TextEditingController();
+  final _titleFocusNode = FocusNode();
   final _descriptionController = TextEditingController();
   final List<_EditableObjective> _objectives = [];
   int _colorArgb = habitColorPaletteArgb.first;
   String _iconName = defaultHabitIconName;
   int? _reminderMinuteOfDay;
   int? _initialReminderMinuteOfDay;
-  _ScheduleKind _scheduleKind = _ScheduleKind.everyDay;
+  HabitScheduleKind _scheduleKind = HabitScheduleKind.everyDay;
   int _scheduledWeekdayMask = everyWeekdayMask;
   int _targetDaysPerWeek = _defaultTargetDaysPerWeek;
   bool _isLoading = true;
   bool _hasLoadFailed = false;
   bool _isSaving = false;
-  String? _validationMessage;
+
+  /// Shown on the name field itself, where the fix happens.
+  String? _titleErrorMessage;
+
+  /// Every other problem, shown right above the save button that revealed it.
+  String? _formErrorMessage;
+
+  /// The form as loaded, to tell whether leaving would lose anything.
+  List<Object?> _loadedFormSnapshot = const [];
 
   @override
   void initState() {
@@ -80,8 +88,13 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
   Future<void> _loadHabit() async {
     final habitId = widget.habitId;
     if (habitId == null) {
-      _objectives.add(_EditableObjective(id: null, title: '', colorArgb: habitColorPaletteArgb[9]));
-      setState(() => _isLoading = false);
+      _objectives.add(
+        _EditableObjective(id: null, title: '', colorArgb: habitColorPaletteArgb[_firstObjectiveColorIndex]),
+      );
+      setState(() {
+        _isLoading = false;
+        _loadedFormSnapshot = _formSnapshot();
+      });
       return;
     }
     final HabitWithObjectives? existingHabit;
@@ -115,9 +128,9 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
       _scheduledWeekdayMask = habit.scheduledWeekdayMask;
       _targetDaysPerWeek = habit.targetDaysPerWeek ?? _defaultTargetDaysPerWeek;
       _scheduleKind = switch ((habit.targetDaysPerWeek, habit.scheduledWeekdayMask)) {
-        (_?, _) => _ScheduleKind.perWeek,
-        (null, everyWeekdayMask) => _ScheduleKind.everyDay,
-        (null, _) => _ScheduleKind.someDays,
+        (_?, _) => HabitScheduleKind.perWeek,
+        (null, everyWeekdayMask) => HabitScheduleKind.everyDay,
+        (null, _) => HabitScheduleKind.someDays,
       };
       _objectives.addAll([
         for (final objective in objectives)
@@ -129,6 +142,7 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
           ),
       ]);
       _isLoading = false;
+      _loadedFormSnapshot = _formSnapshot();
     });
   }
 
@@ -143,6 +157,7 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
   @override
   void dispose() {
     _titleController.dispose();
+    _titleFocusNode.dispose();
     _descriptionController.dispose();
     for (final objective in _objectives) {
       objective.titleController.dispose();
@@ -150,172 +165,187 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
     super.dispose();
   }
 
+  /// Everything the save would write, in a comparable form.
+  List<Object?> _formSnapshot() => [
+    _titleController.text,
+    _descriptionController.text,
+    _colorArgb,
+    _iconName,
+    _reminderMinuteOfDay,
+    _scheduleKind,
+    _scheduledWeekdayMask,
+    _targetDaysPerWeek,
+    for (final objective in _objectives) ...[
+      objective.id,
+      objective.titleController.text,
+      objective.colorArgb,
+      objective.countsAsSuccess,
+    ],
+  ];
+
+  bool get _hasUnsavedChanges => !listEquals(_formSnapshot(), _loadedFormSnapshot);
+
+  /// Back, the back gesture and the app bar button all land here while the form is shown.
+  Future<void> _onPopBlocked() async {
+    if (_isSaving) return;
+    final localizations = AppLocalizations.of(context);
+    final shouldLeave =
+        !_hasUnsavedChanges ||
+        await showDestructiveConfirmationDialog(
+          context,
+          title: localizations.habitEditorDiscardTitle,
+          message: localizations.habitEditorDiscardMessage,
+          confirmLabel: localizations.habitEditorDiscardConfirm,
+          cancelLabel: localizations.habitEditorKeepEditing,
+        );
+    if (shouldLeave && mounted) context.pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
     final isNewHabit = widget.habitId == null;
-    return Scaffold(
-      appBar: AppBar(title: Text(isNewHabit ? localizations.createHabit : localizations.editHabit)),
-      // The primary action sits where the thumb is, full width, once the habit is loaded.
-      bottomNavigationBar: _isLoading || _hasLoadFailed
-          ? null
-          : SafeArea(
-              minimum: const EdgeInsets.fromLTRB(
-                AppSpacing.screenGutter,
-                AppSpacing.small,
-                AppSpacing.screenGutter,
-                AppSpacing.large,
-              ),
-              child: FilledButton(
-                onPressed: _isSaving ? null : _save,
-                child: Text(isNewHabit ? localizations.createHabitAction : localizations.saveHabit),
-              ),
-            ),
-      body: switch ((_isLoading, _hasLoadFailed)) {
-        (true, _) => Center(child: CircularProgressIndicator(semanticsLabel: localizations.loading)),
-        (_, true) => KomoEmptyState(
-          mood: KomoMood.sleepy,
-          title: localizations.loadErrorTitle,
-          message: localizations.loadErrorMessage,
-          action: FilledButton.tonalIcon(
-            onPressed: _retryLoading,
-            icon: const Icon(KomitIcons.rotateCw),
-            label: Text(localizations.retryLoading),
-          ),
-        ),
-        _ => ListView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.screenGutter,
-            AppSpacing.small,
-            AppSpacing.screenGutter,
-            AppSpacing.extraLarge,
-          ),
-          children: [
-            ExcludeSemantics(
-              child: ListenableBuilder(
-                listenable: _titleController,
-                builder: (context, _) => _HabitRowPreview(
-                  title: _titleController.text.trim(),
-                  iconName: _iconName,
-                  colorArgb: _colorArgb,
-                  scheduleSummary: _scheduleSummary(localizations),
-                  objectiveColorsArgb: [for (final objective in _objectives) objective.colorArgb],
-                ),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.extraLarge),
-            TextField(
-              controller: _titleController,
-              maxLength: maximumHabitTitleLength,
-              textCapitalization: TextCapitalization.sentences,
-              style: Theme.of(context).textTheme.titleMedium,
-              decoration: InputDecoration(labelText: localizations.habitName, counterText: ''),
-            ),
-            const SizedBox(height: AppSpacing.medium),
-            TextField(
-              controller: _descriptionController,
-              minLines: 2,
-              maxLines: 4,
-              maxLength: maximumHabitDescriptionLength,
-              textCapitalization: TextCapitalization.sentences,
-              decoration: InputDecoration(labelText: localizations.descriptionOptional, counterText: ''),
-            ),
-            SectionTitle(localizations.appearance),
-            _AppearanceTiles(
-              colorTile: _AppearanceTile(
-                leading: ColorDot(color: Color(_colorArgb), size: AppSizes.colorDotLarge),
-                label: localizations.color,
-                onTap: _chooseColor,
-              ),
-              iconTile: _AppearanceTile(
-                leading: HabitIconBadge(icon: habitIconForName(_iconName), color: Color(_colorArgb)),
-                label: localizations.icon,
-                onTap: _chooseIcon,
-              ),
-            ),
-            SectionTitle(localizations.schedule),
-            _SchedulePicker(
-              scheduleKind: _scheduleKind,
-              scheduledWeekdayMask: _scheduledWeekdayMask,
-              targetDaysPerWeek: _targetDaysPerWeek,
-              onScheduleKindChanged: (scheduleKind) {
-                unawaited(KomitHaptics.selection());
-                setState(() => _scheduleKind = scheduleKind);
-              },
-              onWeekdayToggled: (weekday) {
-                unawaited(KomitHaptics.selection());
-                setState(() => _scheduledWeekdayMask ^= 1 << (weekday - DateTime.monday));
-              },
-              onTargetDaysPerWeekChanged: (targetDaysPerWeek) {
-                unawaited(KomitHaptics.selection());
-                setState(() => _targetDaysPerWeek = targetDaysPerWeek);
-              },
-            ),
-            const SizedBox(height: AppSpacing.large),
-            _ReminderCard(
-              reminderMinuteOfDay: _reminderMinuteOfDay,
-              onToggled: _onReminderToggled,
-              onTimeTapped: _chooseReminderTime,
-            ),
-            SectionTitle(
-              localizations.objectives,
-              trailing: TextButton.icon(
-                onPressed: _addObjective,
-                icon: const Icon(KomitIcons.plus),
-                label: Text(localizations.addObjective),
-              ),
-            ),
-            ReorderableListView(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              buildDefaultDragHandles: false,
-              onReorderItem: (oldIndex, newIndex) => setState(() {
-                _objectives.insert(newIndex, _objectives.removeAt(oldIndex));
-              }),
-              children: [
-                for (final (index, objective) in _objectives.indexed)
-                  _ObjectiveRowEditor(
-                    key: objective.key,
-                    index: index,
-                    objective: objective,
-                    onColorTapped: () => _chooseObjectiveColor(objective),
-                    onRemoved: () => _removeObjective(objective),
-                    onCountsAsSuccessChanged: (countsAsSuccess) {
-                      unawaited(KomitHaptics.selection());
-                      setState(() => objective.countsAsSuccess = countsAsSuccess);
-                    },
+    final isFormShown = !_isLoading && !_hasLoadFailed;
+    final title = isNewHabit ? localizations.createHabit : localizations.editHabit;
+    return PopScope(
+      canPop: !isFormShown,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) unawaited(_onPopBlocked());
+      },
+      child: Scaffold(
+        // The list scrolls under the frosted save bar; its bottom padding includes the bar.
+        extendBody: true,
+        bottomNavigationBar: isFormShown
+            ? _SaveBar(
+                label: isNewHabit ? localizations.createHabitAction : localizations.saveHabit,
+                isSaving: _isSaving,
+                errorMessage: _formErrorMessage,
+                onPressed: _save,
+              )
+            : null,
+        body: CustomScrollView(
+          slivers: [
+            LargeTitleSliverAppBar(title: title),
+            if (_isLoading)
+              const SliverFillRemaining(hasScrollBody: false, child: DelayedLoadingSkeleton())
+            else if (_hasLoadFailed)
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: KomoEmptyState(
+                  mood: KomoMood.sleepy,
+                  title: localizations.loadErrorTitle,
+                  message: localizations.loadErrorMessage,
+                  action: FilledButton.tonalIcon(
+                    onPressed: _retryLoading,
+                    icon: const Icon(KomitIcons.rotateCw),
+                    label: Text(localizations.retryLoading),
                   ),
-              ],
-            ),
-            if (_validationMessage != null)
-              Padding(
-                padding: const EdgeInsets.only(top: AppSpacing.medium),
-                child: Semantics(
-                  liveRegion: true,
-                  child: Text(_validationMessage!, style: TextStyle(color: colorScheme.error)),
                 ),
-              ),
+              )
+            else
+              _FormColumn(children: _buildFormSections(localizations)),
           ],
         ),
-      },
+      ),
     );
   }
 
-  String _scheduleSummary(AppLocalizations localizations) {
-    final locale = Localizations.localeOf(context).toLanguageTag();
-    return switch (_scheduleKind) {
-      _ScheduleKind.everyDay => localizations.scheduleEveryDay,
-      _ScheduleKind.perWeek => localizations.targetDaysPerWeek(_targetDaysPerWeek),
-      _ScheduleKind.someDays => [
-        for (var weekday = DateTime.monday; weekday <= DateTime.sunday; weekday++)
-          if (isWeekdayScheduled(_scheduledWeekdayMask, weekday))
-            DateFormat.E(locale).format(_referenceMonday.add(Duration(days: weekday - DateTime.monday))),
-      ].join(', '),
-    };
-  }
+  List<Widget> _buildFormSections(AppLocalizations localizations) => [
+    const SizedBox(height: AppSpacing.small),
+    _IdentityCard(
+      titleField: _LabeledField(
+        label: localizations.habitName,
+        field: TextField(
+          controller: _titleController,
+          focusNode: _titleFocusNode,
+          maxLength: maximumHabitTitleLength,
+          textAlign: TextAlign.center,
+          textCapitalization: TextCapitalization.sentences,
+          textInputAction: TextInputAction.next,
+          style: Theme.of(context).textTheme.titleLarge,
+          onChanged: (_) {
+            if (_titleErrorMessage != null) setState(() => _titleErrorMessage = null);
+          },
+          decoration: _identityFieldDecoration(context, label: localizations.habitName, errorText: _titleErrorMessage),
+        ),
+      ),
+      descriptionField: _LabeledField(
+        label: localizations.descriptionOptional,
+        field: TextField(
+          controller: _descriptionController,
+          minLines: 1,
+          maxLines: 4,
+          maxLength: maximumHabitDescriptionLength,
+          textAlign: TextAlign.center,
+          textCapitalization: TextCapitalization.sentences,
+          decoration: _identityFieldDecoration(context, label: localizations.descriptionOptional),
+        ),
+      ),
+      iconButton: HabitIdentityIconButton(iconName: _iconName, colorArgb: _colorArgb, onPressed: _chooseIcon),
+      colorStrip: HabitColorStrip(
+        selectedColorArgb: _colorArgb,
+        onColorSelected: (colorArgb) {
+          unawaited(KomitHaptics.selection());
+          setState(() => _colorArgb = colorArgb);
+        },
+      ),
+    ),
+    SectionTitle(localizations.schedule),
+    HabitSchedulePicker(
+      habitColor: Color(_colorArgb),
+      scheduleKind: _scheduleKind,
+      scheduledWeekdayMask: _scheduledWeekdayMask,
+      targetDaysPerWeek: _targetDaysPerWeek,
+      onScheduleKindChanged: (scheduleKind) {
+        unawaited(KomitHaptics.selection());
+        setState(() {
+          // All seven days ticked would just mean "Every day": start from the working week.
+          if (scheduleKind == HabitScheduleKind.someDays && _scheduledWeekdayMask == everyWeekdayMask) {
+            _scheduledWeekdayMask = mondayToFridayWeekdayMask;
+          }
+          _scheduleKind = scheduleKind;
+        });
+      },
+      onWeekdayToggled: (weekday) {
+        unawaited(KomitHaptics.selection());
+        setState(() => _scheduledWeekdayMask ^= 1 << (weekday - DateTime.monday));
+      },
+      onTargetDaysPerWeekChanged: (targetDaysPerWeek) {
+        unawaited(KomitHaptics.selection());
+        setState(() => _targetDaysPerWeek = targetDaysPerWeek);
+      },
+    ),
+    const SizedBox(height: AppSpacing.medium),
+    _ReminderCard(
+      reminderMinuteOfDay: _reminderMinuteOfDay,
+      onToggled: _onReminderToggled,
+      onTimeTapped: _chooseReminderTime,
+    ),
+    SectionTitle(localizations.objectives),
+    Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.medium),
+      child: Text(
+        localizations.habitEditorObjectivesHelp,
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: KomitColors.of(context).mutedText),
+      ),
+    ),
+    _ObjectivesCard(
+      objectives: _objectives,
+      onReordered: (oldIndex, newIndex) => setState(() {
+        _objectives.insert(newIndex, _objectives.removeAt(oldIndex));
+      }),
+      onColorTapped: _chooseObjectiveColor,
+      onRemoved: _removeObjective,
+      onCountsAsSuccessChanged: (objective, countsAsSuccess) {
+        unawaited(KomitHaptics.selection());
+        setState(() => objective.countsAsSuccess = countsAsSuccess);
+      },
+      onAdded: _addObjective,
+    ),
+  ];
 
   void _addObjective() {
+    unawaited(KomitHaptics.selection());
     final usedColors = _objectives.map((objective) => objective.colorArgb).toSet();
     final nextColor = habitColorPaletteArgb.firstWhere(
       (color) => !usedColors.contains(color),
@@ -343,11 +373,6 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
     objective.titleController.dispose();
   }
 
-  Future<void> _chooseColor() async {
-    final chosenColor = await showColorPickerSheet(context, selectedColorArgb: _colorArgb);
-    if (chosenColor != null && mounted) setState(() => _colorArgb = chosenColor);
-  }
-
   Future<void> _chooseObjectiveColor(_EditableObjective objective) async {
     final chosenColor = await showColorPickerSheet(context, selectedColorArgb: objective.colorArgb);
     if (chosenColor != null && mounted) setState(() => objective.colorArgb = chosenColor);
@@ -355,7 +380,10 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
 
   Future<void> _chooseIcon() async {
     final chosenIconName = await showIconPickerSheet(context, selectedIconName: _iconName, colorArgb: _colorArgb);
-    if (chosenIconName != null && mounted) setState(() => _iconName = chosenIconName);
+    if (chosenIconName != null && mounted) {
+      unawaited(KomitHaptics.selection());
+      setState(() => _iconName = chosenIconName);
+    }
   }
 
   /// Turning a reminder on is the moment Komit asks for notifications: the switch moves at
@@ -441,12 +469,18 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
     }
   }
 
-  String? _findValidationError(AppLocalizations localizations) {
+  String? _findTitleError(AppLocalizations localizations) {
     final title = _titleController.text.trim();
     if (title.isEmpty) return localizations.habitNameRequired;
     // The field counts characters as displayed; the database counts UTF-16 units (an emoji counts twice).
     if (title.length > maximumHabitTitleLength) return localizations.habitNameTooLong;
-    if (_scheduleKind == _ScheduleKind.someDays && _scheduledWeekdayMask == 0) return localizations.pickAtLeastOneDay;
+    return null;
+  }
+
+  String? _findFormError(AppLocalizations localizations) {
+    if (_scheduleKind == HabitScheduleKind.someDays && _scheduledWeekdayMask == 0) {
+      return localizations.pickAtLeastOneDay;
+    }
     if (_objectives.isEmpty) return localizations.objectiveRequired;
     final objectiveTitles = _objectives.map((objective) => objective.titleController.text.trim()).toList();
     final hasEmptyOrDuplicateTitle =
@@ -457,10 +491,16 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
 
   Future<void> _save() async {
     final localizations = AppLocalizations.of(context);
-    final validationError = _findValidationError(localizations);
-    setState(() => _validationMessage = validationError);
-    if (validationError != null) {
+    final titleError = _findTitleError(localizations);
+    final formError = _findFormError(localizations);
+    setState(() {
+      _titleErrorMessage = titleError;
+      _formErrorMessage = formError;
+    });
+    if (titleError != null || formError != null) {
       unawaited(KomitHaptics.error());
+      // Focusing the name scrolls it into view and opens the keyboard to fix it.
+      if (titleError != null) _titleFocusNode.requestFocus();
       return;
     }
 
@@ -476,8 +516,10 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
               colorArgb: _colorArgb,
               iconName: _iconName,
               reminderMinuteOfDay: _reminderMinuteOfDay,
-              scheduledWeekdayMask: _scheduleKind == _ScheduleKind.someDays ? _scheduledWeekdayMask : everyWeekdayMask,
-              targetDaysPerWeek: _scheduleKind == _ScheduleKind.perWeek ? _targetDaysPerWeek : null,
+              scheduledWeekdayMask: _scheduleKind == HabitScheduleKind.someDays
+                  ? _scheduledWeekdayMask
+                  : everyWeekdayMask,
+              targetDaysPerWeek: _scheduleKind == HabitScheduleKind.perWeek ? _targetDaysPerWeek : null,
               objectives: [
                 for (final objective in _objectives)
                   ObjectiveDraft(
@@ -490,6 +532,7 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
             ),
           );
       unawaited(KomitHaptics.success());
+      // A direct pop: the unsaved-changes guard only stands in the way of leaving without saving.
       if (mounted) context.pop();
     } on Object catch (error, stackTrace) {
       unawaited(KomitHaptics.error());
@@ -502,63 +545,190 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
   }
 }
 
-/// Above this font scale two tiles side by side leave too little room for their labels.
-const double _appearanceTilesStackingTextScaleFactor = 1.3;
+/// Lines a placeholder may wrap to at large font sizes, instead of being cut.
+const int _identityFieldHintMaximumLines = 3;
 
-/// Color and icon side by side, stacked when the font is large.
-class _AppearanceTiles extends StatelessWidget {
-  const _AppearanceTiles({required this.colorTile, required this.iconTile});
+/// A field inside a card: a pill sunk to the page color, centered like the habit's name under
+/// its icon. The name is a placeholder, not a floating label: once there is text, the text speaks
+/// for itself, and screen readers still hear the name through [_LabeledField].
+InputDecoration _identityFieldDecoration(BuildContext context, {required String label, String? errorText}) {
+  final colorScheme = Theme.of(context).colorScheme;
+  return InputDecoration(
+    hintText: label,
+    hintMaxLines: _identityFieldHintMaximumLines,
+    errorText: errorText,
+    errorMaxLines: 2,
+    counterText: '',
+    fillColor: colorScheme.surface,
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(AppRadii.medium),
+      borderSide: BorderSide.none,
+    ),
+  );
+}
 
-  final Widget colorTile;
-  final Widget iconTile;
+/// A field whose name screen readers hear even once the placeholder is replaced by text.
+class _LabeledField extends StatelessWidget {
+  const _LabeledField({required this.label, required this.field});
+
+  final String label;
+  final Widget field;
+
+  @override
+  Widget build(BuildContext context) => MergeSemantics(
+    child: Semantics(label: label, child: field),
+  );
+}
+
+/// The list column: gutters on phones, a centered readable column on tablets, and room at the
+/// end for the frosted save bar.
+class _FormColumn extends StatelessWidget {
+  const _FormColumn({required this.children});
+
+  final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
-    if (bodyTextScaleOf(context) > _appearanceTilesStackingTextScaleFactor) {
-      return Column(
+    return SliverLayoutBuilder(
+      builder: (context, constraints) {
+        final horizontalPadding = math.max(
+          AppSpacing.screenGutter,
+          (constraints.crossAxisExtent - AppSizes.formMaximumWidth) / 2,
+        );
+        return SliverPadding(
+          padding: EdgeInsets.fromLTRB(
+            horizontalPadding,
+            0,
+            horizontalPadding,
+            MediaQuery.paddingOf(context).bottom + AppSpacing.extraLarge,
+          ),
+          sliver: SliverList.list(children: children),
+        );
+      },
+    );
+  }
+}
+
+/// The habit's face: its icon in its color, its name and description, and the color strip.
+/// Changing any of them is visible here at once, so the card is its own preview.
+class _IdentityCard extends StatelessWidget {
+  const _IdentityCard({
+    required this.iconButton,
+    required this.titleField,
+    required this.descriptionField,
+    required this.colorStrip,
+  });
+
+  final Widget iconButton;
+  final Widget titleField;
+  final Widget descriptionField;
+  final Widget colorStrip;
+
+  @override
+  Widget build(BuildContext context) {
+    return SoftCard(
+      padding: const EdgeInsets.only(top: AppSpacing.extraLarge, bottom: AppSpacing.medium),
+      child: Column(
         children: [
-          colorTile,
+          iconButton,
+          const SizedBox(height: AppSpacing.extraLarge),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.large),
+            child: Column(
+              children: [
+                titleField,
+                const SizedBox(height: AppSpacing.small),
+                descriptionField,
+              ],
+            ),
+          ),
           const SizedBox(height: AppSpacing.medium),
-          iconTile,
-        ],
-      );
-    }
-    // Same height side by side, although the icon badge is taller than the color dot.
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(child: colorTile),
-          const SizedBox(width: AppSpacing.medium),
-          Expanded(child: iconTile),
+          colorStrip,
         ],
       ),
     );
   }
 }
 
-class _AppearanceTile extends StatelessWidget {
-  const _AppearanceTile({required this.leading, required this.label, required this.onTap});
+/// The primary action, always in reach over the scrolling form, with the reason it did not save.
+class _SaveBar extends StatelessWidget {
+  const _SaveBar({required this.label, required this.isSaving, required this.errorMessage, required this.onPressed});
 
-  final Widget leading;
   final String label;
-  final VoidCallback onTap;
+  final bool isSaving;
+  final String? errorMessage;
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return SoftCard(
-      padding: EdgeInsets.zero,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.large),
-          child: Row(
-            children: [
-              leading,
-              const SizedBox(width: AppSpacing.medium),
-              Expanded(child: Text(label, style: Theme.of(context).textTheme.titleSmall)),
-              Icon(KomitIcons.chevronRight, color: KomitColors.of(context).mutedText),
-            ],
+    final colorScheme = Theme.of(context).colorScheme;
+    final errorMessage = this.errorMessage;
+    return FrostedGlass(
+      child: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.fromLTRB(
+          AppSpacing.screenGutter,
+          AppSpacing.medium,
+          AppSpacing.screenGutter,
+          AppSpacing.large,
+        ),
+        child: Center(
+          heightFactor: 1,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: AppSizes.formMaximumWidth),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AnimatedSize(
+                  duration: motionAwareDuration(context, AppDurations.standard),
+                  curve: AppCurves.standard,
+                  child: errorMessage == null
+                      ? const SizedBox(width: double.infinity)
+                      : Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.medium),
+                          child: Semantics(
+                            liveRegion: true,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.large,
+                                vertical: AppSpacing.medium,
+                              ),
+                              decoration: BoxDecoration(
+                                color: colorScheme.errorContainer,
+                                borderRadius: BorderRadius.circular(AppRadii.medium),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(KomitIcons.info, size: AppSizes.iconMedium, color: colorScheme.onErrorContainer),
+                                  const SizedBox(width: AppSpacing.medium),
+                                  Expanded(
+                                    child: Text(
+                                      errorMessage,
+                                      style: Theme.of(context).textTheme.bodyMedium
+                                          ?.copyWith(color: colorScheme.onErrorContainer),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                ),
+                FilledButton(
+                  onPressed: isSaving ? null : onPressed,
+                  child: isSaving
+                      ? SizedBox.square(
+                          dimension: AppSizes.inlineProgressIndicator,
+                          child: CircularProgressIndicator(
+                            strokeWidth: AppSizes.inlineProgressIndicatorStroke,
+                            semanticsLabel: label,
+                          ),
+                        )
+                      : Text(label),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -586,34 +756,138 @@ class _ReminderCard extends StatelessWidget {
     final formattedTime = reminderMinute == null ? null : _formatMinuteOfDay(context, reminderMinute);
     return SoftCard(
       padding: EdgeInsets.zero,
+      child: AnimatedSize(
+        duration: motionAwareDuration(context, AppDurations.standard),
+        curve: AppCurves.standard,
+        alignment: AlignmentDirectional.topCenter,
+        child: Column(
+          children: [
+            SwitchListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.large, vertical: AppSpacing.small),
+              secondary: HabitIconBadge(
+                icon: formattedTime == null ? KomitIcons.bellOff : KomitIcons.bell,
+                color: colorScheme.primary,
+              ),
+              title: Text(localizations.dailyReminder, style: Theme.of(context).textTheme.titleMedium),
+              subtitle: Text(
+                formattedTime == null ? localizations.reminderDisabled : localizations.reminderEnabledAt(formattedTime),
+                style: TextStyle(color: KomitColors.of(context).mutedText),
+              ),
+              value: reminderMinute != null,
+              onChanged: onToggled,
+            ),
+            if (formattedTime != null) ...[
+              const Divider(indent: AppSpacing.large, endIndent: AppSpacing.large),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.large),
+                title: Text(localizations.reminderTime),
+                trailing: OutlinedButton(onPressed: onTimeTapped, child: Text(formattedTime)),
+                onTap: onTimeTapped,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// All objectives in one grouped card, in logging order, with an "Add objective" row at the end.
+class _ObjectivesCard extends StatelessWidget {
+  const _ObjectivesCard({
+    required this.objectives,
+    required this.onReordered,
+    required this.onColorTapped,
+    required this.onRemoved,
+    required this.onCountsAsSuccessChanged,
+    required this.onAdded,
+  });
+
+  final List<_EditableObjective> objectives;
+  final void Function(int oldIndex, int newIndex) onReordered;
+  final ValueChanged<_EditableObjective> onColorTapped;
+  final ValueChanged<_EditableObjective> onRemoved;
+  final void Function(_EditableObjective objective, bool countsAsSuccess) onCountsAsSuccessChanged;
+  final VoidCallback onAdded;
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    final accentText = KomitColors.of(context).accentText;
+    return SoftCard(
+      padding: EdgeInsets.zero,
       child: Column(
         children: [
-          SwitchListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.large, vertical: AppSpacing.small),
-            secondary: HabitIconBadge(icon: KomitIcons.bell, color: colorScheme.primary),
-            title: Text(localizations.dailyReminder, style: Theme.of(context).textTheme.titleMedium),
-            subtitle: Text(
-              formattedTime == null ? localizations.reminderDisabled : localizations.reminderEnabledAt(formattedTime),
-            ),
-            value: reminderMinute != null,
-            onChanged: onToggled,
+          ReorderableListView(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            buildDefaultDragHandles: false,
+            onReorderStart: (_) => unawaited(KomitHaptics.lift()),
+            onReorderItem: onReordered,
+            proxyDecorator: _liftedObjectiveRow,
+            children: [
+              for (final (index, objective) in objectives.indexed)
+                _ObjectiveRowEditor(
+                  key: objective.key,
+                  index: index,
+                  objective: objective,
+                  onColorTapped: () => onColorTapped(objective),
+                  onRemoved: () => onRemoved(objective),
+                  onCountsAsSuccessChanged: (countsAsSuccess) => onCountsAsSuccessChanged(objective, countsAsSuccess),
+                ),
+            ],
           ),
-          if (formattedTime != null) ...[
-            Divider(
-              height: AppSizes.hairline,
-              indent: AppSpacing.large,
-              endIndent: AppSpacing.large,
-              color: colorScheme.outlineVariant,
+          InkWell(
+            onTap: onAdded,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: AppSizes.primaryButtonHeight),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.large, vertical: AppSpacing.medium),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: AppSizes.minimumTouchTarget - AppSpacing.small,
+                      child: Icon(KomitIcons.plus, color: accentText),
+                    ),
+                    const SizedBox(width: AppSpacing.small),
+                    Expanded(
+                      child: Text(
+                        localizations.addObjective,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(color: accentText),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.large),
-              title: Text(localizations.reminderTime),
-              trailing: OutlinedButton(onPressed: onTimeTapped, child: Text(formattedTime)),
-              onTap: onTimeTapped,
-            ),
-          ],
+          ),
         ],
       ),
+    );
+  }
+
+  /// The dragged objective lifts off the card: its own card color, a little larger, a deeper shadow.
+  static Widget _liftedObjectiveRow(Widget child, int index, Animation<double> animation) {
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, child) {
+        final liftProgress = AppCurves.standard.transform(animation.value);
+        final shadowColor = Theme.of(context).colorScheme.shadow.withValues(alpha: AppOpacity.liftedShadow);
+        final shape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.tile));
+        return Transform.scale(
+          scale: lerpDouble(1, liftedScale, liftProgress),
+          child: DecoratedBox(
+            decoration: ShapeDecoration(
+              shape: shape,
+              color: Theme.of(context).cardTheme.color,
+              shadows: AppShadows.lifted(shadowColor.withValues(alpha: shadowColor.a * liftProgress)),
+            ),
+            child: child,
+          ),
+        );
+      },
+      // The dragged copy floats in an overlay, outside the card's Material.
+      child: Material(type: MaterialType.transparency, child: child),
     );
   }
 }
@@ -637,249 +911,64 @@ class _ObjectiveRowEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
-    final komitColors = KomitColors.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.small),
-      child: SoftCard(
-        padding: EdgeInsets.zero,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.small, vertical: AppSpacing.extraSmall),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  ReorderableDragStartListener(
-                    index: index,
-                    child: Tooltip(
-                      message: localizations.reorderObjective,
-                      child: SizedBox.square(
-                        dimension: AppSizes.minimumTouchTarget,
-                        child: Icon(KomitIcons.gripVertical, color: komitColors.mutedText),
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: localizations.chooseColor,
-                    onPressed: onColorTapped,
-                    icon: ColorDot(color: Color(objective.colorArgb), size: AppSizes.iconMedium),
-                  ),
-                  Expanded(
-                    child: TextField(
-                      controller: objective.titleController,
-                      maxLength: maximumObjectiveTitleLength,
-                      textCapitalization: TextCapitalization.sentences,
-                      style: Theme.of(context).textTheme.titleMedium,
-                      decoration: borderlessInlineInputDecoration(hintText: localizations.objectiveName),
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: localizations.removeObjective,
-                    onPressed: onRemoved,
-                    icon: Icon(KomitIcons.x, color: komitColors.mutedText),
-                  ),
-                ],
-              ),
-              SwitchListTile(
-                dense: true,
-                // Lines the label up with the objective name, past the handle and the color.
-                contentPadding: const EdgeInsetsDirectional.only(
-                  start: 2 * AppSizes.minimumTouchTarget,
-                  end: AppSpacing.extraSmall,
-                ),
-                title: Text(localizations.countsTowardStreak, style: Theme.of(context).textTheme.bodyMedium),
-                value: objective.countsAsSuccess,
-                onChanged: onCountsAsSuccessChanged,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// The dashboard row as it will look, updated while typing: a name, an icon, a schedule.
-class _HabitRowPreview extends StatelessWidget {
-  const _HabitRowPreview({
-    required this.title,
-    required this.iconName,
-    required this.colorArgb,
-    required this.scheduleSummary,
-    required this.objectiveColorsArgb,
-  });
-
-  final String title;
-  final String iconName;
-  final int colorArgb;
-  final String scheduleSummary;
-  final List<int> objectiveColorsArgb;
-
-  @override
-  Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context);
-    final textTheme = Theme.of(context).textTheme;
     final mutedText = KomitColors.of(context).mutedText;
-    return SoftCard(
-      child: Row(
-        children: [
-          HabitIconBadge(icon: habitIconForName(iconName), color: Color(colorArgb)),
-          const SizedBox(width: AppSpacing.medium),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title.isEmpty ? localizations.habitNamePlaceholder : title,
-                  style: textTheme.titleMedium?.copyWith(color: title.isEmpty ? mutedText : null),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(scheduleSummary, style: textTheme.bodySmall?.copyWith(color: mutedText)),
-              ],
-            ),
-          ),
-          const SizedBox(width: AppSpacing.small),
-          Wrap(
-            spacing: AppSpacing.extraSmall,
-            children: [
-              for (final objectiveColorArgb in objectiveColorsArgb) ColorDot(color: Color(objectiveColorArgb)),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Every day, chosen weekdays, or a number of days per week.
-class _SchedulePicker extends StatelessWidget {
-  const _SchedulePicker({
-    required this.scheduleKind,
-    required this.scheduledWeekdayMask,
-    required this.targetDaysPerWeek,
-    required this.onScheduleKindChanged,
-    required this.onWeekdayToggled,
-    required this.onTargetDaysPerWeekChanged,
-  });
-
-  final _ScheduleKind scheduleKind;
-  final int scheduledWeekdayMask;
-  final int targetDaysPerWeek;
-  final ValueChanged<_ScheduleKind> onScheduleKindChanged;
-  final ValueChanged<int> onWeekdayToggled;
-  final ValueChanged<int> onTargetDaysPerWeekChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context);
-    final locale = Localizations.localeOf(context).toLanguageTag();
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SegmentedButton<_ScheduleKind>(
-          showSelectedIcon: false,
-          segments: [
-            ButtonSegment(value: _ScheduleKind.everyDay, label: Text(localizations.scheduleEveryDay)),
-            ButtonSegment(value: _ScheduleKind.someDays, label: Text(localizations.scheduleSomeDays)),
-            ButtonSegment(value: _ScheduleKind.perWeek, label: Text(localizations.schedulePerWeek)),
-          ],
-          selected: {scheduleKind},
-          onSelectionChanged: (selection) => onScheduleKindChanged(selection.single),
-        ),
-        if (scheduleKind == _ScheduleKind.someDays) ...[
-          const SizedBox(height: AppSpacing.medium),
-          Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            children: [
-              for (var weekday = DateTime.monday; weekday <= DateTime.sunday; weekday++)
-                _WeekdayToggle(
-                  date: _referenceMonday.add(Duration(days: weekday - DateTime.monday)),
-                  locale: locale,
-                  isSelected: isWeekdayScheduled(scheduledWeekdayMask, weekday),
-                  onPressed: () => onWeekdayToggled(weekday),
-                ),
-            ],
+        Padding(
+          padding: const EdgeInsetsDirectional.only(
+            start: AppSpacing.small,
+            end: AppSpacing.extraSmall,
+            top: AppSpacing.small,
           ),
-        ],
-        if (scheduleKind == _ScheduleKind.perWeek) ...[
-          const SizedBox(height: AppSpacing.small),
-          Row(
+          child: Row(
             children: [
-              IconButton.outlined(
-                tooltip: localizations.fewerDaysPerWeek,
-                onPressed: targetDaysPerWeek > minimumTargetDaysPerWeek
-                    ? () => onTargetDaysPerWeekChanged(targetDaysPerWeek - 1)
-                    : null,
-                icon: const Icon(KomitIcons.minus),
+              IconButton(
+                tooltip: localizations.chooseColor,
+                onPressed: onColorTapped,
+                icon: ColorDot(color: Color(objective.colorArgb), size: AppSizes.colorDotLarge),
               ),
               Expanded(
-                child: Semantics(
-                  liveRegion: true,
-                  child: Text(
-                    localizations.targetDaysPerWeek(targetDaysPerWeek),
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.titleMedium,
+                child: TextField(
+                  controller: objective.titleController,
+                  maxLength: maximumObjectiveTitleLength,
+                  textCapitalization: TextCapitalization.sentences,
+                  style: Theme.of(context).textTheme.titleMedium,
+                  decoration: borderlessInlineInputDecoration(hintText: localizations.objectiveName),
+                ),
+              ),
+              IconButton(
+                tooltip: localizations.removeObjective,
+                onPressed: onRemoved,
+                icon: Icon(KomitIcons.x, color: mutedText),
+              ),
+              ReorderableDragStartListener(
+                index: index,
+                child: Tooltip(
+                  message: localizations.reorderObjective,
+                  child: SizedBox.square(
+                    dimension: AppSizes.minimumTouchTarget,
+                    child: Icon(KomitIcons.gripVertical, color: mutedText),
                   ),
                 ),
               ),
-              IconButton.outlined(
-                tooltip: localizations.moreDaysPerWeek,
-                onPressed: targetDaysPerWeek < maximumTargetDaysPerWeek
-                    ? () => onTargetDaysPerWeekChanged(targetDaysPerWeek + 1)
-                    : null,
-                icon: const Icon(KomitIcons.plus),
-              ),
             ],
           ),
-        ],
-      ],
-    );
-  }
-}
-
-/// A round weekday initial; the full name is what screen readers announce.
-class _WeekdayToggle extends StatelessWidget {
-  const _WeekdayToggle({required this.date, required this.locale, required this.isSelected, required this.onPressed});
-
-  final DateTime date;
-  final String locale;
-  final bool isSelected;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Semantics(
-      button: true,
-      toggled: isSelected,
-      label: DateFormat.EEEE(locale).format(date),
-      excludeSemantics: true,
-      child: InkResponse(
-        onTap: onPressed,
-        radius: AppSizes.minimumTouchTarget / 2,
-        child: SizedBox.square(
-          dimension: AppSizes.minimumTouchTarget,
-          child: Center(
-            child: AnimatedContainer(
-              duration: motionAwareDuration(context, AppDurations.quick),
-              curve: AppCurves.standard,
-              width: AppSizes.weekdayToggle,
-              height: AppSizes.weekdayToggle,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isSelected ? colorScheme.primary : colorScheme.surfaceContainerHigh,
-              ),
-              child: Text(
-                // The narrow form ("M"), the way calendars label their columns.
-                DateFormat.EEEEE(locale).format(date),
-                style: Theme.of(context).textTheme.titleSmall
-                    ?.copyWith(color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface),
-              ),
-            ),
-          ),
         ),
-      ),
+        SwitchListTile(
+          // Lines the label up with the objective name, past the color button.
+          contentPadding: const EdgeInsetsDirectional.only(
+            start: AppSpacing.small + AppSizes.minimumTouchTarget,
+            end: AppSpacing.large,
+          ),
+          title: Text(
+            localizations.countsTowardStreak,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: mutedText),
+          ),
+          value: objective.countsAsSuccess,
+          onChanged: onCountsAsSuccessChanged,
+        ),
+        const Divider(indent: AppSpacing.large, endIndent: AppSpacing.large),
+      ],
     );
   }
 }

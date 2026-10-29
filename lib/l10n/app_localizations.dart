@@ -2083,6 +2083,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Only for the optional app lock. Android checks them; Komit never sees them.'**
   String get permissionBiometricBody;
+
+  /// No description provided for @habitEditorEveryDayHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Seven days a week'**
+  String get habitEditorEveryDayHint;
+
+  /// No description provided for @habitEditorSomeDaysHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the weekdays you pick'**
+  String get habitEditorSomeDaysHint;
+
+  /// No description provided for @habitEditorPerWeekHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Whichever days suit you'**
+  String get habitEditorPerWeekHint;
+
+  /// No description provided for @habitEditorWeekdaysOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekdays'**
+  String get habitEditorWeekdaysOnly;
+
+  /// No description provided for @habitEditorWeekendsOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekends'**
+  String get habitEditorWeekendsOnly;
+
+  /// Caption under the big number of the weekly target stepper.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{day per week} other{days per week}}'**
+  String habitEditorDaysPerWeekUnit(int count);
+
+  /// Screen reader label of one color in the editor's color strip.
+  ///
+  /// In en, this message translates to:
+  /// **'Color {position} of {count}'**
+  String habitEditorColorSwatch(int position, int count);
+
+  /// No description provided for @habitEditorObjectivesHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'What you tick off each day, like “Walk” or “5 km”.'**
+  String get habitEditorObjectivesHelp;
+
+  /// No description provided for @habitEditorDiscardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard your changes?'**
+  String get habitEditorDiscardTitle;
+
+  /// No description provided for @habitEditorDiscardMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'What you changed on this habit will be lost.'**
+  String get habitEditorDiscardMessage;
+
+  /// No description provided for @habitEditorDiscardConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get habitEditorDiscardConfirm;
+
+  /// No description provided for @habitEditorKeepEditing.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep editing'**
+  String get habitEditorKeepEditing;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

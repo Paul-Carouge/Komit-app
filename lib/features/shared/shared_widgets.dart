@@ -78,7 +78,7 @@ class _AsyncValueViewState<T> extends ConsumerState<AsyncValueView<T>> {
           ),
         ),
       ),
-      _ => (_loadingKey, const _DelayedLoadingSkeleton()),
+      _ => (_loadingKey, const DelayedLoadingSkeleton()),
     };
     return AnimatedSwitcher(
       duration: motionAwareDuration(context, AppDurations.standard),
@@ -91,14 +91,14 @@ class _AsyncValueViewState<T> extends ConsumerState<AsyncValueView<T>> {
 
 /// Placeholder rows shaped like the content, shown only when loading lasts long enough to be
 /// noticed: local reads usually finish first, and a skeleton flashing for a frame looks broken.
-class _DelayedLoadingSkeleton extends StatefulWidget {
-  const _DelayedLoadingSkeleton();
+class DelayedLoadingSkeleton extends StatefulWidget {
+  const DelayedLoadingSkeleton({super.key});
 
   @override
-  State<_DelayedLoadingSkeleton> createState() => _DelayedLoadingSkeletonState();
+  State<DelayedLoadingSkeleton> createState() => _DelayedLoadingSkeletonState();
 }
 
-class _DelayedLoadingSkeletonState extends State<_DelayedLoadingSkeleton> {
+class _DelayedLoadingSkeletonState extends State<DelayedLoadingSkeleton> {
   late final Timer _revealTimer;
   bool _isVisible = false;
 
@@ -506,6 +506,9 @@ Future<bool> showDestructiveConfirmationDialog(
   required String message,
   required String confirmLabel,
   String? title,
+
+  /// Names what staying means when "Cancel" would be ambiguous, e.g. "Keep editing".
+  String? cancelLabel,
 }) async {
   final localizations = AppLocalizations.of(context);
   final colorScheme = Theme.of(context).colorScheme;
@@ -515,7 +518,7 @@ Future<bool> showDestructiveConfirmationDialog(
       title: title == null ? null : Text(title),
       content: Text(message),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(localizations.cancel)),
+        TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(cancelLabel ?? localizations.cancel)),
         TextButton(
           style: TextButton.styleFrom(foregroundColor: colorScheme.error),
           onPressed: () => Navigator.of(context).pop(true),

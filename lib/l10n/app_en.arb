@@ -772,5 +772,36 @@
   "permissionVibrationTitle": "Vibration",
   "permissionVibrationBody": "Light taps when you log a day, following your phone's settings.",
   "permissionBiometricTitle": "Fingerprint and face",
-  "permissionBiometricBody": "Only for the optional app lock. Android checks them; Komit never sees them."
+  "permissionBiometricBody": "Only for the optional app lock. Android checks them; Komit never sees them.",
+  "habitEditorEveryDayHint": "Seven days a week",
+  "habitEditorSomeDaysHint": "Only the weekdays you pick",
+  "habitEditorPerWeekHint": "Whichever days suit you",
+  "habitEditorWeekdaysOnly": "Weekdays",
+  "habitEditorWeekendsOnly": "Weekends",
+  "habitEditorDaysPerWeekUnit": "{count, plural, =1{day per week} other{days per week}}",
+  "@habitEditorDaysPerWeekUnit": {
+    "description": "Caption under the big number of the weekly target stepper.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "habitEditorColorSwatch": "Color {position} of {count}",
+  "@habitEditorColorSwatch": {
+    "description": "Screen reader label of one color in the editor's color strip.",
+    "placeholders": {
+      "position": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "habitEditorObjectivesHelp": "What you tick off each day, like “Walk” or “5 km”.",
+  "habitEditorDiscardTitle": "Discard your changes?",
+  "habitEditorDiscardMessage": "What you changed on this habit will be lost.",
+  "habitEditorDiscardConfirm": "Discard",
+  "habitEditorKeepEditing": "Keep editing"
 }

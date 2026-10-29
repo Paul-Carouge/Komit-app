@@ -61,8 +61,8 @@ abstract final class AppSizes {
   static const double todayProgressRing = 56;
   static const double todayProgressRingStrokeWidth = 6;
 
-  /// One weekday toggle in the schedule picker; seven fit side by side on a 390 dp phone.
-  static const double weekdayToggle = 44;
+  /// The visible circle of a weekday toggle, inside its 48 dp target; leaves air between the seven.
+  static const double weekdayToggle = 40;
 
   /// Thickness of each habit's bar in the weekly recap: visible at a glance, thinner than text.
   static const double recapProgressBarHeight = 6;
@@ -70,6 +70,19 @@ abstract final class AppSizes {
   /// A spinner in place of a list tile's trailing icon while its action runs.
   static const double inlineProgressIndicator = 20;
   static const double inlineProgressIndicatorStroke = 2.5;
+
+  /// The habit's icon at the top of the editor: the largest square, so it reads as the habit's face.
+  static const double habitIdentityIcon = 72;
+
+  /// The small pencil disc on the editor's icon, telling that the icon can be changed.
+  static const double editBadge = 28;
+  static const double editBadgeIcon = 14;
+
+  /// A color in the editor's color strip, drawn inside a full touch target.
+  static const double colorSwatch = 36;
+
+  /// Forms read best as one column; past this width the fields would stretch across a tablet.
+  static const double formMaximumWidth = 560;
 
   static const double mascotSmall = 48;
   static const double mascotMedium = 112;

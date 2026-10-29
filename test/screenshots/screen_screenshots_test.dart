@@ -10,6 +10,7 @@ import 'package:komit/core/calendar_day.dart';
 import 'package:komit/core/theme/app_theme.dart';
 import 'package:komit/data/repositories/habit_repository.dart';
 import 'package:komit/features/shared/shared_widgets.dart';
+import 'package:komit/l10n/app_localizations.dart';
 import 'package:komit/router.dart';
 
 import '../support/komit_test_app.dart';
@@ -96,7 +97,7 @@ void main() {
         await settleWithDatabaseWork(tester);
         await _saveScreenshot(tester, '${name}_$themeName');
       }
-      await tester.drag(find.byType(ListView), const Offset(0, -700));
+      await tester.drag(find.byType(CustomScrollView).first, const Offset(0, -700));
       await tester.pumpAndSettle();
       await _saveScreenshot(tester, 'editor_scrolled_$themeName');
       router.go(AppRoutes.notes);
@@ -156,5 +157,62 @@ void main() {
       await environment.dispose(tester);
       await tester.pump(const Duration(milliseconds: 100));
     });
+  }
+
+  for (final (themeName, theme) in [('light', lightAppTheme), ('dark', darkAppTheme)]) {
+    for (final (localeName, locale, textScaleFactor) in [
+      ('en', const Locale('en'), 1.0),
+      ('fr', const Locale('fr'), 1.0),
+      ('fr_200', const Locale('fr'), 2.0),
+    ]) {
+      testWidgets('renders the habit editor in $themeName ($localeName)', skip: _outputDirectory == null, (
+        tester,
+      ) async {
+        await tester.runAsync(_loadRealFonts);
+        final localizations = lookupAppLocalizations(locale);
+        final environment = await KomitTestEnvironment.create(tester);
+        final router = await pumpKomitApp(
+          tester,
+          environment,
+          theme: theme,
+          locale: locale,
+          textScaleFactor: textScaleFactor,
+          logicalSize: _phoneLogicalSize,
+        );
+        final suffix = '${localeName}_$themeName';
+        final formScrollable = find.byType(Scrollable).first;
+
+        unawaited(router.push(AppRoutes.newHabit));
+        await settleWithDatabaseWork(tester);
+        await _saveScreenshot(tester, 'editor_new_$suffix');
+        // Saving an empty form shows where the problems are.
+        await tester.tap(find.text(localizations.createHabitAction));
+        await tester.pumpAndSettle();
+        FocusManager.instance.primaryFocus?.unfocus();
+        await tester.pumpAndSettle();
+        await _saveScreenshot(tester, 'editor_new_invalid_$suffix');
+
+        for (final (name, optionTitle) in [
+          ('some_days', localizations.scheduleSomeDays),
+          ('per_week', localizations.schedulePerWeek),
+        ]) {
+          await tester.scrollUntilVisible(find.text(optionTitle), 200, scrollable: formScrollable);
+          await tester.tap(find.text(optionTitle));
+          await tester.pumpAndSettle();
+          await tester.drag(formScrollable, const Offset(0, -150));
+          await tester.pumpAndSettle();
+          await _saveScreenshot(tester, 'editor_${name}_$suffix');
+        }
+
+        router.go(AppRoutes.habits);
+        unawaited(router.push(AppRoutes.habitEditor(environment.runningHabitId)));
+        await settleWithDatabaseWork(tester);
+        await _saveScreenshot(tester, 'editor_edit_$suffix');
+        await tester.drag(find.byType(CustomScrollView).first, const Offset(0, -700));
+        await tester.pumpAndSettle();
+        await _saveScreenshot(tester, 'editor_edit_scrolled_$suffix');
+        await environment.dispose(tester);
+      });
+    }
   }
 }

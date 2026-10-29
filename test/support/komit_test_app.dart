@@ -167,6 +167,7 @@ Future<GoRouter> pumpKomitApp(
   NotificationPermissionService? notificationPermissionService,
   AppLockService? appLockService,
   double textScaleFactor = 1,
+  Locale locale = const Locale('en'),
   Size logicalSize = compactPhoneLogicalSize,
   DateTime? now,
 }) async {
@@ -188,7 +189,7 @@ Future<GoRouter> pumpKomitApp(
         ),
         if (appLockService != null) appLockServiceProvider.overrideWithValue(appLockService),
       ],
-      child: _KomitTestApp(theme: theme, onRouterCreated: (createdRouter) => router = createdRouter),
+      child: _KomitTestApp(theme: theme, locale: locale, onRouterCreated: (createdRouter) => router = createdRouter),
     ),
   );
   router.go(location);
@@ -209,9 +210,10 @@ Future<void> settleWithDatabaseWork(WidgetTester tester) async {
 const int _databaseSettleSteps = 5;
 
 class _KomitTestApp extends ConsumerStatefulWidget {
-  const _KomitTestApp({required this.theme, required this.onRouterCreated});
+  const _KomitTestApp({required this.theme, required this.locale, required this.onRouterCreated});
 
   final ThemeData theme;
+  final Locale locale;
   final ValueChanged<GoRouter> onRouterCreated;
 
   @override
@@ -238,7 +240,7 @@ class _KomitTestAppState extends ConsumerState<_KomitTestApp> {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       theme: widget.theme,
-      locale: const Locale('en'),
+      locale: widget.locale,
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: const [
         AppLocalizations.delegate,

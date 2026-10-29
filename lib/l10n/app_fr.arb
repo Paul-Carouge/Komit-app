@@ -331,5 +331,17 @@
   "permissionVibrationTitle": "Vibreur",
   "permissionVibrationBody": "De légères vibrations quand vous notez un jour, selon les réglages du téléphone.",
   "permissionBiometricTitle": "Empreinte et visage",
-  "permissionBiometricBody": "Uniquement pour le verrouillage facultatif. Android les vérifie ; Komit ne les voit jamais."
+  "permissionBiometricBody": "Uniquement pour le verrouillage facultatif. Android les vérifie ; Komit ne les voit jamais.",
+  "habitEditorEveryDayHint": "7 jours sur 7",
+  "habitEditorSomeDaysHint": "Seulement les jours choisis",
+  "habitEditorPerWeekHint": "Les jours qui t'arrangent",
+  "habitEditorWeekdaysOnly": "En semaine",
+  "habitEditorWeekendsOnly": "Le week-end",
+  "habitEditorDaysPerWeekUnit": "{count, plural, =1{jour par semaine} other{jours par semaine}}",
+  "habitEditorColorSwatch": "Couleur {position} sur {count}",
+  "habitEditorObjectivesHelp": "Ce que tu coches chaque jour, comme « Marche » ou « 5 km ».",
+  "habitEditorDiscardTitle": "Abandonner tes modifications ?",
+  "habitEditorDiscardMessage": "Ce que tu as modifié sur cette habitude sera perdu.",
+  "habitEditorDiscardConfirm": "Abandonner",
+  "habitEditorKeepEditing": "Continuer à modifier"
 }

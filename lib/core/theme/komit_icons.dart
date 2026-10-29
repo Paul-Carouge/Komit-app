@@ -23,6 +23,7 @@ abstract final class KomitIcons {
   static const IconData calendar = IconData(0xe063, fontFamily: _fontFamily);
   static const IconData calendarCheck = IconData(0xe2b7, fontFamily: _fontFamily);
   static const IconData calendarClock = IconData(0xe304, fontFamily: _fontFamily);
+  static const IconData calendarDays = IconData(0xe2b9, fontFamily: _fontFamily);
   static const IconData calendarPlus = IconData(0xe2bc, fontFamily: _fontFamily);
   static const IconData carrot = IconData(0xe25a, fontFamily: _fontFamily);
   static const IconData cat = IconData(0xe38c, fontFamily: _fontFamily);
@@ -77,6 +78,7 @@ abstract final class KomitIcons {
   static const IconData plus = IconData(0xe13d, fontFamily: _fontFamily);
   static const IconData power = IconData(0xe140, fontFamily: _fontFamily);
   static const IconData refreshCw = IconData(0xe145, fontFamily: _fontFamily);
+  static const IconData repeat = IconData(0xe146, fontFamily: _fontFamily);
   static const IconData rotateCw = IconData(0xe149, fontFamily: _fontFamily);
   static const IconData salad = IconData(0xe3a8, fontFamily: _fontFamily);
   static const IconData scrollText = IconData(0xe45f, fontFamily: _fontFamily);

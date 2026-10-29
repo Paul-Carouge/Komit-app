@@ -1183,4 +1183,45 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get permissionBiometricBody => 'Only for the optional app lock. Android checks them; Komit never sees them.';
+
+  @override
+  String get habitEditorEveryDayHint => 'Seven days a week';
+
+  @override
+  String get habitEditorSomeDaysHint => 'Only the weekdays you pick';
+
+  @override
+  String get habitEditorPerWeekHint => 'Whichever days suit you';
+
+  @override
+  String get habitEditorWeekdaysOnly => 'Weekdays';
+
+  @override
+  String get habitEditorWeekendsOnly => 'Weekends';
+
+  @override
+  String habitEditorDaysPerWeekUnit(int count) {
+    String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: 'days per week', one: 'day per week');
+    return '$_temp0';
+  }
+
+  @override
+  String habitEditorColorSwatch(int position, int count) {
+    return 'Color $position of $count';
+  }
+
+  @override
+  String get habitEditorObjectivesHelp => 'What you tick off each day, like “Walk” or “5 km”.';
+
+  @override
+  String get habitEditorDiscardTitle => 'Discard your changes?';
+
+  @override
+  String get habitEditorDiscardMessage => 'What you changed on this habit will be lost.';
+
+  @override
+  String get habitEditorDiscardConfirm => 'Discard';
+
+  @override
+  String get habitEditorKeepEditing => 'Keep editing';
 }
