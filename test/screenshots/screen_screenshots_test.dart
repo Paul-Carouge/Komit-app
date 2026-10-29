@@ -67,6 +67,17 @@ void main() {
       );
       final router = await pumpKomitApp(tester, environment, theme: theme, logicalSize: _phoneLogicalSize);
       await _saveScreenshot(tester, 'dashboard_expanded_$themeName');
+      // One tap logs the first habit: the header ring, the check and the undo message move.
+      await tester.tap(find.byTooltip('Log today').first);
+      await settleWithDatabaseWork(tester);
+      await _saveScreenshot(tester, 'dashboard_logged_$themeName');
+      tester.state<ScaffoldMessengerState>(find.byType(ScaffoldMessenger)).hideCurrentSnackBar();
+      await tester.pumpAndSettle();
+      await tester.longPress(find.byTooltip('Log today').at(1));
+      await tester.pumpAndSettle();
+      await _saveScreenshot(tester, 'log_sheet_$themeName');
+      Navigator.of(tester.element(find.byType(BottomSheet))).pop();
+      await tester.pumpAndSettle();
       await tester.drag(find.byType(CustomScrollView).first, const Offset(0, -300));
       await tester.pumpAndSettle();
       await _saveScreenshot(tester, 'dashboard_collapsed_$themeName');
@@ -83,6 +94,9 @@ void main() {
         await settleWithDatabaseWork(tester);
         await _saveScreenshot(tester, '${name}_$themeName');
       }
+      await tester.drag(find.byType(ListView), const Offset(0, -700));
+      await tester.pumpAndSettle();
+      await _saveScreenshot(tester, 'editor_scrolled_$themeName');
       router.go(AppRoutes.notes);
       await settleWithDatabaseWork(tester);
       await _saveScreenshot(tester, 'notes_$themeName');
