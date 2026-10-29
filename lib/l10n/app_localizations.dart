@@ -1478,6 +1478,114 @@ abstract class AppLocalizations {
   /// **'Your first log is a year old.'**
   String get achievementOneYearVeteranDescription;
 
+  /// No description provided for @achievementFirstStepTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'First step'**
+  String get achievementFirstStepTitle;
+
+  /// No description provided for @achievementFirstStepDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Your first success day.'**
+  String get achievementFirstStepDescription;
+
+  /// No description provided for @achievementMonthStreakTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Month streak'**
+  String get achievementMonthStreakTitle;
+
+  /// No description provided for @achievementMonthStreakDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Thirty days in a row on one habit.'**
+  String get achievementMonthStreakDescription;
+
+  /// No description provided for @achievementHundredDayStreakTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'100-day streak'**
+  String get achievementHundredDayStreakTitle;
+
+  /// No description provided for @achievementHundredDayStreakDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'A hundred days in a row on one habit.'**
+  String get achievementHundredDayStreakDescription;
+
+  /// No description provided for @achievementYearStreakTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Year streak'**
+  String get achievementYearStreakTitle;
+
+  /// No description provided for @achievementYearStreakDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'A full year in a row on one habit.'**
+  String get achievementYearStreakDescription;
+
+  /// No description provided for @achievementPerfectDayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Perfect day'**
+  String get achievementPerfectDayTitle;
+
+  /// No description provided for @achievementPerfectDayDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Every habit planned for a day, done that day.'**
+  String get achievementPerfectDayDescription;
+
+  /// No description provided for @achievementFiveHundredTotalSuccessDaysTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'500 successes'**
+  String get achievementFiveHundredTotalSuccessDaysTitle;
+
+  /// No description provided for @achievementFiveHundredTotalSuccessDaysDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Five hundred success days across your habits.'**
+  String get achievementFiveHundredTotalSuccessDaysDescription;
+
+  /// No description provided for @achievementThousandTotalSuccessDaysTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'1,000 successes'**
+  String get achievementThousandTotalSuccessDaysTitle;
+
+  /// No description provided for @achievementThousandTotalSuccessDaysDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'A thousand success days across your habits.'**
+  String get achievementThousandTotalSuccessDaysDescription;
+
+  /// No description provided for @achievementThreeHabitsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All-rounder'**
+  String get achievementThreeHabitsTitle;
+
+  /// No description provided for @achievementThreeHabitsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Success days on three different habits.'**
+  String get achievementThreeHabitsDescription;
+
+  /// No description provided for @achievementTwoYearVeteranTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Two years'**
+  String get achievementTwoYearVeteranTitle;
+
+  /// No description provided for @achievementTwoYearVeteranDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Your first log is two years old.'**
+  String get achievementTwoYearVeteranDescription;
+
   /// No description provided for @weeklyRecapTitle.
   ///
   /// In en, this message translates to:

@@ -42,7 +42,7 @@ void main() {
       final partial = _history(1, _days(lastMonday, 6), startDay: lastMonday.addDays(-7));
       final complete = _history(1, _days(lastMonday, 7), startDay: lastMonday.addDays(-7));
 
-      expect(computeUnlockedAchievements([partial], today: _today), isEmpty);
+      expect(computeUnlockedAchievements([partial], today: _today), isNot(contains(Achievement.firstWeek)));
       expect(computeUnlockedAchievements([complete], today: _today), contains(Achievement.firstWeek));
     });
 
@@ -127,15 +127,105 @@ void main() {
         computeUnlockedAchievements([
           _history(1, [aYearAgo]),
         ], today: _today),
-        {Achievement.oneYearVeteran},
+        contains(Achievement.oneYearVeteran),
       );
       expect(
         computeUnlockedAchievements([
           _history(1, [aYearAgo.addDays(1)]),
         ], today: _today),
-        isEmpty,
+        isNot(contains(Achievement.oneYearVeteran)),
       );
       expect(computeUnlockedAchievements([futureOnly], today: _today), isEmpty);
+    });
+
+    test('a first step needs a success day, not any log', () {
+      final skippedOnly = _history(1, const [], otherLogs: {_today: _skipped});
+
+      expect(computeUnlockedAchievements([skippedOnly], today: _today), isEmpty);
+      expect(
+        computeUnlockedAchievements([
+          _history(1, [_today]),
+        ], today: _today),
+        contains(Achievement.firstStep),
+      );
+    });
+
+    test('streak milestones follow the best streak, weekly targets counting seven days a week', () {
+      final start = _today.addDays(-400);
+      Set<Achievement> unlockedFor(int dayCount) => computeUnlockedAchievements([
+        _history(1, _days(_today.addDays(1 - dayCount), dayCount), startDay: start),
+      ], today: _today);
+
+      expect(unlockedFor(29), isNot(contains(Achievement.monthStreak)));
+      expect(unlockedFor(30), contains(Achievement.monthStreak));
+      expect(unlockedFor(99), isNot(contains(Achievement.hundredDayStreak)));
+      expect(unlockedFor(100), contains(Achievement.hundredDayStreak));
+      expect(unlockedFor(364), isNot(contains(Achievement.yearStreak)));
+      expect(unlockedFor(365), contains(Achievement.yearStreak));
+
+      final fiveWeeksAgo = _thisMonday.addDays(-5 * DateTime.daysPerWeek);
+      final weekly = _history(
+        1,
+        [for (var week = 0; week < 5; week++) fiveWeeksAgo.addDays(week * DateTime.daysPerWeek)],
+        targetDaysPerWeek: 1,
+        startDay: fiveWeeksAgo,
+      );
+      expect(computeUnlockedAchievements([weekly], today: _today), contains(Achievement.monthStreak));
+    });
+
+    test('a perfect day asks every daily habit scheduled that day, not weekly targets', () {
+      final yesterday = _today.addDays(-1);
+      final daily = _history(1, [yesterday], startDay: yesterday);
+      final missedDaily = _history(2, const [], startDay: yesterday);
+      final weekly = _history(3, const [], targetDaysPerWeek: 3, startDay: yesterday);
+      // Yesterday is a Tuesday.
+      final notScheduled = _history(4, const [], scheduledWeekdayMask: 0x7F & ~(1 << 1), startDay: yesterday);
+
+      expect(
+        computeUnlockedAchievements([daily, weekly, notScheduled], today: _today),
+        contains(Achievement.perfectDay),
+      );
+      expect(computeUnlockedAchievements([daily, missedDaily], today: _today), isNot(contains(Achievement.perfectDay)));
+    });
+
+    test('total successes add up across habits; three habits need a success each', () {
+      final start = _today.addDays(-1000);
+      final histories = [
+        for (var habitId = 1; habitId <= 3; habitId++)
+          _history(habitId, _days(start.addDays(habitId * 300 - 300), 300), startDay: start),
+      ];
+
+      final unlocked = computeUnlockedAchievements(histories, today: _today);
+      expect(unlocked, containsAll([Achievement.fiveHundredTotalSuccessDays, Achievement.threeHabits]));
+      expect(unlocked, isNot(contains(Achievement.thousandTotalSuccessDays)));
+      expect(
+        computeUnlockedAchievements([
+          ...histories,
+          _history(4, _days(_today.addDays(-99), 100), startDay: start),
+        ], today: _today),
+        contains(Achievement.thousandTotalSuccessDays),
+      );
+      expect(
+        computeUnlockedAchievements(histories.take(2).toList(), today: _today),
+        isNot(contains(Achievement.threeHabits)),
+      );
+    });
+
+    test('a two-year veteran logged two years ago', () {
+      final twoYearsAgo = _today.addDays(-twoYearVeteranDayCount);
+
+      expect(
+        computeUnlockedAchievements([
+          _history(1, [twoYearsAgo]),
+        ], today: _today),
+        containsAll([Achievement.oneYearVeteran, Achievement.twoYearVeteran]),
+      );
+      expect(
+        computeUnlockedAchievements([
+          _history(1, [twoYearsAgo.addDays(1)]),
+        ], today: _today),
+        isNot(contains(Achievement.twoYearVeteran)),
+      );
     });
   });
 
@@ -149,7 +239,11 @@ void main() {
         today: _today,
       );
 
-      expect(celebrations.map((celebration) => celebration.id), ['habit:1:first_log']);
+      expect(celebrations.map((celebration) => celebration.id), [
+        'habit:1:first_log',
+        'achievement:firstStep',
+        'achievement:perfectDay',
+      ]);
     });
 
     test('crossing seven days celebrates the milestone and the first week once', () {

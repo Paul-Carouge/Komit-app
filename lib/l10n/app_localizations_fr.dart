@@ -856,6 +856,61 @@ class AppLocalizationsFr extends AppLocalizations {
   String get achievementOneYearVeteranDescription => 'Votre premier suivi a un an.';
 
   @override
+  String get achievementFirstStepTitle => 'Premier pas';
+
+  @override
+  String get achievementFirstStepDescription => 'Votre premier jour réussi.';
+
+  @override
+  String get achievementMonthStreakTitle => 'Un mois d’affilée';
+
+  @override
+  String get achievementMonthStreakDescription => 'Trente jours d’affilée sur une habitude.';
+
+  @override
+  String get achievementHundredDayStreakTitle => '100 jours d’affilée';
+
+  @override
+  String get achievementHundredDayStreakDescription => 'Cent jours d’affilée sur une habitude.';
+
+  @override
+  String get achievementYearStreakTitle => 'Un an d’affilée';
+
+  @override
+  String get achievementYearStreakDescription => 'Une année entière d’affilée sur une habitude.';
+
+  @override
+  String get achievementPerfectDayTitle => 'Journée parfaite';
+
+  @override
+  String get achievementPerfectDayDescription => 'Toutes les habitudes prévues un jour, faites ce jour-là.';
+
+  @override
+  String get achievementFiveHundredTotalSuccessDaysTitle => '500 réussites';
+
+  @override
+  String get achievementFiveHundredTotalSuccessDaysDescription =>
+      'Cinq cents jours réussis, toutes habitudes confondues.';
+
+  @override
+  String get achievementThousandTotalSuccessDaysTitle => '1 000 réussites';
+
+  @override
+  String get achievementThousandTotalSuccessDaysDescription => 'Mille jours réussis, toutes habitudes confondues.';
+
+  @override
+  String get achievementThreeHabitsTitle => 'Touche-à-tout';
+
+  @override
+  String get achievementThreeHabitsDescription => 'Des jours réussis sur trois habitudes différentes.';
+
+  @override
+  String get achievementTwoYearVeteranTitle => 'Deux ans';
+
+  @override
+  String get achievementTwoYearVeteranDescription => 'Votre premier suivi a deux ans.';
+
+  @override
   String get weeklyRecapTitle => 'La semaine dernière';
 
   @override

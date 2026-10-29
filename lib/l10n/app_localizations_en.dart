@@ -842,6 +842,60 @@ class AppLocalizationsEn extends AppLocalizations {
   String get achievementOneYearVeteranDescription => 'Your first log is a year old.';
 
   @override
+  String get achievementFirstStepTitle => 'First step';
+
+  @override
+  String get achievementFirstStepDescription => 'Your first success day.';
+
+  @override
+  String get achievementMonthStreakTitle => 'Month streak';
+
+  @override
+  String get achievementMonthStreakDescription => 'Thirty days in a row on one habit.';
+
+  @override
+  String get achievementHundredDayStreakTitle => '100-day streak';
+
+  @override
+  String get achievementHundredDayStreakDescription => 'A hundred days in a row on one habit.';
+
+  @override
+  String get achievementYearStreakTitle => 'Year streak';
+
+  @override
+  String get achievementYearStreakDescription => 'A full year in a row on one habit.';
+
+  @override
+  String get achievementPerfectDayTitle => 'Perfect day';
+
+  @override
+  String get achievementPerfectDayDescription => 'Every habit planned for a day, done that day.';
+
+  @override
+  String get achievementFiveHundredTotalSuccessDaysTitle => '500 successes';
+
+  @override
+  String get achievementFiveHundredTotalSuccessDaysDescription => 'Five hundred success days across your habits.';
+
+  @override
+  String get achievementThousandTotalSuccessDaysTitle => '1,000 successes';
+
+  @override
+  String get achievementThousandTotalSuccessDaysDescription => 'A thousand success days across your habits.';
+
+  @override
+  String get achievementThreeHabitsTitle => 'All-rounder';
+
+  @override
+  String get achievementThreeHabitsDescription => 'Success days on three different habits.';
+
+  @override
+  String get achievementTwoYearVeteranTitle => 'Two years';
+
+  @override
+  String get achievementTwoYearVeteranDescription => 'Your first log is two years old.';
+
+  @override
   String get weeklyRecapTitle => 'Last week';
 
   @override
