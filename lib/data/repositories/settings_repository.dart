@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/calendar_day.dart';
+
 class AppSettings {
   const AppSettings({
     required this.userName,
@@ -26,6 +28,8 @@ class SettingsRepository {
   static const String _isOnboardingCompleteKey = 'onboarding_complete';
   static const String _themeModeKey = 'theme_mode';
   static const String _languageCodeKey = 'language_code';
+  static const String _shownCelebrationIdsKey = 'shown_celebration_ids';
+  static const String _dismissedWeeklyRecapWeekKey = 'dismissed_weekly_recap_week';
 
   AppSettings readSettings() => AppSettings(
     userName: _preferences.getString(_userNameKey),
@@ -50,4 +54,19 @@ class SettingsRepository {
   Future<void> saveLanguageCode(String? languageCode) => languageCode == null
       ? _preferences.remove(_languageCodeKey)
       : _preferences.setString(_languageCodeKey, languageCode);
+
+  /// Ids of the celebrations already shown, so none plays twice (see `Celebration.id`).
+  Set<String> readShownCelebrationIds() => {...?_preferences.getStringList(_shownCelebrationIdsKey)};
+
+  Future<void> markCelebrationsShown(Iterable<String> celebrationIds) =>
+      _preferences.setStringList(_shownCelebrationIdsKey, {...readShownCelebrationIds(), ...celebrationIds}.toList());
+
+  /// The Monday starting the last week whose recap the user dismissed.
+  CalendarDay? readDismissedWeeklyRecapWeek() => switch (_preferences.getInt(_dismissedWeeklyRecapWeekKey)) {
+    final daysSinceEpoch? => CalendarDay(daysSinceEpoch),
+    null => null,
+  };
+
+  Future<void> saveDismissedWeeklyRecapWeek(CalendarDay weekMonday) =>
+      _preferences.setInt(_dismissedWeeklyRecapWeekKey, weekMonday.daysSinceEpoch);
 }

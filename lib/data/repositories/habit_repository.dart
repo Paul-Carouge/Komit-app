@@ -92,6 +92,9 @@ class HabitRepository {
   Stream<List<HabitWithObjectives>> watchArchivedHabits() =>
       _watchHabitsWithObjectives(_database.habits.archivedAt.isNotNull());
 
+  /// Active and archived habits, in the user-defined order.
+  Stream<List<HabitWithObjectives>> watchAllHabits() => _watchHabitsWithObjectives(const Constant(true));
+
   Stream<HabitWithObjectives?> watchHabitWithObjectives(int habitId) =>
       _watchHabitsWithObjectives(_database.habits.id.equals(habitId)).map((habits) => habits.firstOrNull);
 
@@ -128,9 +131,18 @@ class HabitRepository {
   }
 
   /// Logs of every habit since [firstDay] included: habit id -> day -> objective id.
-  Stream<Map<int, Map<CalendarDay, int>>> watchObjectiveIdByDayForAllHabitsSince(CalendarDay firstDay) {
-    final query = _database.select(_database.habitLogs)
-      ..where((log) => log.day.isBiggerOrEqualValue(firstDay.daysSinceEpoch));
+  Stream<Map<int, Map<CalendarDay, int>>> watchObjectiveIdByDayForAllHabitsSince(CalendarDay firstDay) =>
+      _watchObjectiveIdByDayByHabitId(
+        _database.select(_database.habitLogs)..where((log) => log.day.isBiggerOrEqualValue(firstDay.daysSinceEpoch)),
+      );
+
+  /// Every log of every habit, archived ones included: habit id -> day -> objective id.
+  Stream<Map<int, Map<CalendarDay, int>>> watchObjectiveIdByDayForAllHabits() =>
+      _watchObjectiveIdByDayByHabitId(_database.select(_database.habitLogs));
+
+  Stream<Map<int, Map<CalendarDay, int>>> _watchObjectiveIdByDayByHabitId(
+    SimpleSelectStatement<$HabitLogsTable, HabitLogRow> query,
+  ) {
     return query.watch().map((logs) {
       final logsByHabitId = <int, Map<CalendarDay, int>>{};
       for (final log in logs) {

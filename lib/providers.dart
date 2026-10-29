@@ -9,7 +9,10 @@ import 'data/repositories/backup_repository.dart';
 import 'data/repositories/habit_repository.dart';
 import 'data/repositories/note_repository.dart';
 import 'data/repositories/settings_repository.dart';
+import 'domain/achievements.dart';
+import 'domain/habit_history.dart';
 import 'domain/habit_statistics.dart';
+import 'domain/weekly_recap.dart';
 import 'services/app_update_service.dart';
 import 'services/notification_permission_service.dart';
 import 'services/reminder_scheduler.dart';
@@ -123,3 +126,62 @@ final lastLoggedDayByHabitIdProvider = StreamProvider(
 );
 
 final notesProvider = StreamProvider((ref) => ref.watch(noteRepositoryProvider).watchNotesMostRecentlyUpdatedFirst());
+
+/// The domain view of [habit] and its logs, for recaps, achievements and celebrations.
+HabitHistory habitHistoryOf(HabitWithObjectives habit, Map<CalendarDay, int> objectiveIdByDay) {
+  final createdDay = CalendarDay.fromDateTime(habit.habit.createdAt);
+  final firstLoggedDay = objectiveIdByDay.keys.fold(
+    createdDay,
+    (earliest, day) => day.isAfter(earliest) ? earliest : day,
+  );
+  final archivedAt = habit.habit.archivedAt;
+  return HabitHistory(
+    habitId: habit.habit.id,
+    objectiveIdByDay: objectiveIdByDay,
+    successObjectiveIds: habit.successObjectiveIds,
+    startDay: firstLoggedDay,
+    scheduledWeekdayMask: habit.habit.scheduledWeekdayMask,
+    targetDaysPerWeek: habit.habit.targetDaysPerWeek,
+    archivedDay: archivedAt == null ? null : CalendarDay.fromDateTime(archivedAt),
+  );
+}
+
+final allHabitsProvider = StreamProvider((ref) => ref.watch(habitRepositoryProvider).watchAllHabits());
+
+final allObjectiveIdByDayByHabitIdProvider = StreamProvider(
+  (ref) => ref.watch(habitRepositoryProvider).watchObjectiveIdByDayForAllHabits(),
+);
+
+/// Every habit's history, archived ones included; null while habits or logs load.
+final habitHistoriesProvider = Provider<List<HabitHistory>?>((ref) {
+  final habits = ref.watch(allHabitsProvider).value;
+  final logsByHabitId = ref.watch(allObjectiveIdByDayByHabitIdProvider).value;
+  if (habits == null || logsByHabitId == null) return null;
+  return [for (final habit in habits) habitHistoryOf(habit, logsByHabitId[habit.habit.id] ?? const {})];
+});
+
+final unlockedAchievementsProvider = Provider<Set<Achievement>?>((ref) {
+  final histories = ref.watch(habitHistoriesProvider);
+  if (histories == null) return null;
+  return computeUnlockedAchievements(histories, today: ref.watch(currentCalendarDayProvider));
+});
+
+final weeklyRecapProvider = Provider<WeeklyRecap?>((ref) {
+  final histories = ref.watch(habitHistoriesProvider);
+  if (histories == null) return null;
+  return computeWeeklyRecap(histories, today: ref.watch(currentCalendarDayProvider));
+});
+
+class DismissedWeeklyRecapWeekController extends Notifier<CalendarDay?> {
+  @override
+  CalendarDay? build() => ref.watch(settingsRepositoryProvider).readDismissedWeeklyRecapWeek();
+
+  Future<void> dismiss(CalendarDay weekMonday) async {
+    state = weekMonday;
+    await ref.read(settingsRepositoryProvider).saveDismissedWeeklyRecapWeek(weekMonday);
+  }
+}
+
+final dismissedWeeklyRecapWeekProvider = NotifierProvider<DismissedWeeklyRecapWeekController, CalendarDay?>(
+  DismissedWeeklyRecapWeekController.new,
+);
