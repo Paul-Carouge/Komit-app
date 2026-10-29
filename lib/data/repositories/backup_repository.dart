@@ -37,11 +37,15 @@ class BackupRepository {
               iconName: habit.iconName,
               reminderMinuteOfDay: habit.reminderMinuteOfDay,
               createdAt: habit.createdAt,
+              scheduledWeekdayMask: habit.scheduledWeekdayMask,
+              targetDaysPerWeek: habit.targetDaysPerWeek,
+              archivedAt: habit.archivedAt,
               objectives: [
                 for (final objective in objectives.where((objective) => objective.habitId == habit.id))
                   BackupObjective(
                     title: objective.title,
                     colorArgb: objective.colorArgb,
+                    countsAsSuccess: objective.countsAsSuccess,
                     loggedDays: loggedDaysByObjectiveId[objective.id] ?? const [],
                   ),
               ],
@@ -75,6 +79,9 @@ class BackupRepository {
                 reminderMinuteOfDay: Value(habit.reminderMinuteOfDay),
                 sortOrder: Value(habitSortOrder),
                 createdAt: habit.createdAt,
+                scheduledWeekdayMask: Value(habit.scheduledWeekdayMask),
+                targetDaysPerWeek: Value(habit.targetDaysPerWeek),
+                archivedAt: Value(habit.archivedAt),
               ),
             );
         for (final (objectiveSortOrder, objective) in habit.objectives.indexed) {
@@ -86,6 +93,7 @@ class BackupRepository {
                   title: objective.title,
                   colorArgb: objective.colorArgb,
                   sortOrder: objectiveSortOrder,
+                  countsAsSuccess: Value(objective.countsAsSuccess),
                 ),
               );
           await _database.batch((batch) {

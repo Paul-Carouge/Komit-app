@@ -25,11 +25,15 @@ String encodeBackupSnapshotToJson(BackupSnapshot snapshot, {required DateTime ex
           'iconName': habit.iconName,
           'reminderMinuteOfDay': habit.reminderMinuteOfDay,
           'createdAt': habit.createdAt.toUtc().toIso8601String(),
+          'scheduledWeekdayMask': habit.scheduledWeekdayMask,
+          'targetDaysPerWeek': habit.targetDaysPerWeek,
+          'archivedAt': habit.archivedAt?.toUtc().toIso8601String(),
           'objectives': [
             for (final objective in habit.objectives)
               {
                 'title': objective.title,
                 'colorArgb': objective.colorArgb,
+                'countsAsSuccess': objective.countsAsSuccess,
                 'loggedDays': [for (final day in objective.loggedDays) _formatIsoDate(day)],
               },
           ],
@@ -50,7 +54,10 @@ String encodeBackupSnapshotToJson(BackupSnapshot snapshot, {required DateTime ex
 ///
 /// Throws [InvalidBackupException] with a readable reason on any malformed input:
 /// nothing must be written to the database from a half-understood file.
-BackupSnapshot decodeBackupSnapshotFromJson(String jsonText) {
+///
+/// A v2 file with a log after [today] is rejected, since this app never writes one.
+/// v1 files keep such logs: the original app allowed them and its import must lose nothing.
+BackupSnapshot decodeBackupSnapshotFromJson(String jsonText, {required CalendarDay today}) {
   final Object? decoded;
   try {
     decoded = jsonDecode(jsonText);
@@ -64,7 +71,7 @@ BackupSnapshot decodeBackupSnapshotFromJson(String jsonText) {
     legacyBackupFormatVersion => _decodeLegacyFormat(root),
     _ => throw InvalidBackupException('Unsupported backup version: $version'),
   };
-  _validateSnapshot(snapshot);
+  _validateSnapshot(snapshot, latestAllowedLogDay: version == currentBackupFormatVersion ? today : null);
   return snapshot;
 }
 
@@ -92,6 +99,14 @@ BackupHabit _decodeCurrentHabit(Map<String, Object?> habit, String path) {
         ? null
         : _requiredInt(habit['reminderMinuteOfDay'], '$path.reminderMinuteOfDay'),
     createdAt: _requiredDateTime(habit['createdAt'], '$path.createdAt'),
+    // The keys below were added within v2; files written before them get the v1 behaviour.
+    scheduledWeekdayMask: habit['scheduledWeekdayMask'] == null
+        ? everyWeekdayMask
+        : _requiredInt(habit['scheduledWeekdayMask'], '$path.scheduledWeekdayMask'),
+    targetDaysPerWeek: habit['targetDaysPerWeek'] == null
+        ? null
+        : _requiredInt(habit['targetDaysPerWeek'], '$path.targetDaysPerWeek'),
+    archivedAt: habit['archivedAt'] == null ? null : _requiredDateTime(habit['archivedAt'], '$path.archivedAt'),
     objectives: [
       for (final (index, rawObjective) in _asList(habit['objectives'], '$path.objectives').indexed)
         _decodeCurrentObjective(_asMap(rawObjective, '$path.objectives[$index]'), '$path.objectives[$index]'),
@@ -103,6 +118,11 @@ BackupObjective _decodeCurrentObjective(Map<String, Object?> objective, String p
   return BackupObjective(
     title: _requiredTrimmedString(objective['title'], '$path.title'),
     colorArgb: _requiredInt(objective['colorArgb'], '$path.colorArgb'),
+    countsAsSuccess: switch (objective['countsAsSuccess']) {
+      null => true,
+      final bool countsAsSuccess => countsAsSuccess,
+      _ => throw InvalidBackupException('$path.countsAsSuccess: expected a boolean'),
+    },
     loggedDays: [
       for (final (index, rawDay) in _asList(objective['loggedDays'], '$path.loggedDays').indexed)
         _requiredCalendarDay(rawDay, '$path.loggedDays[$index]'),
@@ -221,10 +241,28 @@ BackupNote _decodeNote(Map<String, Object?> note, String path) {
   );
 }
 
-void _validateSnapshot(BackupSnapshot snapshot) {
+/// [latestAllowedLogDay] is null when future logs are accepted.
+void _validateSnapshot(BackupSnapshot snapshot, {required CalendarDay? latestAllowedLogDay}) {
+  for (final (index, note) in snapshot.notes.indexed) {
+    if (note.content.length > maximumNoteContentLength) {
+      throw InvalidBackupException('notes[$index]: content longer than $maximumNoteContentLength characters');
+    }
+  }
   for (final habit in snapshot.habits) {
     if (habit.title.length > maximumHabitTitleLength) {
       throw InvalidBackupException('Habit "${habit.title}": title longer than $maximumHabitTitleLength characters');
+    }
+    if (habit.description.length > maximumHabitDescriptionLength) {
+      throw InvalidBackupException(
+        'Habit "${habit.title}": description longer than $maximumHabitDescriptionLength characters',
+      );
+    }
+    if (habit.scheduledWeekdayMask < 1 || habit.scheduledWeekdayMask > everyWeekdayMask) {
+      throw InvalidBackupException('Habit "${habit.title}": invalid weekday mask ${habit.scheduledWeekdayMask}');
+    }
+    if (habit.targetDaysPerWeek case final target?
+        when target < minimumTargetDaysPerWeek || target > maximumTargetDaysPerWeek) {
+      throw InvalidBackupException('Habit "${habit.title}": invalid target of $target days per week');
     }
     if (habit.reminderMinuteOfDay case final minute? when minute < 0 || minute >= Duration.minutesPerDay) {
       throw InvalidBackupException('Habit "${habit.title}": invalid reminder minute $minute');
@@ -242,6 +280,9 @@ void _validateSnapshot(BackupSnapshot snapshot) {
         throw InvalidBackupException('Habit "${habit.title}": duplicate objective "${objective.title}"');
       }
       for (final day in objective.loggedDays) {
+        if (latestAllowedLogDay != null && day.isAfter(latestAllowedLogDay)) {
+          throw InvalidBackupException('Habit "${habit.title}": log on ${_formatIsoDate(day)} is in the future');
+        }
         if (!loggedDays.add(day)) {
           throw InvalidBackupException('Habit "${habit.title}": two logs on ${_formatIsoDate(day)}');
         }

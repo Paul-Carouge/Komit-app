@@ -136,8 +136,9 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
                   controller: _descriptionController,
                   minLines: 2,
                   maxLines: 4,
+                  maxLength: maximumHabitDescriptionLength,
                   textCapitalization: TextCapitalization.sentences,
-                  decoration: InputDecoration(labelText: localizations.descriptionOptional),
+                  decoration: InputDecoration(labelText: localizations.descriptionOptional, counterText: ''),
                 ),
                 SectionTitle(localizations.appearance),
                 Row(

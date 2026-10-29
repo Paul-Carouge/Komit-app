@@ -8,6 +8,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/haptics.dart';
 import '../../core/theme/app_theme.dart';
+import '../../data/database/app_database.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
 import '../shared/shared_widgets.dart';
@@ -133,12 +134,14 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                   autofocus: widget.noteId == null,
                   expands: true,
                   maxLines: null,
+                  maxLength: maximumNoteContentLength,
                   textAlignVertical: TextAlignVertical.top,
                   textCapitalization: TextCapitalization.sentences,
                   keyboardType: TextInputType.multiline,
                   style: Theme.of(context).textTheme.bodyLarge,
                   decoration: InputDecoration(
                     hintText: localizations.noteHint,
+                    counterText: '',
                     filled: false,
                     border: InputBorder.none,
                     focusedBorder: InputBorder.none,

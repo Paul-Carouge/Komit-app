@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/current_calendar_day.dart';
 import '../../data/backup/backup_json_codec.dart';
 import '../../data/backup/backup_snapshot.dart';
 import '../../l10n/app_localizations.dart';
@@ -46,8 +47,9 @@ Future<bool> importBackupFromUserChosenFile(BuildContext context, WidgetRef ref)
       throw const InvalidBackupException('file too large');
     }
     final jsonText = await pickedFile.xFile.readAsString();
+    final today = ref.read(currentCalendarDayProvider);
     // Decoding and validating a large file must not freeze the UI.
-    snapshot = await Isolate.run(() => decodeBackupSnapshotFromJson(jsonText));
+    snapshot = await Isolate.run(() => decodeBackupSnapshotFromJson(jsonText, today: today));
   } on InvalidBackupException catch (error) {
     if (context.mounted) showMessageSnackBar(context, localizations.importFailed(error.message));
     return false;

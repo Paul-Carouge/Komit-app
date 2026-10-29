@@ -15,9 +15,15 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
 - Haptic feedback: a light tap when you log a day or save, a firmer one when you remove
   something, a double tap when you finish the welcome. It follows your phone's vibration
   setting.
+- Backups also save each habit's schedule, weekly target and archive state, and which
+  outcomes count as a success. Older backups still import, with every habit kept daily.
 - A freshly logged day pops into its square; cards gently sink when you press them.
 
 ### Changed
+- Importing a backup made by this version now refuses a file with a day logged in the
+  future, or with a description or note longer than the app allows. Backups from the
+  original Komit app still import in full.
+- Habit descriptions are limited to 1,000 characters and notes to 20,000.
 - The database now uses a safer journal mode, ready for logging from notifications and
   widgets. Your existing habits, logs and notes are kept as they are.
 - Headings use a new rounded serif typeface, and text colors are slightly warmer.

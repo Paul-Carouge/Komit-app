@@ -1,4 +1,5 @@
 import '../../core/calendar_day.dart';
+import '../database/app_database.dart';
 
 /// Storage-independent copy of all user data, used for import and export.
 ///
@@ -23,6 +24,9 @@ class BackupHabit {
     required this.reminderMinuteOfDay,
     required this.createdAt,
     required this.objectives,
+    this.scheduledWeekdayMask = everyWeekdayMask,
+    this.targetDaysPerWeek,
+    this.archivedAt,
   });
 
   final String title;
@@ -32,15 +36,24 @@ class BackupHabit {
   final int? reminderMinuteOfDay;
   final DateTime createdAt;
   final List<BackupObjective> objectives;
+  final int scheduledWeekdayMask;
+  final int? targetDaysPerWeek;
+  final DateTime? archivedAt;
 
   int get logCount => objectives.fold(0, (total, objective) => total + objective.loggedDays.length);
 }
 
 class BackupObjective {
-  const BackupObjective({required this.title, required this.colorArgb, required this.loggedDays});
+  const BackupObjective({
+    required this.title,
+    required this.colorArgb,
+    required this.loggedDays,
+    this.countsAsSuccess = true,
+  });
 
   final String title;
   final int colorArgb;
+  final bool countsAsSuccess;
   final List<CalendarDay> loggedDays;
 }
 
