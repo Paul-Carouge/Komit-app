@@ -49,6 +49,11 @@ android {
         }
     }
 
+    testOptions {
+        // TestNG (Apache-2.0) rather than JUnit (EPL), to keep every dependency permissively licensed.
+        unitTests.all { it.useTestNG() }
+    }
+
     buildTypes {
         release {
             // In-app updates only install over an APK signed with the same key, so never fall back to debug keys.
@@ -71,4 +76,5 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+    testImplementation("org.testng:testng:7.10.2")
 }

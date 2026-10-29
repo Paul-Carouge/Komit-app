@@ -66,6 +66,8 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
   and notes rise gently into place when a list opens. Streaks and totals count up.
 - Monthly statistics use the habit's color, highlight the current month, and show the
   month and count when you touch a bar.
+- Long-press Komit's icon for two shortcuts: "New habit" opens the habit editor and
+  "Today" opens today's habits.
 
 ### Changed
 - Screens slide in and out again, with Android's back gesture preview: an update of the

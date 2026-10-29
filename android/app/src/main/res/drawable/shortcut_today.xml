@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Komit's orange disc with a check mark, drawn inside the launcher's 48dp shortcut circle. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path
+        android:fillColor="@color/komit_orange"
+        android:pathData="M24,0 A24,24 0 1 1 24,48 A24,24 0 1 1 24,0 Z" />
+    <path
+        android:pathData="M15,24.5 L21,30.5 L33,18"
+        android:strokeWidth="4"
+        android:strokeColor="@color/komo_eye"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>

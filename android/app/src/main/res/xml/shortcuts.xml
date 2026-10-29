@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Explicit intents only; MainActivity.kt checks the action and the destination against
+     LaunchDestination.kt, as Flutter deep links stay disabled. targetPackage is the
+     applicationId of android/app/build.gradle.kts. -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/shortcut_new_habit"
+        android:shortcutId="new_habit"
+        android:shortcutLongLabel="@string/shortcut_new_habit_long"
+        android:shortcutShortLabel="@string/shortcut_new_habit_short">
+        <intent
+            android:action="com.paulcarouge.komit.action.OPEN_DESTINATION"
+            android:targetClass="com.paulcarouge.komit.MainActivity"
+            android:targetPackage="com.paulcarouge.komit.next">
+            <extra
+                android:name="com.paulcarouge.komit.extra.DESTINATION"
+                android:value="newHabit" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/shortcut_today"
+        android:shortcutId="today"
+        android:shortcutLongLabel="@string/shortcut_today_long"
+        android:shortcutShortLabel="@string/shortcut_today_short">
+        <intent
+            android:action="com.paulcarouge.komit.action.OPEN_DESTINATION"
+            android:targetClass="com.paulcarouge.komit.MainActivity"
+            android:targetPackage="com.paulcarouge.komit.next">
+            <extra
+                android:name="com.paulcarouge.komit.extra.DESTINATION"
+                android:value="today" />
+        </intent>
+    </shortcut>
+</shortcuts>

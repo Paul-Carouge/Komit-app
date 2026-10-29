@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="shortcut_new_habit_short">Nouvelle habitude</string>
+    <string name="shortcut_new_habit_long">Créer une nouvelle habitude</string>
+    <string name="shortcut_today_short">Aujourd\'hui</string>
+    <string name="shortcut_today_long">Voir les habitudes du jour</string>
+</resources>

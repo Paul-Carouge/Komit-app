@@ -12,6 +12,7 @@ import 'features/splash/splash_handoff.dart';
 import 'l10n/app_localizations.dart';
 import 'providers.dart';
 import 'router.dart';
+import 'services/launch_destination.dart';
 
 class KomitApp extends ConsumerStatefulWidget {
   const KomitApp({super.key});
@@ -23,6 +24,7 @@ class KomitApp extends ConsumerStatefulWidget {
 class _KomitAppState extends ConsumerState<KomitApp> {
   late final GoRouter _router = buildAppRouter(ref);
   late final StreamSubscription<int> _reminderTapSubscription;
+  late final StreamSubscription<LaunchDestination> _launchDestinationSubscription;
 
   @override
   void initState() {
@@ -32,11 +34,28 @@ class _KomitAppState extends ConsumerState<KomitApp> {
         .read(reminderSchedulerProvider)
         .habitIdsOpenedFromReminders
         .listen((habitId) => _router.push(AppRoutes.habitDetails(habitId)));
+    _launchDestinationSubscription = watchLaunchDestinations().listen(
+      _openLaunchDestination,
+      onError: (Object error, StackTrace stackTrace) => unawaited(
+        ref.read(appLoggerProvider).logError(event: 'launch_destination_failed', error: error, stackTrace: stackTrace),
+      ),
+    );
+  }
+
+  void _openLaunchDestination(LaunchDestination destination) {
+    switch (destination) {
+      case LaunchDestination.today:
+        _router.go(destination.route);
+      // Pushed, so Back returns to the habits instead of leaving the app.
+      case LaunchDestination.newHabit:
+        _router.push(destination.route);
+    }
   }
 
   @override
   void dispose() {
     unawaited(_reminderTapSubscription.cancel());
+    unawaited(_launchDestinationSubscription.cancel());
     _router.dispose();
     super.dispose();
   }

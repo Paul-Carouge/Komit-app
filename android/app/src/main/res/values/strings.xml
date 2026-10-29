@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Texts Android shows outside Flutter: the launcher shortcuts.
+     French in values-fr; the app's own texts are in lib/l10n. -->
+<resources>
+    <string name="shortcut_new_habit_short">New habit</string>
+    <string name="shortcut_new_habit_long">Create a new habit</string>
+    <string name="shortcut_today_short">Today</string>
+    <string name="shortcut_today_long">Show today\'s habits</string>
+</resources>

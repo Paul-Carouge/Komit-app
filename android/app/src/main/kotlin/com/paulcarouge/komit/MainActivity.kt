@@ -18,11 +18,16 @@ import java.util.concurrent.Executors
 
 private const val APP_UPDATE_CHANNEL = "com.paulcarouge.komit/app_update"
 private const val NOTIFICATION_SETTINGS_CHANNEL = "com.paulcarouge.komit/notification_settings"
+private const val LAUNCH_DESTINATION_CHANNEL = "com.paulcarouge.komit/launch_destination"
 private const val RELEASES_PAGE_URL = "https://github.com/Paul-Carouge/Komit-app/releases"
 private val SHA256_HEX_PATTERN = Regex("^[0-9a-f]{64}$")
 
 class MainActivity : FlutterActivity() {
     private val backgroundExecutor = Executors.newSingleThreadExecutor()
+    private var launchDestinationChannel: MethodChannel? = null
+
+    /** Taken once by Dart, so a configuration change never opens the same screen again. */
+    private var initialLaunchDestination: LaunchDestination? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -73,10 +78,33 @@ class MainActivity : FlutterActivity() {
                     }
                 }
             }
+        initialLaunchDestination = intent.launchDestination()
+        launchDestinationChannel =
+            MethodChannel(flutterEngine.dartExecutor.binaryMessenger, LAUNCH_DESTINATION_CHANNEL).apply {
+                setMethodCallHandler { call, result ->
+                    if (call.method == "takeInitialDestination") {
+                        result.success(initialLaunchDestination?.dartName)
+                        initialLaunchDestination = null
+                    } else {
+                        result.notImplemented()
+                    }
+                }
+            }
     }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        intent.launchDestination()?.let { destination ->
+            launchDestinationChannel?.invokeMethod("openDestination", destination.dartName)
+        }
+    }
+
+    private fun Intent.launchDestination(): LaunchDestination? =
+        LaunchDestination.fromIntentAction(action, getStringExtra(DESTINATION_EXTRA))
 
     override fun onDestroy() {
         UpdateInstallStatusReceiver.onInstallFailed = null
+        launchDestinationChannel = null
         backgroundExecutor.shutdown()
         super.onDestroy()
     }
