@@ -40,10 +40,9 @@ Compact phone (360 dp)                    Large screen: same column, content wid
 - **Log sheet**: habit header with a relative date, then full-width pills filled with each
   objective's color (text via `foregroundColorReadableOn`); the current choice has a ring
   and a check, not only a fill. Imported future days explain why they can only be cleared.
-- **Editor**: a live preview of the row at the top, a schedule picker (every day, some
-  days with round weekday toggles, or N per week with a stepper), a per-objective "Extends
-  the streak" switch, borderless objective fields, and a full-width save button at the
-  bottom where the thumb is.
+- **Editor**: see [habit-editor.md](habit-editor.md): an identity card that is its own
+  preview, a schedule card whose chosen row opens its setting, grouped objectives, and a
+  frosted save bar at the bottom where the thumb is.
 - **Reorder**: long press lifts a row (scale `liftedScale`, `AppShadows.lifted`, lift
   haptic); "Move up" and "Move down" are screen reader actions on each card.
 
