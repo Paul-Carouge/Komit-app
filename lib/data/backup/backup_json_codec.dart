@@ -59,9 +59,9 @@ String encodeBackupSnapshotToJson(BackupSnapshot snapshot, {required DateTime ex
 /// Throws [InvalidBackupException] with a readable reason on any malformed input:
 /// nothing must be written to the database from a half-understood file.
 ///
-/// A v2 file with a log after [today] is rejected, since this app never writes one.
-/// v1 files keep such logs: the original app allowed them and its import must lose nothing.
-BackupSnapshot decodeBackupSnapshotFromJson(String jsonText, {required CalendarDay today}) {
+/// Logs after today are kept in both formats: the original app allowed them, a v1 import stores them,
+/// and every later export or automatic backup carries them, so rejecting them would block a restore.
+BackupSnapshot decodeBackupSnapshotFromJson(String jsonText) {
   final Object? decoded;
   try {
     decoded = jsonDecode(jsonText);
@@ -75,7 +75,7 @@ BackupSnapshot decodeBackupSnapshotFromJson(String jsonText, {required CalendarD
     legacyBackupFormatVersion => _decodeLegacyFormat(root),
     _ => throw InvalidBackupException('Unsupported backup version: $version'),
   };
-  _validateSnapshot(snapshot, latestAllowedLogDay: version == currentBackupFormatVersion ? today : null);
+  _validateSnapshot(snapshot, isCurrentFormat: version == currentBackupFormatVersion);
   return snapshot;
 }
 
@@ -245,10 +245,11 @@ BackupNote _decodeNote(Map<String, Object?> note, String path) {
   );
 }
 
-/// [latestAllowedLogDay] is null when future logs are accepted.
-void _validateSnapshot(BackupSnapshot snapshot, {required CalendarDay? latestAllowedLogDay}) {
+/// The note and description limits come from the editor only, so they apply to v2 files alone:
+/// the original app had no such limit and its import must lose nothing.
+void _validateSnapshot(BackupSnapshot snapshot, {required bool isCurrentFormat}) {
   for (final (index, note) in snapshot.notes.indexed) {
-    if (note.content.length > maximumNoteContentLength) {
+    if (isCurrentFormat && note.content.length > maximumNoteContentLength) {
       throw InvalidBackupException('notes[$index]: content longer than $maximumNoteContentLength characters');
     }
   }
@@ -256,7 +257,7 @@ void _validateSnapshot(BackupSnapshot snapshot, {required CalendarDay? latestAll
     if (habit.title.length > maximumHabitTitleLength) {
       throw InvalidBackupException('Habit "${habit.title}": title longer than $maximumHabitTitleLength characters');
     }
-    if (habit.description.length > maximumHabitDescriptionLength) {
+    if (isCurrentFormat && habit.description.length > maximumHabitDescriptionLength) {
       throw InvalidBackupException(
         'Habit "${habit.title}": description longer than $maximumHabitDescriptionLength characters',
       );
@@ -284,9 +285,6 @@ void _validateSnapshot(BackupSnapshot snapshot, {required CalendarDay? latestAll
         throw InvalidBackupException('Habit "${habit.title}": duplicate objective "${objective.title}"');
       }
       for (final day in objective.loggedDays) {
-        if (latestAllowedLogDay != null && day.isAfter(latestAllowedLogDay)) {
-          throw InvalidBackupException('Habit "${habit.title}": log on ${_formatIsoDate(day)} is in the future');
-        }
         if (!loggedDays.add(day)) {
           throw InvalidBackupException('Habit "${habit.title}": two logs on ${_formatIsoDate(day)}');
         }

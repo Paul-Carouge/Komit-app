@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:komit/core/calendar_day.dart';
 import 'package:komit/data/backup/backup_json_codec.dart';
 import 'package:komit/data/backup/backup_snapshot.dart';
 import 'package:komit/data/backup/encrypted_backup_envelope.dart';
@@ -11,7 +10,6 @@ import 'package:komit/services/backup_encryption_service.dart';
 import '../data/backup_import_test.dart' show buildLegacyBackupJson, buildOldCurrentBackupJson;
 
 const MethodChannel _fakeEncryptionChannel = MethodChannel('test/backup_encryption');
-final CalendarDay _today = CalendarDay.fromDate(2026, 10, 29);
 
 /// Stands in for javax.crypto (tested in BackupEncryptionTest.kt): the "ciphertext" carries the
 /// passphrase, so only the same passphrase opens it, like AES-GCM's tag check.
@@ -58,7 +56,7 @@ void main() {
     expect(jsonDecode(encryptedFile), containsPair('kdf', {'name': 'PBKDF2-HMAC-SHA256', 'iterations': 600000}));
     expect(encryptedFile, isNot(contains('Felt great')));
     expect(decryptedJson, plainBackupJson);
-    expect(decodeBackupSnapshotFromJson(decryptedJson, today: _today).notes.single.content, 'Felt great');
+    expect(decodeBackupSnapshotFromJson(decryptedJson).notes.single.content, 'Felt great');
   });
 
   test('a wrong passphrase gives a typed error', () async {

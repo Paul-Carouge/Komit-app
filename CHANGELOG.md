@@ -154,6 +154,9 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
   removed after a failed download.
 - An import whose data was saved no longer reports a failure when only the first name in
   the file could not be saved.
+- Restoring an automatic backup or one of your exports no longer fails when it holds a day
+  logged in advance in the original app, and a failed restore now says why.
+- Backups from the original app import even with a very long note or habit description.
 
 ## [2.0.0] - 2026-10-28
 

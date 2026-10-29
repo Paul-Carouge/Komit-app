@@ -117,7 +117,7 @@ final today = CalendarDay.fromDate(2026, 10, 29);
 void main() {
   group('decodeBackupSnapshotFromJson with a legacy v1 file', () {
     test('keeps every habit, objective and log, with trimmed titles', () {
-      final snapshot = decodeBackupSnapshotFromJson(buildLegacyBackupJson(), today: today);
+      final snapshot = decodeBackupSnapshotFromJson(buildLegacyBackupJson());
 
       expect(snapshot.userName, 'Alex');
       expect(snapshot.habits.map((habit) => habit.title), ['Running', 'No spend challenge']);
@@ -134,7 +134,7 @@ void main() {
     });
 
     test('maps every habit and objective to the v2 defaults', () {
-      final snapshot = decodeBackupSnapshotFromJson(buildLegacyBackupJson(), today: today);
+      final snapshot = decodeBackupSnapshotFromJson(buildLegacyBackupJson());
 
       for (final habit in snapshot.habits) {
         expect(habit.scheduledWeekdayMask, everyWeekdayMask);
@@ -152,8 +152,23 @@ void main() {
         'objectiveTitle': 'Spend ',
         'objectiveColorHex': 'FFEF5350',
       };
-      final snapshot = decodeBackupSnapshotFromJson(buildLegacyBackupJson(extraLogs: [futureLog]), today: today);
+      final snapshot = decodeBackupSnapshotFromJson(buildLegacyBackupJson(extraLogs: [futureLog]));
       expect(snapshot.logCount, 5);
+    });
+
+    test('keeps a note and a description longer than the editor limits', () {
+      final longNote = 'n' * 25000;
+      final longDescription = 'd' * 1500;
+      final legacyJson = jsonDecode(buildLegacyBackupJson()) as Map<String, Object?>;
+      (legacyJson['habits']! as List<Object?>).cast<Map<String, Object?>>().first['description'] = longDescription;
+      legacyJson['notes'] = [
+        {'content': longNote, 'createdAt': '2026-01-01T08:00:00.000'},
+      ];
+
+      final snapshot = decodeBackupSnapshotFromJson(jsonEncode(legacyJson));
+
+      expect(snapshot.habits.first.description, longDescription);
+      expect(snapshot.notes.single.content, longNote);
     });
 
     test('rejects two logs on the same day for one habit', () {
@@ -165,7 +180,7 @@ void main() {
         'objectiveColorHex': 'FF7E57C2',
       };
       expect(
-        () => decodeBackupSnapshotFromJson(buildLegacyBackupJson(extraLogs: [duplicate]), today: today),
+        () => decodeBackupSnapshotFromJson(buildLegacyBackupJson(extraLogs: [duplicate])),
         throwsA(isA<InvalidBackupException>()),
       );
     });
@@ -179,7 +194,7 @@ void main() {
         'objectiveColorHex': 'FF7E57C2',
       };
       expect(
-        () => decodeBackupSnapshotFromJson(buildLegacyBackupJson(extraLogs: [orphan]), today: today),
+        () => decodeBackupSnapshotFromJson(buildLegacyBackupJson(extraLogs: [orphan])),
         throwsA(isA<InvalidBackupException>()),
       );
     });
@@ -193,23 +208,20 @@ void main() {
         'objectiveColorHex': 'FF7E57C2',
       };
       expect(
-        () => decodeBackupSnapshotFromJson(buildLegacyBackupJson(extraLogs: [impossibleDate]), today: today),
+        () => decodeBackupSnapshotFromJson(buildLegacyBackupJson(extraLogs: [impossibleDate])),
         throwsA(isA<InvalidBackupException>()),
       );
     });
 
     test('rejects non-JSON and unknown versions', () {
-      expect(() => decodeBackupSnapshotFromJson('not json', today: today), throwsA(isA<InvalidBackupException>()));
-      expect(
-        () => decodeBackupSnapshotFromJson('{"version": 99}', today: today),
-        throwsA(isA<InvalidBackupException>()),
-      );
+      expect(() => decodeBackupSnapshotFromJson('not json'), throwsA(isA<InvalidBackupException>()));
+      expect(() => decodeBackupSnapshotFromJson('{"version": 99}'), throwsA(isA<InvalidBackupException>()));
     });
   });
 
   group('decodeBackupSnapshotFromJson with a v2 file', () {
     test('imports a file written before the new keys with their defaults', () {
-      final snapshot = decodeBackupSnapshotFromJson(buildOldCurrentBackupJson(), today: today);
+      final snapshot = decodeBackupSnapshotFromJson(buildOldCurrentBackupJson());
 
       final habit = snapshot.habits.single;
       expect(habit.scheduledWeekdayMask, everyWeekdayMask);
@@ -246,7 +258,6 @@ void main() {
 
       final decoded = decodeBackupSnapshotFromJson(
         encodeBackupSnapshotToJson(snapshot, exportedAt: DateTime.utc(2026, 10, 28)),
-        today: today,
       );
 
       final habit = decoded.habits.single;
@@ -256,30 +267,21 @@ void main() {
       expect(habit.objectives.map((objective) => objective.countsAsSuccess), [true, false]);
     });
 
-    test('rejects a log dated after today', () {
-      expect(
-        () => decodeBackupSnapshotFromJson(buildOldCurrentBackupJson(loggedDay: '2026-10-30'), today: today),
-        throwsA(isA<InvalidBackupException>()),
-      );
-      expect(
-        decodeBackupSnapshotFromJson(buildOldCurrentBackupJson(loggedDay: '2026-10-29'), today: today).logCount,
-        1,
-      );
+    test('keeps a log dated after today, which a v1 import may have stored', () {
+      final snapshot = decodeBackupSnapshotFromJson(buildOldCurrentBackupJson(loggedDay: '2026-12-12'));
+      expect(snapshot.habits.single.objectives.single.loggedDays, [CalendarDay.fromDate(2026, 12, 12)]);
     });
 
     test('rejects a description or a note longer than the limits', () {
       expect(
         () => decodeBackupSnapshotFromJson(
           buildOldCurrentBackupJson(description: 'a' * (maximumHabitDescriptionLength + 1)),
-          today: today,
         ),
         throwsA(isA<InvalidBackupException>()),
       );
       expect(
-        () => decodeBackupSnapshotFromJson(
-          buildOldCurrentBackupJson(noteContent: 'a' * (maximumNoteContentLength + 1)),
-          today: today,
-        ),
+        () =>
+            decodeBackupSnapshotFromJson(buildOldCurrentBackupJson(noteContent: 'a' * (maximumNoteContentLength + 1))),
         throwsA(isA<InvalidBackupException>()),
       );
       expect(
@@ -288,7 +290,6 @@ void main() {
             description: 'a' * maximumHabitDescriptionLength,
             noteContent: 'a' * maximumNoteContentLength,
           ),
-          today: today,
         ).habits,
         hasLength(1),
       );
@@ -299,7 +300,7 @@ void main() {
         '"title":"Running",',
         '"title":"Running","targetDaysPerWeek":8,',
       );
-      expect(() => decodeBackupSnapshotFromJson(json, today: today), throwsA(isA<InvalidBackupException>()));
+      expect(() => decodeBackupSnapshotFromJson(json), throwsA(isA<InvalidBackupException>()));
     });
   });
 
@@ -314,7 +315,7 @@ void main() {
     tearDown(() => database.close());
 
     test('imports a legacy file, then exports and re-imports it without loss', () async {
-      final legacySnapshot = decodeBackupSnapshotFromJson(buildLegacyBackupJson(), today: today);
+      final legacySnapshot = decodeBackupSnapshotFromJson(buildLegacyBackupJson());
       await backupRepository.replaceAllDataWith(legacySnapshot);
 
       expect(await database.select(database.habitLogs).get(), hasLength(4));
@@ -323,7 +324,7 @@ void main() {
         await backupRepository.readSnapshot(userName: 'Alex'),
         exportedAt: DateTime.utc(2026, 10, 28),
       );
-      final reimportedSnapshot = decodeBackupSnapshotFromJson(exportedJson, today: today);
+      final reimportedSnapshot = decodeBackupSnapshotFromJson(exportedJson);
       expect(encodeBackupSnapshotToJson(reimportedSnapshot, exportedAt: DateTime.utc(2026, 10, 28)), exportedJson);
 
       await backupRepository.replaceAllDataWith(reimportedSnapshot);
@@ -364,7 +365,7 @@ void main() {
     });
 
     test('leaves existing data untouched when an import fails midway', () async {
-      await backupRepository.replaceAllDataWith(decodeBackupSnapshotFromJson(buildLegacyBackupJson(), today: today));
+      await backupRepository.replaceAllDataWith(decodeBackupSnapshotFromJson(buildLegacyBackupJson()));
       final brokenSnapshot = BackupSnapshot(
         userName: null,
         notes: const [],
@@ -390,7 +391,7 @@ void main() {
     });
 
     test('deleting a habit cascades to its objectives and logs', () async {
-      await backupRepository.replaceAllDataWith(decodeBackupSnapshotFromJson(buildLegacyBackupJson(), today: today));
+      await backupRepository.replaceAllDataWith(decodeBackupSnapshotFromJson(buildLegacyBackupJson()));
       await (database.delete(database.habits)..where((habit) => habit.title.equals('Running'))).go();
 
       expect(await database.select(database.objectives).get(), hasLength(1));
@@ -410,11 +411,18 @@ void main() {
       final database = AppDatabase(NativeDatabase.memory());
       addTearDown(database.close);
 
-      await BackupRepository(database).replaceAllDataWith(decodeBackupSnapshotFromJson(jsonText, today: today));
+      await BackupRepository(database).replaceAllDataWith(decodeBackupSnapshotFromJson(jsonText));
 
       final importedLogCount = await database.habitLogs.count().getSingle();
       expect(importedLogCount, rawLogCount);
       expect(await database.habits.count().getSingle(), 8);
+
+      // Exports and automatic backups of this data must restore too, future logs included.
+      final exportedJson = encodeBackupSnapshotToJson(
+        await BackupRepository(database).readSnapshot(userName: null),
+        exportedAt: today.asUtcDate,
+      );
+      expect(decodeBackupSnapshotFromJson(exportedJson).logCount, rawLogCount);
 
       // The v2 defaults (every objective a success, every day scheduled) keep the v1 streaks.
       final habitRepository = HabitRepository(database);

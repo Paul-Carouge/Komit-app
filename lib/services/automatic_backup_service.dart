@@ -4,7 +4,6 @@ import 'dart:isolate';
 
 import 'package:path_provider/path_provider.dart';
 
-import '../core/calendar_day.dart';
 import '../data/backup/backup_json_codec.dart';
 import '../data/backup/backup_snapshot.dart';
 import '../data/repositories/backup_repository.dart';
@@ -97,9 +96,9 @@ class AutomaticBackupService {
   }
 
   /// Throws [InvalidBackupException] when the file is damaged.
-  Future<BackupSnapshot> readSnapshot(AutomaticBackup backup, {required CalendarDay today}) {
+  Future<BackupSnapshot> readSnapshot(AutomaticBackup backup) {
     final path = backup.file.path;
-    return Isolate.run(() => decodeBackupSnapshotFromJson(File(path).readAsStringSync(), today: today));
+    return Isolate.run(() => decodeBackupSnapshotFromJson(File(path).readAsStringSync()));
   }
 
   Future<AutomaticBackup> _writeEncodedSnapshot(BackupSnapshot snapshot, AutomaticBackupReason reason) async {

@@ -68,7 +68,7 @@ void main() {
 
     final preImportBackup = (await service.listBackupsNewestFirst()).single;
     expect(preImportBackup.reason, AutomaticBackupReason.beforeImport);
-    await backupRepository.replaceAllDataWith(await service.readSnapshot(preImportBackup, today: _today));
+    await backupRepository.replaceAllDataWith(await service.readSnapshot(preImportBackup));
 
     expect(await currentDataJson(), dataBeforeImport);
   });

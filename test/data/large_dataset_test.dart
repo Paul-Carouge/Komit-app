@@ -109,7 +109,7 @@ void main() {
     exportStopwatch.stop();
 
     final importStopwatch = Stopwatch()..start();
-    final decodedSnapshot = decodeBackupSnapshotFromJson(backupJson, today: _today);
+    final decodedSnapshot = decodeBackupSnapshotFromJson(backupJson);
     await backupRepository.replaceAllDataWith(decodedSnapshot);
     importStopwatch.stop();
 
@@ -134,7 +134,7 @@ void main() {
     );
 
     final stopwatch = Stopwatch()..start();
-    final decodedSnapshot = decodeBackupSnapshotFromJson(maximumSizeJson, today: _today);
+    final decodedSnapshot = decodeBackupSnapshotFromJson(maximumSizeJson);
     stopwatch.stop();
     _report('decode of a ${maximumBackupFileSizeBytes ~/ (1024 * 1024)} MiB backup', stopwatch.elapsed);
     expect(decodedSnapshot.logCount, largeDatasetSnapshot.logCount);

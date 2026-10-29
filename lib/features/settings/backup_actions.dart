@@ -85,9 +85,8 @@ Future<bool> importBackupFromUserChosenFile(BuildContext context, WidgetRef ref)
 
   final BackupSnapshot snapshot;
   try {
-    final today = ref.read(currentCalendarDayProvider);
     // Decoding and validating a large file must not freeze the UI.
-    snapshot = await Isolate.run(() => decodeBackupSnapshotFromJson(backupJson, today: today));
+    snapshot = await Isolate.run(() => decodeBackupSnapshotFromJson(backupJson));
   } on InvalidBackupException catch (error) {
     if (context.mounted) showMessageSnackBar(context, localizations.importFailed(error.message));
     return false;
@@ -122,9 +121,10 @@ Future<bool> restoreAutomaticBackup(BuildContext context, WidgetRef ref, Automat
   if (!isConfirmed || !context.mounted) return false;
   final BackupSnapshot snapshot;
   try {
-    snapshot = await ref
-        .read(automaticBackupServiceProvider)
-        .readSnapshot(backup, today: ref.read(currentCalendarDayProvider));
+    snapshot = await ref.read(automaticBackupServiceProvider).readSnapshot(backup);
+  } on InvalidBackupException catch (error) {
+    if (context.mounted) showMessageSnackBar(context, localizations.importFailed(error.message));
+    return false;
   } on Object catch (error, stackTrace) {
     unawaited(
       ref.read(appLoggerProvider).logError(event: 'automatic_backup_read_failed', error: error, stackTrace: stackTrace),
