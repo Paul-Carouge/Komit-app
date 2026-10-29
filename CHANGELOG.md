@@ -4,6 +4,8 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-10-29
+
 ### Added
 - Meet Komo, Komit's mascot: it waves during the first launch, celebrates on the home
   screen once every habit is logged today, and keeps you company on empty screens.
@@ -34,8 +36,11 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
   "Not today" on days off its schedule, and "2/3 this week" for weekly targets.
 - Choose a schedule when you create or edit a habit: every day, some days of the week, or a
   number of days per week. Outcomes such as "Skipped" can be set to not extend the streak.
-- The habit editor previews the habit as it will appear on the home screen and has a large
-  save button at the bottom.
+- A redesigned habit editor: the habit's icon, name, description and colour sit together in
+  one card that shows the result as you edit. The schedule is picked from three clear rows
+  with a plain summary ("Weekdays", "3 days a week"), round weekday toggles and a stepper.
+  Objectives are grouped in one card, the save button stays pinned at the bottom, and
+  leaving with unsaved changes asks first.
 - Archive a habit from its page to take it off the home screen without losing its history.
   Archived habits are listed under "Archived" at the end of the home screen, from where they
   can come back.
@@ -56,9 +61,10 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
   more, and each new achievement show a short card at the top of the screen with Komo and a
   burst in the habit's color. Each one plays only once, the card never blocks the screen,
   and it appears without motion when animations are turned off.
-- Achievements: five long-term goals (first week, perfect week, 100 days, comeback, one
-  year), opened from the trophy on the home screen. They are worked out from your logs, so
-  they always match your history.
+- Thirty achievements in seven families (beginnings, streaks, perfect days, totals,
+  variety, special days, comebacks), each with its own icon and colour, opened from the
+  trophy on the home screen. They are worked out from your logs, so they always match
+  your history.
 - On Mondays, the home screen recaps last week: success days per habit against its
   schedule, the longest streak and the change from the week before. Dismiss it with the
   close button; it stays hidden for that week.
@@ -106,13 +112,13 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
 - Komit now draws behind transparent status and navigation bars on every Android
   version, and the screen behind the app has the page color, so there is no orange flash
   after the splash screen.
-- Importing a backup made by this version now refuses a file with a day logged in the
-  future, or with a description or note longer than the app allows. Backups from the
-  original Komit app still import in full.
 - Habit descriptions are limited to 1,000 characters and notes to 20,000.
 - The database now uses a safer journal mode, ready for logging from notifications and
   widgets. Your existing habits, logs and notes are kept as they are.
-- Headings use a new rounded serif typeface, and text colors are slightly warmer.
+- A calmer Material 3 look: frosted bars, soft shadows, pill buttons and springy presses.
+- Komit stays in portrait.
+- In French, Komit now always says "tu".
+- The language is chosen from a list, like the theme, so no label wraps.
 - Focused text fields, their labels and the cursor use a darker amber that is easier to see.
 - Messages appear in a floating bar at the bottom of the screen.
 - Screen transitions follow Android's back gesture preview on Android 14 and later.
