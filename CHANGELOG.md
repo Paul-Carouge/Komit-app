@@ -17,6 +17,8 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
   setting.
 - Backups also save each habit's schedule, weekly target and archive state, and which
   outcomes count as a success. Older backups still import, with every habit kept daily.
+- Komit keeps a small error log on the phone only, to help fix crashes. It never contains
+  your habit names, notes or first name, and it never leaves the device.
 - A freshly logged day pops into its square; cards gently sink when you press them.
 
 ### Changed
