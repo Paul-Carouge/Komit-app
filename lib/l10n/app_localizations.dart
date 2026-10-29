@@ -1777,6 +1777,192 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Try again'**
   String get tryAgain;
+
+  /// No description provided for @privacyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your privacy'**
+  String get privacyTitle;
+
+  /// No description provided for @privacyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'What stays on your phone'**
+  String get privacyLink;
+
+  /// No description provided for @privacyIntroduction.
+  ///
+  /// In en, this message translates to:
+  /// **'Komit has no account, no ads and no analytics. Your habits, notes and first name are stored only in Komit\'s private space on this phone.'**
+  String get privacyIntroduction;
+
+  /// No description provided for @privacyWhatLeavesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What leaves your phone'**
+  String get privacyWhatLeavesTitle;
+
+  /// No description provided for @privacyUpdateCheckTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The update check, and nothing else'**
+  String get privacyUpdateCheckTitle;
+
+  /// No description provided for @privacyUpdateCheckBody.
+  ///
+  /// In en, this message translates to:
+  /// **'At most once a day, Komit asks GitHub for its latest version, which shows GitHub your IP address. An update you accept is downloaded from GitHub too. Turn the automatic check off in Settings, under Updates.'**
+  String get privacyUpdateCheckBody;
+
+  /// No description provided for @privacyNoTrackingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No tracking'**
+  String get privacyNoTrackingTitle;
+
+  /// No description provided for @privacyNoTrackingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing about your habits, notes or use of the app is ever sent anywhere.'**
+  String get privacyNoTrackingBody;
+
+  /// No description provided for @privacyBackupsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Backups and exports'**
+  String get privacyBackupsTitle;
+
+  /// No description provided for @privacyCloudBackupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Not in your cloud backup'**
+  String get privacyCloudBackupTitle;
+
+  /// No description provided for @privacyCloudBackupBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Android\'s backup to Google\'s cloud skips Komit. Moving to a new phone with a cable or Wi-Fi transfer still copies everything (Android 9 and later); otherwise, use an export.'**
+  String get privacyCloudBackupBody;
+
+  /// No description provided for @privacyAutomaticBackupsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Copies made before an import or an update, and once a day, stay in Komit\'s private space on this phone. The {count} most recent are kept.'**
+  String privacyAutomaticBackupsBody(int count);
+
+  /// No description provided for @privacyPlainExportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plain exports'**
+  String get privacyPlainExportTitle;
+
+  /// No description provided for @privacyPlainExportBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A plain export is a readable file: anyone who opens it can read your habits and notes. Keep it somewhere private.'**
+  String get privacyPlainExportBody;
+
+  /// No description provided for @privacyEncryptedExportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Exports with a passphrase'**
+  String get privacyEncryptedExportTitle;
+
+  /// No description provided for @privacyEncryptedExportBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypted with AES-256 on this phone. Only your passphrase opens the file, and nobody can recover a forgotten one.'**
+  String get privacyEncryptedExportBody;
+
+  /// No description provided for @privacyErrorLogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Error log'**
+  String get privacyErrorLogTitle;
+
+  /// No description provided for @privacyErrorLogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Komit notes its own errors on this phone, without your habit names, notes or first name. It is never sent.'**
+  String get privacyErrorLogBody;
+
+  /// No description provided for @privacyPermissionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Permissions'**
+  String get privacyPermissionsTitle;
+
+  /// No description provided for @permissionNotificationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get permissionNotificationsTitle;
+
+  /// No description provided for @permissionNotificationsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'For the reminders you set. Komit asks only when you add your first reminder.'**
+  String get permissionNotificationsBody;
+
+  /// No description provided for @permissionStartupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Run at startup'**
+  String get permissionStartupTitle;
+
+  /// No description provided for @permissionStartupBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Puts your reminders back after the phone restarts or the time zone changes.'**
+  String get permissionStartupBody;
+
+  /// No description provided for @permissionInstallTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Install apps'**
+  String get permissionInstallTitle;
+
+  /// No description provided for @permissionInstallBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Only to install a Komit update you accepted. Android asks you once.'**
+  String get permissionInstallBody;
+
+  /// No description provided for @permissionInternetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Internet'**
+  String get permissionInternetTitle;
+
+  /// No description provided for @permissionInternetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Only for the update check and download, over HTTPS.'**
+  String get permissionInternetBody;
+
+  /// No description provided for @permissionVibrationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vibration'**
+  String get permissionVibrationTitle;
+
+  /// No description provided for @permissionVibrationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Light taps when you log a day, following your phone\'s settings.'**
+  String get permissionVibrationBody;
+
+  /// No description provided for @permissionBiometricTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fingerprint and face'**
+  String get permissionBiometricTitle;
+
+  /// No description provided for @permissionBiometricBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Only for the optional app lock. Android checks them; Komit never sees them.'**
+  String get permissionBiometricBody;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

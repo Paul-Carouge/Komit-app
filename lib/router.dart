@@ -11,6 +11,7 @@ import 'features/navigation/scaffold_with_navigation_bar.dart';
 import 'features/notes/note_editor_screen.dart';
 import 'features/notes/notes_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
+import 'features/settings/privacy_screen.dart';
 import 'features/settings/settings_screen.dart';
 import 'features/statistics/habit_statistics_screen.dart';
 import 'providers.dart';
@@ -24,6 +25,7 @@ abstract final class AppRoutes {
   static const String newNote = '/note/new';
   static const String archivedHabits = '/archived';
   static const String achievements = '/achievements';
+  static const String privacy = '/privacy';
 
   static String habitDetails(int habitId) => '/habit/$habitId';
   static String habitEditor(int habitId) => '/habit/$habitId/edit';
@@ -40,7 +42,9 @@ GoRouter buildAppRouter(WidgetRef ref) {
       if (hasMalformedParameter) return AppRoutes.habits;
       final isOnboardingComplete = ref.read(settingsControllerProvider).isOnboardingComplete;
       final isOnOnboarding = state.matchedLocation == AppRoutes.onboarding;
-      if (!isOnboardingComplete && !isOnOnboarding) return AppRoutes.onboarding;
+      // The privacy screen is linked from the onboarding, before it completes.
+      final isOnPrivacy = state.matchedLocation == AppRoutes.privacy;
+      if (!isOnboardingComplete && !isOnOnboarding && !isOnPrivacy) return AppRoutes.onboarding;
       if (isOnboardingComplete && isOnOnboarding) return AppRoutes.habits;
       return null;
     },
@@ -58,6 +62,7 @@ GoRouter buildAppRouter(WidgetRef ref) {
         ],
       ),
       GoRoute(path: AppRoutes.settings, pageBuilder: (context, state) => _materialPage(state, const SettingsScreen())),
+      GoRoute(path: AppRoutes.privacy, pageBuilder: (context, state) => _materialPage(state, const PrivacyScreen())),
       GoRoute(
         path: AppRoutes.archivedHabits,
         pageBuilder: (context, state) => _materialPage(state, const ArchivedHabitsScreen()),

@@ -227,6 +227,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           icon: const Icon(LucideIcons.arrowRight),
           label: Text(localizations.getStarted),
         ),
+        secondaryAction: TextButton.icon(
+          onPressed: _isFinishing ? null : () => context.push(AppRoutes.privacy),
+          icon: const Icon(LucideIcons.shieldCheck),
+          label: Text(localizations.privacyLink),
+        ),
       ),
     };
   }

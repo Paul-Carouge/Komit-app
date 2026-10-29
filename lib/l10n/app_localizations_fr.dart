@@ -1038,4 +1038,111 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get tryAgain => 'Réessayer';
+
+  @override
+  String get privacyTitle => 'Votre vie privée';
+
+  @override
+  String get privacyLink => 'Ce qui reste sur votre téléphone';
+
+  @override
+  String get privacyIntroduction =>
+      'Komit n\'a ni compte, ni publicité, ni statistiques d\'usage. Vos habitudes, vos notes et votre prénom sont enregistrés uniquement dans l\'espace privé de Komit sur ce téléphone.';
+
+  @override
+  String get privacyWhatLeavesTitle => 'Ce qui quitte votre téléphone';
+
+  @override
+  String get privacyUpdateCheckTitle => 'La recherche de mises à jour, rien d\'autre';
+
+  @override
+  String get privacyUpdateCheckBody =>
+      'Une fois par jour au plus, Komit demande sa dernière version à GitHub, qui voit alors votre adresse IP. Une mise à jour acceptée est aussi téléchargée depuis GitHub. Désactivez la recherche automatique dans les Réglages, rubrique Mises à jour.';
+
+  @override
+  String get privacyNoTrackingTitle => 'Aucun pistage';
+
+  @override
+  String get privacyNoTrackingBody =>
+      'Rien sur vos habitudes, vos notes ou votre usage de l\'application n\'est jamais envoyé nulle part.';
+
+  @override
+  String get privacyBackupsTitle => 'Sauvegardes et exports';
+
+  @override
+  String get privacyCloudBackupTitle => 'Absent de votre sauvegarde cloud';
+
+  @override
+  String get privacyCloudBackupBody =>
+      'La sauvegarde Android vers le cloud de Google ignore Komit. Le transfert vers un nouveau téléphone par câble ou Wi-Fi copie quand même tout (Android 9 et plus) ; sinon, utilisez un export.';
+
+  @override
+  String privacyAutomaticBackupsBody(int count) {
+    return 'Les copies faites avant un import ou une mise à jour, et une fois par jour, restent dans l\'espace privé de Komit sur ce téléphone. Les $count plus récentes sont conservées.';
+  }
+
+  @override
+  String get privacyPlainExportTitle => 'Exports simples';
+
+  @override
+  String get privacyPlainExportBody =>
+      'Un export simple est un fichier lisible : toute personne qui l\'ouvre peut lire vos habitudes et vos notes. Gardez-le en lieu sûr.';
+
+  @override
+  String get privacyEncryptedExportTitle => 'Exports avec phrase secrète';
+
+  @override
+  String get privacyEncryptedExportBody =>
+      'Chiffrés en AES-256 sur ce téléphone. Seule votre phrase secrète ouvre le fichier, et personne ne peut en retrouver une oubliée.';
+
+  @override
+  String get privacyErrorLogTitle => 'Journal d\'erreurs';
+
+  @override
+  String get privacyErrorLogBody =>
+      'Komit note ses propres erreurs sur ce téléphone, sans le nom de vos habitudes, vos notes ni votre prénom. Ce journal n\'est jamais envoyé.';
+
+  @override
+  String get privacyPermissionsTitle => 'Autorisations';
+
+  @override
+  String get permissionNotificationsTitle => 'Notifications';
+
+  @override
+  String get permissionNotificationsBody =>
+      'Pour les rappels que vous programmez. Komit ne demande qu\'au premier rappel ajouté.';
+
+  @override
+  String get permissionStartupTitle => 'Lancement au démarrage';
+
+  @override
+  String get permissionStartupBody =>
+      'Remet vos rappels en place après un redémarrage du téléphone ou un changement de fuseau horaire.';
+
+  @override
+  String get permissionInstallTitle => 'Installation d\'applications';
+
+  @override
+  String get permissionInstallBody =>
+      'Uniquement pour installer une mise à jour de Komit que vous avez acceptée. Android vous le demande une fois.';
+
+  @override
+  String get permissionInternetTitle => 'Internet';
+
+  @override
+  String get permissionInternetBody => 'Uniquement pour rechercher et télécharger les mises à jour, en HTTPS.';
+
+  @override
+  String get permissionVibrationTitle => 'Vibreur';
+
+  @override
+  String get permissionVibrationBody =>
+      'De légères vibrations quand vous notez un jour, selon les réglages du téléphone.';
+
+  @override
+  String get permissionBiometricTitle => 'Empreinte et visage';
+
+  @override
+  String get permissionBiometricBody =>
+      'Uniquement pour le verrouillage facultatif. Android les vérifie ; Komit ne les voit jamais.';
 }

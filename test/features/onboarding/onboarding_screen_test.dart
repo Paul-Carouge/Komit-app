@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:komit/core/theme/app_theme.dart';
 import 'package:komit/data/repositories/settings_repository.dart';
 import 'package:komit/features/onboarding/onboarding_screen.dart';
+import 'package:komit/features/settings/privacy_screen.dart';
 import 'package:komit/l10n/app_localizations.dart';
 import 'package:komit/providers.dart';
 import 'package:komit/router.dart';
@@ -21,6 +22,7 @@ Future<SharedPreferences> _pumpOnboarding(WidgetTester tester) async {
     routes: [
       GoRoute(path: AppRoutes.onboarding, builder: (context, state) => const OnboardingScreen()),
       GoRoute(path: AppRoutes.habits, builder: (context, state) => const Text(_homeText)),
+      GoRoute(path: AppRoutes.privacy, builder: (context, state) => const PrivacyScreen()),
     ],
   );
   addTearDown(router.dispose);
@@ -67,6 +69,22 @@ void main() {
     final settings = SettingsRepository(preferences).readSettings();
     expect(settings.isOnboardingComplete, isTrue);
     expect(settings.userName, 'Paul');
+  });
+
+  testWidgets('the last step links to what stays on the phone, then comes back', (tester) async {
+    await _pumpOnboarding(tester);
+    await tester.tap(find.text('Get started'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Skip'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('What stays on your phone'));
+    await tester.pumpAndSettle();
+    expect(find.text('The update check, and nothing else'), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.text('Reminders, only if you want them'), findsOneWidget);
   });
 
   testWidgets('skipping the name step leaves no name', (tester) async {

@@ -88,6 +88,9 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
   screen. Recent apps shows a blank card for Komit on Android 13 and later. The option is
   greyed out, with an explanation, until the phone has a screen lock.
 - "Hide from screenshots" blocks screenshots and screen recordings of Komit.
+- A "Your privacy" screen explains what stays on your phone, what leaves it (only the
+  update check), how backups and exports work, and why Komit needs each permission. Open it
+  from Settings → Privacy & security or from the last welcome step.
 
 ### Changed
 - Screens slide in and out again, with Android's back gesture preview: an update of the

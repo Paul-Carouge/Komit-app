@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/calendar_day.dart';
@@ -11,6 +12,7 @@ import '../../core/haptics.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
+import '../../router.dart';
 import '../shared/shared_widgets.dart';
 import '../updates/update_prompt.dart';
 import '../../services/app_lock_service.dart';
@@ -203,6 +205,12 @@ class _PrivacyAndSecurityCard extends ConsumerWidget {
             onChanged: isAppLockToggleEnabled
                 ? (isEnabled) => _changeAppLock(context, ref, isEnabled: isEnabled)
                 : null,
+          ),
+          ListTile(
+            leading: HabitIconBadge(icon: LucideIcons.shieldCheck, color: komitColors.mutedText),
+            title: Text(localizations.privacyLink),
+            trailing: const Icon(LucideIcons.chevronRight),
+            onTap: () => context.push(AppRoutes.privacy),
           ),
           SwitchListTile(
             secondary: HabitIconBadge(icon: LucideIcons.eyeOff, color: komitColors.mutedText),

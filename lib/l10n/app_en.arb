@@ -714,5 +714,43 @@
   "appLockFailed": "Komit could not be unlocked. Wait a moment, then try again.",
   "appLockPromptTitle": "Unlock Komit",
   "appLockPromptSubtitle": "Use your fingerprint, face or screen lock",
-  "tryAgain": "Try again"
+  "tryAgain": "Try again",
+  "privacyTitle": "Your privacy",
+  "privacyLink": "What stays on your phone",
+  "privacyIntroduction": "Komit has no account, no ads and no analytics. Your habits, notes and first name are stored only in Komit's private space on this phone.",
+  "privacyWhatLeavesTitle": "What leaves your phone",
+  "privacyUpdateCheckTitle": "The update check, and nothing else",
+  "privacyUpdateCheckBody": "At most once a day, Komit asks GitHub for its latest version, which shows GitHub your IP address. An update you accept is downloaded from GitHub too. Turn the automatic check off in Settings, under Updates.",
+  "privacyNoTrackingTitle": "No tracking",
+  "privacyNoTrackingBody": "Nothing about your habits, notes or use of the app is ever sent anywhere.",
+  "privacyBackupsTitle": "Backups and exports",
+  "privacyCloudBackupTitle": "Not in your cloud backup",
+  "privacyCloudBackupBody": "Android's backup to Google's cloud skips Komit. Moving to a new phone with a cable or Wi-Fi transfer still copies everything (Android 9 and later); otherwise, use an export.",
+  "privacyAutomaticBackupsBody": "Copies made before an import or an update, and once a day, stay in Komit's private space on this phone. The {count} most recent are kept.",
+  "@privacyAutomaticBackupsBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "privacyPlainExportTitle": "Plain exports",
+  "privacyPlainExportBody": "A plain export is a readable file: anyone who opens it can read your habits and notes. Keep it somewhere private.",
+  "privacyEncryptedExportTitle": "Exports with a passphrase",
+  "privacyEncryptedExportBody": "Encrypted with AES-256 on this phone. Only your passphrase opens the file, and nobody can recover a forgotten one.",
+  "privacyErrorLogTitle": "Error log",
+  "privacyErrorLogBody": "Komit notes its own errors on this phone, without your habit names, notes or first name. It is never sent.",
+  "privacyPermissionsTitle": "Permissions",
+  "permissionNotificationsTitle": "Notifications",
+  "permissionNotificationsBody": "For the reminders you set. Komit asks only when you add your first reminder.",
+  "permissionStartupTitle": "Run at startup",
+  "permissionStartupBody": "Puts your reminders back after the phone restarts or the time zone changes.",
+  "permissionInstallTitle": "Install apps",
+  "permissionInstallBody": "Only to install a Komit update you accepted. Android asks you once.",
+  "permissionInternetTitle": "Internet",
+  "permissionInternetBody": "Only for the update check and download, over HTTPS.",
+  "permissionVibrationTitle": "Vibration",
+  "permissionVibrationBody": "Light taps when you log a day, following your phone's settings.",
+  "permissionBiometricTitle": "Fingerprint and face",
+  "permissionBiometricBody": "Only for the optional app lock. Android checks them; Komit never sees them."
 }

@@ -54,7 +54,9 @@ Decisions are recorded in [`docs/adr/`](docs/adr).
 
 - **Export / import:** Settings → Data & storage. Import replaces everything, in one
   transaction, after showing what the file contains.
-- **Formats:** v2 (this app) and v1 (files exported by the original Komit app).
+- **Formats:** v2 (this app), v2 sealed with a passphrase (`komit-encrypted`), and v1
+  (files exported by the original Komit app).
+- **Automatic backups:** Settings → Data & storage → "Restore an automatic backup".
 
 ## Release
 
@@ -75,9 +77,28 @@ apksigner verify --print-certs komit-vX.Y.Z.apk
 
 ### Privacy
 
-Komit has no account and no analytics. At each launch it asks
-`api.github.com` for the latest release, which exposes the device IP address to GitHub.
-Exported backups are plain JSON: keep them somewhere private.
+Komit has no account, no ads and no analytics; the in-app screen Settings → Privacy & security
+→ "What stays on your phone" explains the points below to users. See
+[ADR 0005](docs/adr/0005-on-device-privacy-backups-and-encryption.md) for the reasons.
+
+- **Network:** only the update check, at most once a day and only while "Check for updates
+  automatically" is on, asks `api.github.com` for the latest release (GitHub sees the
+  device IP address); an accepted update is downloaded from `github.com`. Cleartext
+  traffic and user-installed certificate authorities are refused
+  (`res/xml/network_security_config.xml`).
+- **Android backups:** cloud backups exclude every file; device-to-device transfers keep
+  everything on Android 9 and later (`res/xml/data_extraction_rules.xml`,
+  `res/xml*/backup_rules.xml`).
+- **Automatic backups:** v2 snapshots in app storage (`files/backups`) before every import or
+  restore, before an update install and daily when the data changed; the 10 most recent
+  are kept and can be restored from Settings.
+- **Exports:** plain JSON by default; optionally sealed with a passphrase
+  (PBKDF2-HMAC-SHA256, AES-256-GCM, `komit-encrypted` envelope).
+- **App lock:** optional fingerprint, face or screen lock at launch and after a minute in
+  the background; "Hide from screenshots" sets `FLAG_SECURE`.
+- **Permissions:** the release build fails when the merged manifest requests a permission
+  outside `releaseManifestAllowedPermissions` in `android/app/build.gradle.kts`
+  (`./gradlew :app:verifyReleaseManifest`).
 
 ### Release signing
 

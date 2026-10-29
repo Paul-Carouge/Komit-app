@@ -1021,4 +1021,106 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tryAgain => 'Try again';
+
+  @override
+  String get privacyTitle => 'Your privacy';
+
+  @override
+  String get privacyLink => 'What stays on your phone';
+
+  @override
+  String get privacyIntroduction =>
+      'Komit has no account, no ads and no analytics. Your habits, notes and first name are stored only in Komit\'s private space on this phone.';
+
+  @override
+  String get privacyWhatLeavesTitle => 'What leaves your phone';
+
+  @override
+  String get privacyUpdateCheckTitle => 'The update check, and nothing else';
+
+  @override
+  String get privacyUpdateCheckBody =>
+      'At most once a day, Komit asks GitHub for its latest version, which shows GitHub your IP address. An update you accept is downloaded from GitHub too. Turn the automatic check off in Settings, under Updates.';
+
+  @override
+  String get privacyNoTrackingTitle => 'No tracking';
+
+  @override
+  String get privacyNoTrackingBody => 'Nothing about your habits, notes or use of the app is ever sent anywhere.';
+
+  @override
+  String get privacyBackupsTitle => 'Backups and exports';
+
+  @override
+  String get privacyCloudBackupTitle => 'Not in your cloud backup';
+
+  @override
+  String get privacyCloudBackupBody =>
+      'Android\'s backup to Google\'s cloud skips Komit. Moving to a new phone with a cable or Wi-Fi transfer still copies everything (Android 9 and later); otherwise, use an export.';
+
+  @override
+  String privacyAutomaticBackupsBody(int count) {
+    return 'Copies made before an import or an update, and once a day, stay in Komit\'s private space on this phone. The $count most recent are kept.';
+  }
+
+  @override
+  String get privacyPlainExportTitle => 'Plain exports';
+
+  @override
+  String get privacyPlainExportBody =>
+      'A plain export is a readable file: anyone who opens it can read your habits and notes. Keep it somewhere private.';
+
+  @override
+  String get privacyEncryptedExportTitle => 'Exports with a passphrase';
+
+  @override
+  String get privacyEncryptedExportBody =>
+      'Encrypted with AES-256 on this phone. Only your passphrase opens the file, and nobody can recover a forgotten one.';
+
+  @override
+  String get privacyErrorLogTitle => 'Error log';
+
+  @override
+  String get privacyErrorLogBody =>
+      'Komit notes its own errors on this phone, without your habit names, notes or first name. It is never sent.';
+
+  @override
+  String get privacyPermissionsTitle => 'Permissions';
+
+  @override
+  String get permissionNotificationsTitle => 'Notifications';
+
+  @override
+  String get permissionNotificationsBody =>
+      'For the reminders you set. Komit asks only when you add your first reminder.';
+
+  @override
+  String get permissionStartupTitle => 'Run at startup';
+
+  @override
+  String get permissionStartupBody => 'Puts your reminders back after the phone restarts or the time zone changes.';
+
+  @override
+  String get permissionInstallTitle => 'Install apps';
+
+  @override
+  String get permissionInstallBody => 'Only to install a Komit update you accepted. Android asks you once.';
+
+  @override
+  String get permissionInternetTitle => 'Internet';
+
+  @override
+  String get permissionInternetBody => 'Only for the update check and download, over HTTPS.';
+
+  @override
+  String get permissionVibrationTitle => 'Vibration';
+
+  @override
+  String get permissionVibrationBody => 'Light taps when you log a day, following your phone\'s settings.';
+
+  @override
+  String get permissionBiometricTitle => 'Fingerprint and face';
+
+  @override
+  String get permissionBiometricBody => 'Only for the optional app lock. Android checks them; Komit never sees them.';
 }
