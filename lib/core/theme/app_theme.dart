@@ -129,6 +129,17 @@ abstract final class AppOpacity {
 
 /// Material elevation stays at zero: depth comes from [AppShadows], which are softer than
 /// Material's shadows, and from frosted glass.
+/// One color per achievement family, taken from the habit palette so they sit well on both themes.
+abstract final class AchievementFamilyColors {
+  static const Color beginnings = Color(0xFF66BB6A);
+  static const Color streaks = Color(0xFFFF7043);
+  static const Color perfection = Color(0xFFF9B125);
+  static const Color totals = Color(0xFF42A5F5);
+  static const Color variety = Color(0xFF26A69A);
+  static const Color calendar = Color(0xFFEC407A);
+  static const Color resilience = Color(0xFF7E57C2);
+}
+
 abstract final class AppElevation {
   static const double flat = 0;
   static const double floating = 3;

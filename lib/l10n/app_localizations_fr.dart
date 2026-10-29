@@ -911,6 +911,104 @@ class AppLocalizationsFr extends AppLocalizations {
   String get achievementTwoYearVeteranDescription => 'Votre premier suivi a deux ans.';
 
   @override
+  String get achievementFirstMonthWithKomitTitle => 'Un mois ensemble';
+
+  @override
+  String get achievementFirstMonthWithKomitDescription => 'Votre premier suivi a un mois.';
+
+  @override
+  String get achievementTwoWeekStreakTitle => 'Deux semaines d’affilée';
+
+  @override
+  String get achievementTwoWeekStreakDescription => 'Quatorze jours d’affilée sur une habitude.';
+
+  @override
+  String get achievementTwoHundredDayStreakTitle => '200 jours d’affilée';
+
+  @override
+  String get achievementTwoHundredDayStreakDescription => 'Deux cents jours d’affilée sur une habitude.';
+
+  @override
+  String get achievementTenPerfectDaysTitle => 'Dix journées parfaites';
+
+  @override
+  String get achievementTenPerfectDaysDescription => 'Dix jours où toutes les habitudes prévues sont faites.';
+
+  @override
+  String get achievementFiftyPerfectDaysTitle => 'Cinquante journées parfaites';
+
+  @override
+  String get achievementFiftyPerfectDaysDescription => 'Cinquante jours où toutes les habitudes prévues sont faites.';
+
+  @override
+  String get achievementPerfectMonthTitle => 'Mois parfait';
+
+  @override
+  String get achievementPerfectMonthDescription => 'Tous les jours prévus d’un mois faits sur une habitude.';
+
+  @override
+  String get achievementHundredTotalSuccessDaysTitle => '100 réussites';
+
+  @override
+  String get achievementHundredTotalSuccessDaysDescription => 'Cent jours réussis, toutes habitudes confondues.';
+
+  @override
+  String get achievementYearOfSuccessDaysTitle => 'Une année de réussites';
+
+  @override
+  String get achievementYearOfSuccessDaysDescription => '365 jours réussis sur une même habitude.';
+
+  @override
+  String get achievementTwoThousandFiveHundredTotalSuccessDaysTitle => '2 500 réussites';
+
+  @override
+  String get achievementTwoThousandFiveHundredTotalSuccessDaysDescription =>
+      'Deux mille cinq cents jours réussis, toutes habitudes confondues.';
+
+  @override
+  String get achievementFiveHabitsTitle => 'Jongleur';
+
+  @override
+  String get achievementFiveHabitsDescription => 'Des jours réussis sur cinq habitudes différentes.';
+
+  @override
+  String get achievementThreeObjectivesOnOneHabitTitle => 'Toutes les nuances';
+
+  @override
+  String get achievementThreeObjectivesOnOneHabitDescription =>
+      'Trois objectifs réussis différents sur une même habitude.';
+
+  @override
+  String get achievementWeekendWarriorTitle => 'Week-end actif';
+
+  @override
+  String get achievementWeekendWarriorDescription => 'Une habitude faite un samedi et le dimanche qui suit.';
+
+  @override
+  String get achievementNewYearsDayTitle => 'Bonne résolution';
+
+  @override
+  String get achievementNewYearsDayDescription => 'Un jour réussi le 1ᵉʳ janvier.';
+
+  @override
+  String get achievementChristmasDayTitle => 'Même à Noël';
+
+  @override
+  String get achievementChristmasDayDescription => 'Un jour réussi le 25 décembre.';
+
+  @override
+  String get achievementLeapDayTitle => 'Tous les quatre ans';
+
+  @override
+  String get achievementLeapDayDescription => 'Un jour réussi le 29 février.';
+
+  @override
+  String get achievementPhoenixTitle => 'Phénix';
+
+  @override
+  String get achievementPhoenixDescription => 'Reprendre une habitude après un mois de jours manqués.';
+
+  @override
   String get weeklyRecapTitle => 'La semaine dernière';
 
   @override

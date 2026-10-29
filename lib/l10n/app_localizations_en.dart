@@ -896,6 +896,103 @@ class AppLocalizationsEn extends AppLocalizations {
   String get achievementTwoYearVeteranDescription => 'Your first log is two years old.';
 
   @override
+  String get achievementFirstMonthWithKomitTitle => 'One month in';
+
+  @override
+  String get achievementFirstMonthWithKomitDescription => 'Your first log is a month old.';
+
+  @override
+  String get achievementTwoWeekStreakTitle => 'Two weeks straight';
+
+  @override
+  String get achievementTwoWeekStreakDescription => 'Fourteen days in a row on one habit.';
+
+  @override
+  String get achievementTwoHundredDayStreakTitle => '200-day streak';
+
+  @override
+  String get achievementTwoHundredDayStreakDescription => 'Two hundred days in a row on one habit.';
+
+  @override
+  String get achievementTenPerfectDaysTitle => 'Ten perfect days';
+
+  @override
+  String get achievementTenPerfectDaysDescription => 'Ten days with every planned habit done.';
+
+  @override
+  String get achievementFiftyPerfectDaysTitle => 'Fifty perfect days';
+
+  @override
+  String get achievementFiftyPerfectDaysDescription => 'Fifty days with every planned habit done.';
+
+  @override
+  String get achievementPerfectMonthTitle => 'Perfect month';
+
+  @override
+  String get achievementPerfectMonthDescription => 'Every planned day of a month done on one habit.';
+
+  @override
+  String get achievementHundredTotalSuccessDaysTitle => '100 successes';
+
+  @override
+  String get achievementHundredTotalSuccessDaysDescription => 'A hundred success days across your habits.';
+
+  @override
+  String get achievementYearOfSuccessDaysTitle => 'A year of successes';
+
+  @override
+  String get achievementYearOfSuccessDaysDescription => '365 success days on one habit.';
+
+  @override
+  String get achievementTwoThousandFiveHundredTotalSuccessDaysTitle => '2,500 successes';
+
+  @override
+  String get achievementTwoThousandFiveHundredTotalSuccessDaysDescription =>
+      'Two thousand five hundred success days across your habits.';
+
+  @override
+  String get achievementFiveHabitsTitle => 'Juggler';
+
+  @override
+  String get achievementFiveHabitsDescription => 'Success days on five different habits.';
+
+  @override
+  String get achievementThreeObjectivesOnOneHabitTitle => 'Shades of success';
+
+  @override
+  String get achievementThreeObjectivesOnOneHabitDescription => 'Three different successful objectives on one habit.';
+
+  @override
+  String get achievementWeekendWarriorTitle => 'Weekend warrior';
+
+  @override
+  String get achievementWeekendWarriorDescription => 'One habit done on a Saturday and the Sunday after.';
+
+  @override
+  String get achievementNewYearsDayTitle => 'Fresh start';
+
+  @override
+  String get achievementNewYearsDayDescription => 'A success day on January 1st.';
+
+  @override
+  String get achievementChristmasDayTitle => 'Even at Christmas';
+
+  @override
+  String get achievementChristmasDayDescription => 'A success day on December 25th.';
+
+  @override
+  String get achievementLeapDayTitle => 'Once every four years';
+
+  @override
+  String get achievementLeapDayDescription => 'A success day on February 29th.';
+
+  @override
+  String get achievementPhoenixTitle => 'Phoenix';
+
+  @override
+  String get achievementPhoenixDescription => 'Back on a habit after a month of missed days.';
+
+  @override
   String get weeklyRecapTitle => 'Last week';
 
   @override

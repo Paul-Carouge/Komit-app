@@ -7,9 +7,8 @@ import '../../core/theme/app_theme.dart';
 import '../../domain/achievements.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
-import '../mascot/komo_mood.dart';
-import '../mascot/komo_painter.dart';
 import '../shared/shared_widgets.dart';
+import 'achievement_appearance.dart';
 import 'achievement_texts.dart';
 
 /// Below this width per tile, a tile's text wraps too much to read; grows with the font size.
@@ -115,8 +114,8 @@ class _AchievementGrid extends StatelessWidget {
   }
 }
 
-/// Unlocked: Komo's open eyes on its orange square. Locked: a gray square with closed eyes,
-/// waiting. The status is also written, so it never relies on color alone.
+/// Unlocked: the achievement's own icon in its family color. Locked: the same icon in gray.
+/// The status is also written, so it never relies on color alone.
 class _AchievementTile extends StatelessWidget {
   const _AchievementTile({required this.achievement, required this.isUnlocked});
 
@@ -136,17 +135,10 @@ class _AchievementTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ExcludeSemantics(
-            child: CustomPaint(
-              size: const Size.square(AppSizes.mascotSmall),
-              painter: KomoPainter(
-                mood: isUnlocked ? KomoMood.idle : KomoMood.sleepy,
-                animation: const AlwaysStoppedAnimation(0),
-                palette: KomoPalette(
-                  body: isUnlocked ? komitColors.mascotBody : colorScheme.surfaceContainerHighest,
-                  eyes: isUnlocked ? komitColors.mascotFace : komitColors.mutedText,
-                  groundShadow: Colors.transparent,
-                ),
-              ),
+            child: HabitIconBadge(
+              icon: achievementIcon(achievement),
+              color: isUnlocked ? achievementFamily(achievement).color : komitColors.mutedText,
+              size: AppSizes.mascotSmall,
             ),
           ),
           const SizedBox(height: AppSpacing.medium),

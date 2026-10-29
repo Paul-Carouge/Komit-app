@@ -211,6 +211,129 @@ void main() {
       );
     });
 
+    test('perfect-day counts, perfect months and the extra streak and total thresholds', () {
+      final start = _today.addDays(-400);
+      Set<Achievement> unlockedForStreak(int dayCount) => computeUnlockedAchievements([
+        _history(1, _days(_today.addDays(1 - dayCount), dayCount), startDay: start),
+      ], today: _today);
+
+      expect(unlockedForStreak(13), isNot(contains(Achievement.twoWeekStreak)));
+      expect(unlockedForStreak(14), contains(Achievement.twoWeekStreak));
+      expect(unlockedForStreak(199), isNot(contains(Achievement.twoHundredDayStreak)));
+      expect(
+        unlockedForStreak(200),
+        containsAll([Achievement.twoHundredDayStreak, Achievement.hundredTotalSuccessDays, Achievement.tenPerfectDays]),
+      );
+      expect(unlockedForStreak(9), isNot(contains(Achievement.tenPerfectDays)));
+      expect(unlockedForStreak(50), contains(Achievement.fiftyPerfectDays));
+      expect(unlockedForStreak(364), isNot(contains(Achievement.yearOfSuccessDays)));
+      expect(unlockedForStreak(365), contains(Achievement.yearOfSuccessDays));
+    });
+
+    test('a perfect month needs every scheduled day of a finished calendar month', () {
+      final september = _days(CalendarDay.fromDate(2026, 9, 1), 30);
+      final start = CalendarDay.fromDate(2026, 8, 20);
+
+      expect(
+        computeUnlockedAchievements([_history(1, september, startDay: start)], today: _today),
+        contains(Achievement.perfectMonth),
+      );
+      expect(
+        computeUnlockedAchievements([_history(1, september.skip(1), startDay: start)], today: _today),
+        isNot(contains(Achievement.perfectMonth)),
+      );
+      // October is not over on the 28th.
+      final october = _days(CalendarDay.fromDate(2026, 10, 1), 28);
+      expect(
+        computeUnlockedAchievements([_history(1, october, startDay: start)], today: _today),
+        isNot(contains(Achievement.perfectMonth)),
+      );
+    });
+
+    test('five habits, three objectives on one habit and a successful weekend', () {
+      final start = _today.addDays(-30);
+      final saturday = _thisMonday.addDays(-2);
+      final fiveHabits = [
+        for (var habitId = 1; habitId <= 5; habitId++) _history(habitId, [saturday], startDay: start),
+      ];
+      final threeObjectives = HabitHistory(
+        habitId: 1,
+        objectiveIdByDay: {_today: 1, _today.addDays(-1): 2, _today.addDays(-2): 3},
+        successObjectiveIds: const {1, 2, 3},
+        startDay: start,
+      );
+
+      expect(computeUnlockedAchievements(fiveHabits, today: _today), contains(Achievement.fiveHabits));
+      expect(
+        computeUnlockedAchievements(fiveHabits.take(4).toList(), today: _today),
+        isNot(contains(Achievement.fiveHabits)),
+      );
+      expect(
+        computeUnlockedAchievements([threeObjectives], today: _today),
+        contains(Achievement.threeObjectivesOnOneHabit),
+      );
+      expect(
+        computeUnlockedAchievements([
+          _history(1, [saturday, saturday.addDays(1)], startDay: start),
+        ], today: _today),
+        contains(Achievement.weekendWarrior),
+      );
+      expect(
+        computeUnlockedAchievements([
+          _history(1, [saturday.addDays(1), saturday.addDays(2)], startDay: start),
+        ], today: _today),
+        isNot(contains(Achievement.weekendWarrior)),
+      );
+    });
+
+    test('special days: New Year, Christmas and February 29th', () {
+      final start = CalendarDay.fromDate(2023, 12, 1);
+      final unlocked = computeUnlockedAchievements([
+        _history(1, [
+          CalendarDay.fromDate(2023, 12, 25),
+          CalendarDay.fromDate(2024, 1, 1),
+          CalendarDay.fromDate(2024, 2, 29),
+        ], startDay: start),
+      ], today: _today);
+
+      expect(unlocked, containsAll([Achievement.christmasDay, Achievement.newYearsDay, Achievement.leapDay]));
+      expect(
+        computeUnlockedAchievements([
+          _history(1, [CalendarDay.fromDate(2025, 3, 1)], startDay: start),
+        ], today: _today),
+        isNot(anyOf(contains(Achievement.leapDay), contains(Achievement.christmasDay))),
+      );
+    });
+
+    test('a phoenix comes back after a month of missed days, a comeback after a week', () {
+      final start = _today.addDays(-100);
+      final afterTwoWeeks = _history(1, [start, start.addDays(15)], startDay: start);
+      final afterAMonth = _history(1, [start, start.addDays(31)], startDay: start);
+
+      expect(computeUnlockedAchievements([afterTwoWeeks], today: _today), isNot(contains(Achievement.phoenix)));
+      expect(computeUnlockedAchievements([afterTwoWeeks], today: _today), contains(Achievement.comeback));
+      expect(computeUnlockedAchievements([afterAMonth], today: _today), contains(Achievement.phoenix));
+    });
+
+    test('a first month with Komit starts thirty days after the first log', () {
+      expect(
+        computeUnlockedAchievements([
+          _history(1, [_today.addDays(-firstMonthWithKomitDayCount)]),
+        ], today: _today),
+        contains(Achievement.firstMonthWithKomit),
+      );
+      expect(
+        computeUnlockedAchievements([
+          _history(1, [_today.addDays(1 - firstMonthWithKomitDayCount)]),
+        ], today: _today),
+        isNot(contains(Achievement.firstMonthWithKomit)),
+      );
+    });
+
+    test('there are at least thirty achievements', () {
+      expect(Achievement.values.length, greaterThanOrEqualTo(30));
+    });
+
     test('a two-year veteran logged two years ago', () {
       final twoYearsAgo = _today.addDays(-twoYearVeteranDayCount);
 

@@ -1586,6 +1586,198 @@ abstract class AppLocalizations {
   /// **'Your first log is two years old.'**
   String get achievementTwoYearVeteranDescription;
 
+  /// No description provided for @achievementFirstMonthWithKomitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'One month in'**
+  String get achievementFirstMonthWithKomitTitle;
+
+  /// No description provided for @achievementFirstMonthWithKomitDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Your first log is a month old.'**
+  String get achievementFirstMonthWithKomitDescription;
+
+  /// No description provided for @achievementTwoWeekStreakTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Two weeks straight'**
+  String get achievementTwoWeekStreakTitle;
+
+  /// No description provided for @achievementTwoWeekStreakDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Fourteen days in a row on one habit.'**
+  String get achievementTwoWeekStreakDescription;
+
+  /// No description provided for @achievementTwoHundredDayStreakTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'200-day streak'**
+  String get achievementTwoHundredDayStreakTitle;
+
+  /// No description provided for @achievementTwoHundredDayStreakDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Two hundred days in a row on one habit.'**
+  String get achievementTwoHundredDayStreakDescription;
+
+  /// No description provided for @achievementTenPerfectDaysTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ten perfect days'**
+  String get achievementTenPerfectDaysTitle;
+
+  /// No description provided for @achievementTenPerfectDaysDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Ten days with every planned habit done.'**
+  String get achievementTenPerfectDaysDescription;
+
+  /// No description provided for @achievementFiftyPerfectDaysTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fifty perfect days'**
+  String get achievementFiftyPerfectDaysTitle;
+
+  /// No description provided for @achievementFiftyPerfectDaysDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Fifty days with every planned habit done.'**
+  String get achievementFiftyPerfectDaysDescription;
+
+  /// No description provided for @achievementPerfectMonthTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Perfect month'**
+  String get achievementPerfectMonthTitle;
+
+  /// No description provided for @achievementPerfectMonthDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Every planned day of a month done on one habit.'**
+  String get achievementPerfectMonthDescription;
+
+  /// No description provided for @achievementHundredTotalSuccessDaysTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'100 successes'**
+  String get achievementHundredTotalSuccessDaysTitle;
+
+  /// No description provided for @achievementHundredTotalSuccessDaysDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'A hundred success days across your habits.'**
+  String get achievementHundredTotalSuccessDaysDescription;
+
+  /// No description provided for @achievementYearOfSuccessDaysTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A year of successes'**
+  String get achievementYearOfSuccessDaysTitle;
+
+  /// No description provided for @achievementYearOfSuccessDaysDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'365 success days on one habit.'**
+  String get achievementYearOfSuccessDaysDescription;
+
+  /// No description provided for @achievementTwoThousandFiveHundredTotalSuccessDaysTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'2,500 successes'**
+  String get achievementTwoThousandFiveHundredTotalSuccessDaysTitle;
+
+  /// No description provided for @achievementTwoThousandFiveHundredTotalSuccessDaysDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Two thousand five hundred success days across your habits.'**
+  String get achievementTwoThousandFiveHundredTotalSuccessDaysDescription;
+
+  /// No description provided for @achievementFiveHabitsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Juggler'**
+  String get achievementFiveHabitsTitle;
+
+  /// No description provided for @achievementFiveHabitsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Success days on five different habits.'**
+  String get achievementFiveHabitsDescription;
+
+  /// No description provided for @achievementThreeObjectivesOnOneHabitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shades of success'**
+  String get achievementThreeObjectivesOnOneHabitTitle;
+
+  /// No description provided for @achievementThreeObjectivesOnOneHabitDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Three different successful objectives on one habit.'**
+  String get achievementThreeObjectivesOnOneHabitDescription;
+
+  /// No description provided for @achievementWeekendWarriorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekend warrior'**
+  String get achievementWeekendWarriorTitle;
+
+  /// No description provided for @achievementWeekendWarriorDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'One habit done on a Saturday and the Sunday after.'**
+  String get achievementWeekendWarriorDescription;
+
+  /// No description provided for @achievementNewYearsDayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fresh start'**
+  String get achievementNewYearsDayTitle;
+
+  /// No description provided for @achievementNewYearsDayDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'A success day on January 1st.'**
+  String get achievementNewYearsDayDescription;
+
+  /// No description provided for @achievementChristmasDayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Even at Christmas'**
+  String get achievementChristmasDayTitle;
+
+  /// No description provided for @achievementChristmasDayDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'A success day on December 25th.'**
+  String get achievementChristmasDayDescription;
+
+  /// No description provided for @achievementLeapDayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Once every four years'**
+  String get achievementLeapDayTitle;
+
+  /// No description provided for @achievementLeapDayDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'A success day on February 29th.'**
+  String get achievementLeapDayDescription;
+
+  /// No description provided for @achievementPhoenixTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Phoenix'**
+  String get achievementPhoenixTitle;
+
+  /// No description provided for @achievementPhoenixDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Back on a habit after a month of missed days.'**
+  String get achievementPhoenixDescription;
+
   /// No description provided for @weeklyRecapTitle.
   ///
   /// In en, this message translates to:
