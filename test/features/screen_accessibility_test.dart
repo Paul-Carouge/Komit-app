@@ -16,6 +16,7 @@ Map<String, String> _screenLocations(KomitTestEnvironment environment) => {
   'statistics': AppRoutes.habitStatistics(environment.runningHabitId, komitTestNow.year),
   'settings': AppRoutes.settings,
   'notes': AppRoutes.notes,
+  'achievements': AppRoutes.achievements,
 };
 
 /// Content each screen shows once loaded, so a test never passes on a loading or error state.
@@ -24,10 +25,11 @@ Finder _loadedContentOf(String screenName) => switch (screenName) {
   'statistics' => find.text('Days logged'),
   'settings' => find.text('Your name'),
   'notes' => find.text('Run slower on Mondays.'),
+  'achievements' => find.text('Perfect week'),
   _ => find.text('Morning run'),
 };
 
-const List<String> _screenNames = ['dashboard', 'details', 'editor', 'statistics', 'settings', 'notes'];
+const List<String> _screenNames = ['dashboard', 'details', 'editor', 'statistics', 'settings', 'notes', 'achievements'];
 
 void main() {
   for (final (themeName, theme) in [('light', lightAppTheme), ('dark', darkAppTheme)]) {

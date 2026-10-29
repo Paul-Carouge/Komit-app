@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'features/achievements/achievements_screen.dart';
 import 'features/archived_habits/archived_habits_screen.dart';
 import 'features/dashboard/dashboard_screen.dart';
 import 'features/habit_details/habit_details_screen.dart';
@@ -22,6 +23,7 @@ abstract final class AppRoutes {
   static const String newHabit = '/habit/new';
   static const String newNote = '/note/new';
   static const String archivedHabits = '/archived';
+  static const String achievements = '/achievements';
 
   static String habitDetails(int habitId) => '/habit/$habitId';
   static String habitEditor(int habitId) => '/habit/$habitId/edit';
@@ -59,6 +61,10 @@ GoRouter buildAppRouter(WidgetRef ref) {
       GoRoute(
         path: AppRoutes.archivedHabits,
         pageBuilder: (context, state) => _materialPage(state, const ArchivedHabitsScreen()),
+      ),
+      GoRoute(
+        path: AppRoutes.achievements,
+        pageBuilder: (context, state) => _materialPage(state, const AchievementsScreen()),
       ),
       GoRoute(
         path: AppRoutes.newHabit,

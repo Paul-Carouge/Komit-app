@@ -14,6 +14,7 @@ import '../../core/theme/app_theme.dart';
 import '../../data/repositories/habit_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
+import '../celebrations/log_celebrations.dart';
 import '../shared/shared_widgets.dart';
 
 sealed class LogDayChoice {
@@ -78,6 +79,7 @@ Future<void> writeDayLogWithUndo(
   final localizations = AppLocalizations.of(context);
   final repository = ref.read(habitRepositoryProvider);
   final logger = ref.read(appLoggerProvider);
+  final celebrator = LogCelebrator.of(context, ref);
   final habitId = habit.habit.id;
 
   Future<bool> write(int? objectiveIdToWrite) async {
@@ -99,7 +101,19 @@ Future<void> writeDayLogWithUndo(
   }
 
   if (!await write(objectiveId)) return;
-  unawaited(objectiveId == null ? KomitHaptics.warning() : KomitHaptics.success());
+  if (objectiveId == null) {
+    unawaited(KomitHaptics.warning());
+  } else {
+    unawaited(KomitHaptics.success());
+    unawaited(
+      celebrator.celebrateLog(
+        habit: habit,
+        day: day,
+        previousObjectiveId: previousObjectiveId,
+        objectiveId: objectiveId,
+      ),
+    );
+  }
   final objectiveTitle = objectiveId == null ? null : habit.objectiveWithId(objectiveId)?.title;
   messenger
     ..hideCurrentSnackBar()

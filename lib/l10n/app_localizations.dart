@@ -1321,6 +1321,204 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'this habit'**
   String get thisHabit;
+
+  /// No description provided for @celebrationFirstLogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'First day logged'**
+  String get celebrationFirstLogTitle;
+
+  /// No description provided for @celebrationFirstLogMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Every streak starts with one day.'**
+  String get celebrationFirstLogMessage;
+
+  /// No description provided for @celebrationStreakDaysTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day in a row} other{{count} days in a row}}'**
+  String celebrationStreakDaysTitle(int count);
+
+  /// No description provided for @celebrationStreakWeeksTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 week on target} other{{count} weeks in a row}}'**
+  String celebrationStreakWeeksTitle(int count);
+
+  /// No description provided for @celebrationKeepGoingTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep it going tomorrow.'**
+  String get celebrationKeepGoingTomorrow;
+
+  /// No description provided for @celebrationKeepGoingNextWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep it going next week.'**
+  String get celebrationKeepGoingNextWeek;
+
+  /// No description provided for @dismissCelebration.
+  ///
+  /// In en, this message translates to:
+  /// **'dismiss'**
+  String get dismissCelebration;
+
+  /// No description provided for @achievementUnlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Achievement unlocked'**
+  String get achievementUnlocked;
+
+  /// No description provided for @achievementsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Achievements'**
+  String get achievementsTitle;
+
+  /// No description provided for @achievementsTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Achievements'**
+  String get achievementsTooltip;
+
+  /// No description provided for @achievementsSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{unlockedCount} of {totalCount} unlocked'**
+  String achievementsSummary(int unlockedCount, int totalCount);
+
+  /// No description provided for @achievementsIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Achievements follow your logs: clearing days can lock one again.'**
+  String get achievementsIntro;
+
+  /// No description provided for @achievementUnlockedStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlocked'**
+  String get achievementUnlockedStatus;
+
+  /// No description provided for @achievementLockedStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Locked'**
+  String get achievementLockedStatus;
+
+  /// No description provided for @achievementFirstWeekTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'First week'**
+  String get achievementFirstWeekTitle;
+
+  /// No description provided for @achievementFirstWeekDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Seven days in a row on one habit, or one week on target.'**
+  String get achievementFirstWeekDescription;
+
+  /// No description provided for @achievementPerfectWeekTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Perfect week'**
+  String get achievementPerfectWeekTitle;
+
+  /// No description provided for @achievementPerfectWeekDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Every habit met its schedule for a whole week.'**
+  String get achievementPerfectWeekDescription;
+
+  /// No description provided for @achievementHundredSuccessDaysTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'100 days'**
+  String get achievementHundredSuccessDaysTitle;
+
+  /// No description provided for @achievementHundredSuccessDaysDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'A hundred successful days on one habit.'**
+  String get achievementHundredSuccessDaysDescription;
+
+  /// No description provided for @achievementComebackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Comeback'**
+  String get achievementComebackTitle;
+
+  /// No description provided for @achievementComebackDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Back on a habit after a week of missed days.'**
+  String get achievementComebackDescription;
+
+  /// No description provided for @achievementOneYearVeteranTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'One year'**
+  String get achievementOneYearVeteranTitle;
+
+  /// No description provided for @achievementOneYearVeteranDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Your first log is a year old.'**
+  String get achievementOneYearVeteranDescription;
+
+  /// No description provided for @weeklyRecapTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Last week'**
+  String get weeklyRecapTitle;
+
+  /// No description provided for @weeklyRecapSuccessDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No success days} =1{1 success day} other{{count} success days}}'**
+  String weeklyRecapSuccessDays(int count);
+
+  /// No description provided for @weeklyRecapMoreThanWeekBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} more than the week before'**
+  String weeklyRecapMoreThanWeekBefore(int count);
+
+  /// No description provided for @weeklyRecapFewerThanWeekBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} fewer than the week before'**
+  String weeklyRecapFewerThanWeekBefore(int count);
+
+  /// No description provided for @weeklyRecapSameAsWeekBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Same as the week before'**
+  String get weeklyRecapSameAsWeekBefore;
+
+  /// No description provided for @weeklyRecapHabitProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{doneCount} of {expectedCount}'**
+  String weeklyRecapHabitProgress(int doneCount, int expectedCount);
+
+  /// No description provided for @weeklyRecapHabitProgressSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'{habitTitle}: {doneCount} of {expectedCount}'**
+  String weeklyRecapHabitProgressSemantics(String habitTitle, int doneCount, int expectedCount);
+
+  /// No description provided for @weeklyRecapBestStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Longest streak: {habitTitle}, {streak}'**
+  String weeklyRecapBestStreak(String habitTitle, String streak);
+
+  /// No description provided for @dismissWeeklyRecap.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss the recap'**
+  String get dismissWeeklyRecap;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

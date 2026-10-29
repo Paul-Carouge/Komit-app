@@ -758,4 +758,140 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get thisHabit => 'cette habitude';
+
+  @override
+  String get celebrationFirstLogTitle => 'Premier jour enregistré';
+
+  @override
+  String get celebrationFirstLogMessage => 'Chaque série commence par un jour.';
+
+  @override
+  String celebrationStreakDaysTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count jours d’affilée',
+      one: '1 jour d’affilée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String celebrationStreakWeeksTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count semaines d’affilée',
+      one: '1 semaine réussie',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get celebrationKeepGoingTomorrow => 'Continuez demain pour la prolonger.';
+
+  @override
+  String get celebrationKeepGoingNextWeek => 'Continuez la semaine prochaine pour la prolonger.';
+
+  @override
+  String get dismissCelebration => 'fermer';
+
+  @override
+  String get achievementUnlocked => 'Succès débloqué';
+
+  @override
+  String get achievementsTitle => 'Succès';
+
+  @override
+  String get achievementsTooltip => 'Succès';
+
+  @override
+  String achievementsSummary(int unlockedCount, int totalCount) {
+    return '$unlockedCount sur $totalCount débloqués';
+  }
+
+  @override
+  String get achievementsIntro => 'Les succès suivent vos suivis : effacer des jours peut en verrouiller un à nouveau.';
+
+  @override
+  String get achievementUnlockedStatus => 'Débloqué';
+
+  @override
+  String get achievementLockedStatus => 'Verrouillé';
+
+  @override
+  String get achievementFirstWeekTitle => 'Première semaine';
+
+  @override
+  String get achievementFirstWeekDescription => 'Sept jours d’affilée sur une habitude, ou une semaine à l’objectif.';
+
+  @override
+  String get achievementPerfectWeekTitle => 'Semaine parfaite';
+
+  @override
+  String get achievementPerfectWeekDescription => 'Toutes vos habitudes ont suivi leur programme une semaine entière.';
+
+  @override
+  String get achievementHundredSuccessDaysTitle => '100 jours';
+
+  @override
+  String get achievementHundredSuccessDaysDescription => 'Cent jours réussis sur une même habitude.';
+
+  @override
+  String get achievementComebackTitle => 'Retour en force';
+
+  @override
+  String get achievementComebackDescription => 'Reprendre une habitude après une semaine de jours manqués.';
+
+  @override
+  String get achievementOneYearVeteranTitle => 'Un an';
+
+  @override
+  String get achievementOneYearVeteranDescription => 'Votre premier suivi a un an.';
+
+  @override
+  String get weeklyRecapTitle => 'La semaine dernière';
+
+  @override
+  String weeklyRecapSuccessDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count jours réussis',
+      one: '1 jour réussi',
+      zero: 'Aucun jour réussi',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String weeklyRecapMoreThanWeekBefore(int count) {
+    return '$count de plus que la semaine d’avant';
+  }
+
+  @override
+  String weeklyRecapFewerThanWeekBefore(int count) {
+    return '$count de moins que la semaine d’avant';
+  }
+
+  @override
+  String get weeklyRecapSameAsWeekBefore => 'Autant que la semaine d’avant';
+
+  @override
+  String weeklyRecapHabitProgress(int doneCount, int expectedCount) {
+    return '$doneCount sur $expectedCount';
+  }
+
+  @override
+  String weeklyRecapHabitProgressSemantics(String habitTitle, int doneCount, int expectedCount) {
+    return '$habitTitle : $doneCount sur $expectedCount';
+  }
+
+  @override
+  String weeklyRecapBestStreak(String habitTitle, String streak) {
+    return 'Plus longue série : $habitTitle, $streak';
+  }
+
+  @override
+  String get dismissWeeklyRecap => 'Masquer le bilan';
 }

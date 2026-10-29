@@ -48,6 +48,11 @@ class DashboardScreen extends ConsumerWidget {
             title: _greeting(localizations, greetingPeriod, userName),
             actions: [
               IconButton(
+                tooltip: localizations.achievementsTooltip,
+                onPressed: () => context.push(AppRoutes.achievements),
+                icon: const Icon(LucideIcons.trophy),
+              ),
+              IconButton(
                 tooltip: localizations.settingsTooltip,
                 onPressed: () => context.push(AppRoutes.settings),
                 icon: const Icon(LucideIcons.settings),

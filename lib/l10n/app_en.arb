@@ -532,5 +532,116 @@
   "updateErrorInstallStorage": "there is not enough free storage on your phone.",
   "updateErrorInstallBlocked": "Android blocked the installation.",
   "settingsUnavailable": "The settings could not be opened.",
-  "thisHabit": "this habit"
+  "thisHabit": "this habit",
+  "celebrationFirstLogTitle": "First day logged",
+  "celebrationFirstLogMessage": "Every streak starts with one day.",
+  "celebrationStreakDaysTitle": "{count, plural, =1{1 day in a row} other{{count} days in a row}}",
+  "@celebrationStreakDaysTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "celebrationStreakWeeksTitle": "{count, plural, =1{1 week on target} other{{count} weeks in a row}}",
+  "@celebrationStreakWeeksTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "celebrationKeepGoingTomorrow": "Keep it going tomorrow.",
+  "celebrationKeepGoingNextWeek": "Keep it going next week.",
+  "dismissCelebration": "dismiss",
+  "achievementUnlocked": "Achievement unlocked",
+  "achievementsTitle": "Achievements",
+  "achievementsTooltip": "Achievements",
+  "achievementsSummary": "{unlockedCount} of {totalCount} unlocked",
+  "@achievementsSummary": {
+    "placeholders": {
+      "unlockedCount": {
+        "type": "int"
+      },
+      "totalCount": {
+        "type": "int"
+      }
+    }
+  },
+  "achievementsIntro": "Achievements follow your logs: clearing days can lock one again.",
+  "achievementUnlockedStatus": "Unlocked",
+  "achievementLockedStatus": "Locked",
+  "achievementFirstWeekTitle": "First week",
+  "achievementFirstWeekDescription": "Seven days in a row on one habit, or one week on target.",
+  "achievementPerfectWeekTitle": "Perfect week",
+  "achievementPerfectWeekDescription": "Every habit met its schedule for a whole week.",
+  "achievementHundredSuccessDaysTitle": "100 days",
+  "achievementHundredSuccessDaysDescription": "A hundred successful days on one habit.",
+  "achievementComebackTitle": "Comeback",
+  "achievementComebackDescription": "Back on a habit after a week of missed days.",
+  "achievementOneYearVeteranTitle": "One year",
+  "achievementOneYearVeteranDescription": "Your first log is a year old.",
+  "weeklyRecapTitle": "Last week",
+  "weeklyRecapSuccessDays": "{count, plural, =0{No success days} =1{1 success day} other{{count} success days}}",
+  "@weeklyRecapSuccessDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "weeklyRecapMoreThanWeekBefore": "{count} more than the week before",
+  "@weeklyRecapMoreThanWeekBefore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "weeklyRecapFewerThanWeekBefore": "{count} fewer than the week before",
+  "@weeklyRecapFewerThanWeekBefore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "weeklyRecapSameAsWeekBefore": "Same as the week before",
+  "weeklyRecapHabitProgress": "{doneCount} of {expectedCount}",
+  "@weeklyRecapHabitProgress": {
+    "placeholders": {
+      "doneCount": {
+        "type": "int"
+      },
+      "expectedCount": {
+        "type": "int"
+      }
+    }
+  },
+  "weeklyRecapHabitProgressSemantics": "{habitTitle}: {doneCount} of {expectedCount}",
+  "@weeklyRecapHabitProgressSemantics": {
+    "placeholders": {
+      "habitTitle": {
+        "type": "String"
+      },
+      "doneCount": {
+        "type": "int"
+      },
+      "expectedCount": {
+        "type": "int"
+      }
+    }
+  },
+  "weeklyRecapBestStreak": "Longest streak: {habitTitle}, {streak}",
+  "@weeklyRecapBestStreak": {
+    "placeholders": {
+      "habitTitle": {
+        "type": "String"
+      },
+      "streak": {
+        "type": "String"
+      }
+    }
+  },
+  "dismissWeeklyRecap": "Dismiss the recap"
 }
