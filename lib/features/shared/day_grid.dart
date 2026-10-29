@@ -6,11 +6,14 @@ import '../../core/theme/app_theme.dart';
 
 /// One square of a [DayGrid]; a null [color] leaves the slot blank (e.g. February 30).
 class DayGridCell {
-  const DayGridCell({required this.color, required this.semanticLabel, this.onTap});
+  const DayGridCell({required this.color, required this.semanticLabel, this.onTap, this.isOutlined = false});
 
   final Color? color;
   final String semanticLabel;
   final VoidCallback? onTap;
+
+  /// Rings the cell, to point out today among the other days.
+  final bool isOutlined;
 }
 
 /// More changed cells than this at once is a data swap (another year, a new day), not a log:
@@ -33,10 +36,15 @@ class DayGrid extends StatefulWidget {
     required this.cells,
     this.cellGap = AppSpacing.extraSmall,
     this.cellTapActionLabel,
+    this.minimumRowExtent = 0,
     super.key,
   });
 
   final int columnCount;
+
+  /// Each row is at least this tall, its cells centered in it: a small cell then still has a
+  /// tall enough touch target, and screen readers focus the whole slot.
+  final double minimumRowExtent;
 
   /// Screen readers offer a cell's tap as a named action rather than a button: a cell is far
   /// smaller than a 48 dp touch target, and the screen offers a full-size control for the same job.
@@ -86,8 +94,14 @@ class _DayGridState extends State<DayGrid> with SingleTickerProviderStateMixin {
       builder: (context, constraints) {
         final cellGap = widget.cellGap;
         final cellSize = (constraints.maxWidth - cellGap * (widget.columnCount - 1)) / widget.columnCount;
-        final height = cellSize * _rowCount + cellGap * (_rowCount - 1);
-        final geometry = _DayGridGeometry(columnCount: widget.columnCount, cellSize: cellSize, cellGap: cellGap);
+        final rowExtent = cellSize < widget.minimumRowExtent ? widget.minimumRowExtent : cellSize;
+        final height = rowExtent * _rowCount + cellGap * (_rowCount - 1);
+        final geometry = _DayGridGeometry(
+          columnCount: widget.columnCount,
+          cellSize: cellSize,
+          cellGap: cellGap,
+          rowExtent: rowExtent,
+        );
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
           // Each cell exposes its own action; a tap on the whole grid would mean nothing.
@@ -104,6 +118,7 @@ class _DayGridState extends State<DayGrid> with SingleTickerProviderStateMixin {
               popAnimation: _popController,
               previousColorByPoppingCellIndex: _previousColorByPoppingCellIndex,
               cellTapActionLabel: widget.cellTapActionLabel,
+              outlineColor: Theme.of(context).colorScheme.onSurface,
             ),
           ),
         );
@@ -113,22 +128,33 @@ class _DayGridState extends State<DayGrid> with SingleTickerProviderStateMixin {
 }
 
 class _DayGridGeometry {
-  const _DayGridGeometry({required this.columnCount, required this.cellSize, required this.cellGap});
+  const _DayGridGeometry({
+    required this.columnCount,
+    required this.cellSize,
+    required this.cellGap,
+    required this.rowExtent,
+  });
 
   final int columnCount;
   final double cellSize;
   final double cellGap;
+  final double rowExtent;
 
-  Rect cellRect(int index) {
+  /// The cell's column and row slot: where it is tapped and what screen readers focus.
+  Rect slotRect(int index) {
     final column = index % columnCount;
     final row = index ~/ columnCount;
-    return Rect.fromLTWH(column * (cellSize + cellGap), row * (cellSize + cellGap), cellSize, cellSize);
+    return Rect.fromLTWH(column * (cellSize + cellGap), row * (rowExtent + cellGap), cellSize, rowExtent);
+  }
+
+  Rect cellRect(int index) {
+    final slot = slotRect(index);
+    return Rect.fromCenter(center: slot.center, width: cellSize, height: cellSize);
   }
 
   int? cellIndexAt(Offset position) {
-    final pitch = cellSize + cellGap;
-    final column = (position.dx / pitch).floor();
-    final row = (position.dy / pitch).floor();
+    final column = (position.dx / (cellSize + cellGap)).floor();
+    final row = (position.dy / (rowExtent + cellGap)).floor();
     if (column < 0 || column >= columnCount || row < 0) return null;
     return row * columnCount + column;
   }
@@ -141,6 +167,7 @@ class _DayGridPainter extends CustomPainter {
     required this.popAnimation,
     required this.previousColorByPoppingCellIndex,
     required this.cellTapActionLabel,
+    required this.outlineColor,
   }) : super(repaint: popAnimation);
 
   final List<DayGridCell> cells;
@@ -148,6 +175,7 @@ class _DayGridPainter extends CustomPainter {
   final AnimationController popAnimation;
   final Map<int, Color?> previousColorByPoppingCellIndex;
   final String? cellTapActionLabel;
+  final Color outlineColor;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -157,6 +185,7 @@ class _DayGridPainter extends CustomPainter {
     for (final (index, cell) in cells.indexed) {
       final color = cell.color;
       if (color == null) continue;
+      if (cell.isOutlined) _paintOutline(canvas, index, radius);
       if (isPopping && previousColorByPoppingCellIndex.containsKey(index)) {
         _paintPoppingCell(canvas, paint, index, color, radius);
         continue;
@@ -164,6 +193,19 @@ class _DayGridPainter extends CustomPainter {
       paint.color = color;
       canvas.drawRRect(RRect.fromRectAndRadius(geometry.cellRect(index), radius), paint);
     }
+  }
+
+  /// Drawn outside the cell, in the gap, so the cell keeps its full colored area.
+  void _paintOutline(Canvas canvas, int index, Radius radius) {
+    final outlinePaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = AppSizes.emphasisBorderWidth
+      ..color = outlineColor;
+    final outlineRect = geometry.cellRect(index).inflate(AppSizes.emphasisBorderWidth);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(outlineRect, radius + const Radius.circular(AppSizes.emphasisBorderWidth)),
+      outlinePaint,
+    );
   }
 
   void _paintPoppingCell(Canvas canvas, Paint paint, int index, Color color, Radius radius) {
@@ -200,7 +242,7 @@ class _DayGridPainter extends CustomPainter {
       for (final (index, cell) in cells.indexed)
         if (cell.color != null)
           CustomPainterSemantics(
-            rect: geometry.cellRect(index),
+            rect: geometry.slotRect(index),
             properties: switch ((cell.onTap, cellTapAction)) {
               (final onTap?, final cellTapAction?) => SemanticsProperties(
                 label: cell.semanticLabel,
@@ -222,11 +264,14 @@ class _DayGridPainter extends CustomPainter {
   bool shouldRepaint(_DayGridPainter oldDelegate) =>
       !identical(oldDelegate.cells, cells) ||
       oldDelegate.geometry.cellSize != geometry.cellSize ||
+      oldDelegate.geometry.rowExtent != geometry.rowExtent ||
+      oldDelegate.outlineColor != outlineColor ||
       !identical(oldDelegate.previousColorByPoppingCellIndex, previousColorByPoppingCellIndex);
 
   @override
   bool shouldRebuildSemantics(_DayGridPainter oldDelegate) =>
       !identical(oldDelegate.cells, cells) ||
       oldDelegate.geometry.cellSize != geometry.cellSize ||
+      oldDelegate.geometry.rowExtent != geometry.rowExtent ||
       oldDelegate.cellTapActionLabel != cellTapActionLabel;
 }

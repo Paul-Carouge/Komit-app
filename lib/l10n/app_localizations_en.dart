@@ -13,14 +13,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => 'Komit';
 
   @override
-  String greeting(String name) {
-    return 'Hello, $name!';
-  }
-
-  @override
-  String get greetingWithoutName => 'Hello!';
-
-  @override
   String get habitsTab => 'Habits';
 
   @override
@@ -30,18 +22,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTooltip => 'Settings';
 
   @override
-  String lastActivity(String date) {
-    return 'Last activity: $date';
-  }
-
-  @override
   String get noActivityYet => 'No activity yet';
 
   @override
   String get newHabit => 'New habit';
-
-  @override
-  String get emptyHabitsMessage => 'Create your first habit to start tracking.';
 
   @override
   String get genericError => 'Something went wrong. Please try again.';
@@ -88,11 +72,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get objectivesLegend => 'Objectives';
-
-  @override
-  String logForDate(String date) {
-    return 'Log for $date';
-  }
 
   @override
   String get clearLog => 'Clear this day';
@@ -433,4 +412,229 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noNotesYetMessage => 'Write down an idea, a feeling or a small win. It stays right here.';
+
+  @override
+  String greetingMorning(String name) {
+    return 'Good morning, $name';
+  }
+
+  @override
+  String greetingAfternoon(String name) {
+    return 'Good afternoon, $name';
+  }
+
+  @override
+  String greetingEvening(String name) {
+    return 'Good evening, $name';
+  }
+
+  @override
+  String get greetingMorningWithoutName => 'Good morning';
+
+  @override
+  String get greetingAfternoonWithoutName => 'Good afternoon';
+
+  @override
+  String get greetingEveningWithoutName => 'Good evening';
+
+  @override
+  String todayProgress(int done, int total) {
+    return '$done/$total done today';
+  }
+
+  @override
+  String todayProgressSemantics(int done, int total) {
+    return '$done of $total habits done today';
+  }
+
+  @override
+  String get allDoneToday => 'All done today';
+
+  @override
+  String get nothingPlannedToday => 'Nothing planned today';
+
+  @override
+  String get lastLoggedToday => 'Logged today';
+
+  @override
+  String get lastLoggedYesterday => 'Last logged yesterday';
+
+  @override
+  String lastLoggedDaysAgo(int count) {
+    return 'Last logged $count days ago';
+  }
+
+  @override
+  String lastLoggedOn(String date) {
+    return 'Last logged $date';
+  }
+
+  @override
+  String get notToday => 'Not today';
+
+  @override
+  String weeklyProgress(int done, int target) {
+    return '$done/$target this week';
+  }
+
+  @override
+  String currentStreakSemantics(String streak) {
+    return 'Current streak: $streak';
+  }
+
+  @override
+  String habitRowLoggedToday(String habit, String objective) {
+    return '$habit, logged today: $objective';
+  }
+
+  @override
+  String habitRowNotLoggedToday(String habit) {
+    return '$habit, not logged today';
+  }
+
+  @override
+  String habitRowNotPlannedToday(String habit) {
+    return '$habit, not planned today';
+  }
+
+  @override
+  String logHabitToday(String habit) {
+    return 'Log $habit for today';
+  }
+
+  @override
+  String changeTodayLog(String habit) {
+    return 'Change today\'s log for $habit';
+  }
+
+  @override
+  String get chooseAnObjectiveHint => 'choose an objective';
+
+  @override
+  String dayLoggedMessage(String objective, String habit) {
+    return '$objective logged for $habit';
+  }
+
+  @override
+  String dayClearedMessage(String habit) {
+    return 'Day cleared for $habit';
+  }
+
+  @override
+  String get undo => 'Undo';
+
+  @override
+  String stripDayLogged(String date, String objective) {
+    return '$date: $objective';
+  }
+
+  @override
+  String stripDayNotLogged(String date) {
+    return '$date: not logged';
+  }
+
+  @override
+  String stripDayNotAvailableYet(String date) {
+    return '$date: not available yet';
+  }
+
+  @override
+  String get relativeToday => 'Today';
+
+  @override
+  String get relativeYesterday => 'Yesterday';
+
+  @override
+  String get futureLogExplanation => 'This future day was logged in the original Komit app. You can only clear it.';
+
+  @override
+  String get countsTowardStreak => 'Extends the streak';
+
+  @override
+  String get schedule => 'Schedule';
+
+  @override
+  String get scheduleEveryDay => 'Every day';
+
+  @override
+  String get scheduleSomeDays => 'Some days';
+
+  @override
+  String get schedulePerWeek => 'Per week';
+
+  @override
+  String targetDaysPerWeek(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days per week',
+      one: '1 day per week',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get fewerDaysPerWeek => 'Fewer days per week';
+
+  @override
+  String get moreDaysPerWeek => 'More days per week';
+
+  @override
+  String get pickAtLeastOneDay => 'Pick at least one day.';
+
+  @override
+  String get preview => 'Preview';
+
+  @override
+  String get habitNamePlaceholder => 'Your habit';
+
+  @override
+  String get saveHabit => 'Save changes';
+
+  @override
+  String get createHabitAction => 'Create habit';
+
+  @override
+  String get archiveHabit => 'Archive habit';
+
+  @override
+  String get unarchiveHabit => 'Bring back to my list';
+
+  @override
+  String habitArchivedMessage(String habit) {
+    return '$habit archived';
+  }
+
+  @override
+  String habitUnarchivedMessage(String habit) {
+    return '$habit is back on your list';
+  }
+
+  @override
+  String archivedHabitsRow(int count) {
+    return 'Archived ($count)';
+  }
+
+  @override
+  String get archivedHabitsTitle => 'Archived';
+
+  @override
+  String archivedOn(String date) {
+    return 'Archived on $date';
+  }
+
+  @override
+  String get noArchivedHabitsTitle => 'Nothing archived';
+
+  @override
+  String get noArchivedHabitsMessage => 'Archive a habit from its page to pause it without losing its history.';
+
+  @override
+  String get moveUp => 'Move up';
+
+  @override
+  String get moveDown => 'Move down';
+
+  @override
+  String get noteSaveFailed => 'Your note couldn\'t be saved. Copy its text, then try again.';
 }

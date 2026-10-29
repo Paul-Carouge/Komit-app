@@ -23,6 +23,24 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
 - A livelier start: on the splash screen Komo blinks once, then its face fades away to
   reveal the app instead of cutting to it. With animations turned off, the app appears
   at once.
+- One tap on the round button of a habit logs today with its first objective. Every log
+  shows a message with "Undo"; a long press, or a tap on a day already logged, lets you
+  choose another objective or clear the day.
+- Tap any day of the two-week strip on the home screen to log it. Today is ringed, and the
+  rest of the week stays unavailable until it comes.
+- The home screen greets you by the time of day and shows how many of today's habits are
+  done, with a ring that fills up; Komo celebrates there once everything is done.
+- Each habit shows its current streak, when it was last logged ("Logged yesterday"),
+  "Not today" on days off its schedule, and "2/3 this week" for weekly targets.
+- Choose a schedule when you create or edit a habit: every day, some days of the week, or a
+  number of days per week. Outcomes such as "Skipped" can be set to not extend the streak.
+- The habit editor previews the habit as it will appear on the home screen and has a large
+  save button at the bottom.
+- Archive a habit from its page to take it off the home screen without losing its history.
+  Archived habits are listed under "Archived" at the end of the home screen, from where they
+  can come back.
+- Long-press a habit on the home screen to move it. Screen readers offer "Move up" and
+  "Move down".
 
 ### Changed
 - Komit now draws behind transparent status and navigation bars on every Android
@@ -47,6 +65,10 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
   If loading fails, the screen explains it and offers a "Try again" button.
 
 ### Fixed
+- A new note saved with the check button and closed at the same moment is no longer stored
+  twice. Notes are also saved when Komit goes to the background, and a failed save says so.
+- The habit editor shows an error with "Try again" instead of loading forever when the habit
+  cannot be read.
 - When you scroll the home screen, the greeting no longer slides under Komo and the
   settings button: it shrinks into the top bar and stops before them, even with a long
   first name or a large font.

@@ -21,6 +21,12 @@ extension type const CalendarDay(int daysSinceEpoch) implements Object {
 
   int get year => asUtcDate.year;
 
+  /// [DateTime.monday]..[DateTime.sunday].
+  int get weekday => asUtcDate.weekday;
+
+  /// The Monday that starts this day's ISO week, as weekly targets count weeks.
+  CalendarDay get mondayOfWeek => addDays(-(weekday - DateTime.monday));
+
   CalendarDay addDays(int days) => CalendarDay(daysSinceEpoch + days);
 
   bool isAfter(CalendarDay other) => daysSinceEpoch > other.daysSinceEpoch;

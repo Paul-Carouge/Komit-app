@@ -200,4 +200,17 @@ void main() {
     expect(CalendarDay.fromDateTime(DateTime(2026, 3, 29, 23, 59)), CalendarDay.fromDate(2026, 3, 29));
     expect(CalendarDay.fromDate(2026, 3, 29).asLocalDate, DateTime(2026, 3, 29));
   });
+  test('countSuccessDaysInWeekOf counts success days from Monday to Sunday only', () {
+    // 2026-03-10 is a Tuesday: its week runs from Monday 9 to Sunday 15.
+    final objectiveIdByDay = {
+      CalendarDay.fromDate(2026, 3, 8): successObjectiveId,
+      CalendarDay.fromDate(2026, 3, 9): successObjectiveId,
+      CalendarDay.fromDate(2026, 3, 10): skippedObjectiveId,
+      CalendarDay.fromDate(2026, 3, 15): successObjectiveId,
+    };
+
+    expect(countSuccessDaysInWeekOf(objectiveIdByDay, successObjectiveIds: successObjectiveIds, day: today), 2);
+    expect(today.mondayOfWeek, CalendarDay.fromDate(2026, 3, 9));
+    expect(today.weekday, DateTime.tuesday);
+  });
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -210,12 +211,22 @@ class HabitIconBadge extends StatelessWidget {
 /// A tappable card lifted by a soft shadow, that sinks while pressed and springs back on release,
 /// so every card answers the finger the same way.
 class PressableCard extends StatefulWidget {
-  const PressableCard({required this.onTap, required this.child, this.color, this.shape, super.key});
+  const PressableCard({
+    required this.onTap,
+    required this.child,
+    this.color,
+    this.shape,
+    this.customSemanticsActions,
+    super.key,
+  });
 
   final VoidCallback onTap;
   final Widget child;
   final Color? color;
   final ShapeBorder? shape;
+
+  /// Extra screen reader actions (e.g. "Move up"), offered on the card itself.
+  final Map<CustomSemanticsAction, VoidCallback>? customSemanticsActions;
 
   @override
   State<PressableCard> createState() => _PressableCardState();
@@ -246,7 +257,13 @@ class _PressableCardState extends State<PressableCard> {
           shape: shape,
           shadows: isTransparent ? null : AppShadows.card(KomitColors.of(context).cardShadow),
         ),
-        child: Card(color: widget.color, shape: shape, clipBehavior: Clip.antiAlias, child: inkWell),
+        child: Card(
+          color: widget.color,
+          shape: shape,
+          clipBehavior: Clip.antiAlias,
+          // Inside the card, whose semantics container merges them into the card's own node.
+          child: Semantics(customSemanticsActions: widget.customSemanticsActions, child: inkWell),
+        ),
       ),
     );
   }
@@ -394,6 +411,16 @@ class _ExpandedLargeTitle extends StatelessWidget {
     );
   }
 }
+
+/// A field that reads as plain text inside a row or a page, without a box around it.
+InputDecoration borderlessInlineInputDecoration({required String hintText}) => InputDecoration(
+  hintText: hintText,
+  counterText: '',
+  filled: false,
+  border: InputBorder.none,
+  enabledBorder: InputBorder.none,
+  focusedBorder: InputBorder.none,
+);
 
 class ColorDot extends StatelessWidget {
   const ColorDot({required this.color, this.size = AppSizes.colorDot, super.key});

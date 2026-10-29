@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'features/archived_habits/archived_habits_screen.dart';
 import 'features/dashboard/dashboard_screen.dart';
 import 'features/habit_details/habit_details_screen.dart';
 import 'features/habit_editor/habit_editor_screen.dart';
@@ -19,6 +20,7 @@ abstract final class AppRoutes {
   static const String settings = '/settings';
   static const String newHabit = '/habit/new';
   static const String newNote = '/note/new';
+  static const String archivedHabits = '/archived';
 
   static String habitDetails(int habitId) => '/habit/$habitId';
   static String habitEditor(int habitId) => '/habit/$habitId/edit';
@@ -53,6 +55,7 @@ GoRouter buildAppRouter(WidgetRef ref) {
         ],
       ),
       GoRoute(path: AppRoutes.settings, builder: (context, state) => const SettingsScreen()),
+      GoRoute(path: AppRoutes.archivedHabits, builder: (context, state) => const ArchivedHabitsScreen()),
       GoRoute(path: AppRoutes.newHabit, builder: (context, state) => const HabitEditorScreen(habitId: null)),
       GoRoute(
         path: '/habit/:habitId',

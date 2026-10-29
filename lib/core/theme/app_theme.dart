@@ -52,6 +52,17 @@ abstract final class AppSizes {
   /// Share of a badge filled by its icon; leaves the tinted square visible around it.
   static const double iconToBadgeRatio = 0.55;
 
+  /// The round log-today button on each dashboard row: a full touch target, drawn at full size.
+  static const double logButton = 48;
+  static const double checkMarkStrokeWidth = 2.5;
+
+  /// The today header's progress ring, and the thickness of its track.
+  static const double todayProgressRing = 56;
+  static const double todayProgressRingStrokeWidth = 6;
+
+  /// One weekday toggle in the schedule picker; seven fit side by side on a 390 dp phone.
+  static const double weekdayToggle = 44;
+
   static const double mascotSmall = 48;
   static const double mascotMedium = 112;
   static const double mascotLarge = 168;
@@ -88,6 +99,9 @@ abstract final class AppOpacity {
   /// A translucent layer of the foreground color over a saturated background (hero cards, banners).
   static const double overlayOnColor = 0.18;
 
+  /// Shadow of a card lifted for reordering, over the page color.
+  static const double liftedShadow = 0.22;
+
   /// Frosted bars stay readable over any content while letting it show through.
   static const double frostedSurface = 0.78;
 }
@@ -108,6 +122,9 @@ abstract final class AppBlur {
 /// shadow would draw a gray ledge under each card, so there is none; the negative spread keeps
 /// the shadow from peeking out at the sides.
 abstract final class AppShadows {
+  static const double _liftedBlurRadius = 40;
+  static const Offset _liftedOffset = Offset(0, 18);
+
   static const double _cardBlurRadius = 32;
   static const double _cardSpreadRadius = -8;
   static const Offset _cardOffset = Offset(0, 12);
@@ -124,6 +141,16 @@ abstract final class AppShadows {
             offset: _cardOffset,
           ),
         ];
+
+  /// A card picked up to be moved: a deeper shadow, drawn in dark mode too, so it clearly floats.
+  static List<BoxShadow> lifted(Color shadowColor) => [
+    BoxShadow(
+      color: shadowColor,
+      blurRadius: _liftedBlurRadius,
+      spreadRadius: _cardSpreadRadius,
+      offset: _liftedOffset,
+    ),
+  ];
 }
 
 /// Product colors that Material's [ColorScheme] has no slot for.

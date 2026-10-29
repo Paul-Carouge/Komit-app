@@ -151,6 +151,19 @@ StreakSummary _computeWeeklyTargetStreakSummary(
   );
 }
 
+/// Success days in the ISO week (Monday to Sunday) holding [day], for a weekly target.
+int countSuccessDaysInWeekOf(
+  Map<CalendarDay, int> objectiveIdByDay, {
+  required Set<int> successObjectiveIds,
+  required CalendarDay day,
+}) {
+  final weekIndex = _isoWeekIndex(day.daysSinceEpoch);
+  return _successDaysSinceEpoch(
+    objectiveIdByDay,
+    successObjectiveIds,
+  ).where((successDay) => _isoWeekIndex(successDay) == weekIndex).length;
+}
+
 /// Share of the scheduled days from [firstDay] to [today] included that are success days;
 /// null when that range holds no scheduled day.
 double? computeSuccessRate(

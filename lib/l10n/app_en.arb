@@ -1,29 +1,11 @@
 {
   "@@locale": "en",
   "appTitle": "Komit",
-  "greeting": "Hello, {name}!",
-  "@greeting": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "greetingWithoutName": "Hello!",
   "habitsTab": "Habits",
   "notesTab": "Notes",
   "settingsTooltip": "Settings",
-  "lastActivity": "Last activity: {date}",
-  "@lastActivity": {
-    "placeholders": {
-      "date": {
-        "type": "String"
-      }
-    }
-  },
   "noActivityYet": "No activity yet",
   "newHabit": "New habit",
-  "emptyHabitsMessage": "Create your first habit to start tracking.",
   "genericError": "Something went wrong. Please try again.",
   "loadErrorTitle": "This screen couldn't load",
   "loadErrorMessage": "Your data is still safe on your phone. Try again, and restart Komit if it keeps happening.",
@@ -51,14 +33,6 @@
   "yearlyProgress": "Yearly progress",
   "logToday": "Log today",
   "objectivesLegend": "Objectives",
-  "logForDate": "Log for {date}",
-  "@logForDate": {
-    "placeholders": {
-      "date": {
-        "type": "String"
-      }
-    }
-  },
   "clearLog": "Clear this day",
   "chooseYear": "Year",
   "statisticsTooltip": "Statistics",
@@ -259,5 +233,248 @@
   "dashboardEmptyTitle": "Your first habit is waiting",
   "dashboardEmptyMessage": "Pick something to do each day, with your own objectives. I'll take care of the calendar.",
   "createFirstHabit": "Create a habit",
-  "noNotesYetMessage": "Write down an idea, a feeling or a small win. It stays right here."
+  "noNotesYetMessage": "Write down an idea, a feeling or a small win. It stays right here.",
+  "greetingMorning": "Good morning, {name}",
+  "@greetingMorning": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "greetingAfternoon": "Good afternoon, {name}",
+  "@greetingAfternoon": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "greetingEvening": "Good evening, {name}",
+  "@greetingEvening": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "greetingMorningWithoutName": "Good morning",
+  "greetingAfternoonWithoutName": "Good afternoon",
+  "greetingEveningWithoutName": "Good evening",
+  "todayProgress": "{done}/{total} done today",
+  "@todayProgress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "todayProgressSemantics": "{done} of {total} habits done today",
+  "@todayProgressSemantics": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "allDoneToday": "All done today",
+  "nothingPlannedToday": "Nothing planned today",
+  "lastLoggedToday": "Logged today",
+  "lastLoggedYesterday": "Last logged yesterday",
+  "lastLoggedDaysAgo": "Last logged {count} days ago",
+  "@lastLoggedDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "lastLoggedOn": "Last logged {date}",
+  "@lastLoggedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "notToday": "Not today",
+  "weeklyProgress": "{done}/{target} this week",
+  "@weeklyProgress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "currentStreakSemantics": "Current streak: {streak}",
+  "@currentStreakSemantics": {
+    "placeholders": {
+      "streak": {
+        "type": "String"
+      }
+    }
+  },
+  "habitRowLoggedToday": "{habit}, logged today: {objective}",
+  "@habitRowLoggedToday": {
+    "placeholders": {
+      "habit": {
+        "type": "String"
+      },
+      "objective": {
+        "type": "String"
+      }
+    }
+  },
+  "habitRowNotLoggedToday": "{habit}, not logged today",
+  "@habitRowNotLoggedToday": {
+    "placeholders": {
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "habitRowNotPlannedToday": "{habit}, not planned today",
+  "@habitRowNotPlannedToday": {
+    "placeholders": {
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "logHabitToday": "Log {habit} for today",
+  "@logHabitToday": {
+    "placeholders": {
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "changeTodayLog": "Change today's log for {habit}",
+  "@changeTodayLog": {
+    "placeholders": {
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "chooseAnObjectiveHint": "choose an objective",
+  "dayLoggedMessage": "{objective} logged for {habit}",
+  "@dayLoggedMessage": {
+    "placeholders": {
+      "objective": {
+        "type": "String"
+      },
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "dayClearedMessage": "Day cleared for {habit}",
+  "@dayClearedMessage": {
+    "placeholders": {
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "undo": "Undo",
+  "stripDayLogged": "{date}: {objective}",
+  "@stripDayLogged": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "objective": {
+        "type": "String"
+      }
+    }
+  },
+  "stripDayNotLogged": "{date}: not logged",
+  "@stripDayNotLogged": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "stripDayNotAvailableYet": "{date}: not available yet",
+  "@stripDayNotAvailableYet": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "relativeToday": "Today",
+  "relativeYesterday": "Yesterday",
+  "futureLogExplanation": "This future day was logged in the original Komit app. You can only clear it.",
+  "countsTowardStreak": "Extends the streak",
+  "schedule": "Schedule",
+  "scheduleEveryDay": "Every day",
+  "scheduleSomeDays": "Some days",
+  "schedulePerWeek": "Per week",
+  "targetDaysPerWeek": "{count, plural, =1{1 day per week} other{{count} days per week}}",
+  "@targetDaysPerWeek": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fewerDaysPerWeek": "Fewer days per week",
+  "moreDaysPerWeek": "More days per week",
+  "pickAtLeastOneDay": "Pick at least one day.",
+  "preview": "Preview",
+  "habitNamePlaceholder": "Your habit",
+  "saveHabit": "Save changes",
+  "createHabitAction": "Create habit",
+  "archiveHabit": "Archive habit",
+  "unarchiveHabit": "Bring back to my list",
+  "habitArchivedMessage": "{habit} archived",
+  "@habitArchivedMessage": {
+    "placeholders": {
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "habitUnarchivedMessage": "{habit} is back on your list",
+  "@habitUnarchivedMessage": {
+    "placeholders": {
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "archivedHabitsRow": "Archived ({count})",
+  "@archivedHabitsRow": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "archivedHabitsTitle": "Archived",
+  "archivedOn": "Archived on {date}",
+  "@archivedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "noArchivedHabitsTitle": "Nothing archived",
+  "noArchivedHabitsMessage": "Archive a habit from its page to pause it without losing its history.",
+  "moveUp": "Move up",
+  "moveDown": "Move down",
+  "noteSaveFailed": "Your note couldn't be saved. Copy its text, then try again."
 }

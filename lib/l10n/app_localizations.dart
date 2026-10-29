@@ -98,18 +98,6 @@ abstract class AppLocalizations {
   /// **'Komit'**
   String get appTitle;
 
-  /// No description provided for @greeting.
-  ///
-  /// In en, this message translates to:
-  /// **'Hello, {name}!'**
-  String greeting(String name);
-
-  /// No description provided for @greetingWithoutName.
-  ///
-  /// In en, this message translates to:
-  /// **'Hello!'**
-  String get greetingWithoutName;
-
   /// No description provided for @habitsTab.
   ///
   /// In en, this message translates to:
@@ -128,12 +116,6 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get settingsTooltip;
 
-  /// No description provided for @lastActivity.
-  ///
-  /// In en, this message translates to:
-  /// **'Last activity: {date}'**
-  String lastActivity(String date);
-
   /// No description provided for @noActivityYet.
   ///
   /// In en, this message translates to:
@@ -145,12 +127,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'New habit'**
   String get newHabit;
-
-  /// No description provided for @emptyHabitsMessage.
-  ///
-  /// In en, this message translates to:
-  /// **'Create your first habit to start tracking.'**
-  String get emptyHabitsMessage;
 
   /// No description provided for @genericError.
   ///
@@ -229,12 +205,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Objectives'**
   String get objectivesLegend;
-
-  /// No description provided for @logForDate.
-  ///
-  /// In en, this message translates to:
-  /// **'Log for {date}'**
-  String logForDate(String date);
 
   /// No description provided for @clearLog.
   ///
@@ -841,6 +811,348 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Write down an idea, a feeling or a small win. It stays right here.'**
   String get noNotesYetMessage;
+
+  /// No description provided for @greetingMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning, {name}'**
+  String greetingMorning(String name);
+
+  /// No description provided for @greetingAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon, {name}'**
+  String greetingAfternoon(String name);
+
+  /// No description provided for @greetingEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening, {name}'**
+  String greetingEvening(String name);
+
+  /// No description provided for @greetingMorningWithoutName.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning'**
+  String get greetingMorningWithoutName;
+
+  /// No description provided for @greetingAfternoonWithoutName.
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon'**
+  String get greetingAfternoonWithoutName;
+
+  /// No description provided for @greetingEveningWithoutName.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening'**
+  String get greetingEveningWithoutName;
+
+  /// No description provided for @todayProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done}/{total} done today'**
+  String todayProgress(int done, int total);
+
+  /// No description provided for @todayProgressSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} habits done today'**
+  String todayProgressSemantics(int done, int total);
+
+  /// No description provided for @allDoneToday.
+  ///
+  /// In en, this message translates to:
+  /// **'All done today'**
+  String get allDoneToday;
+
+  /// No description provided for @nothingPlannedToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing planned today'**
+  String get nothingPlannedToday;
+
+  /// No description provided for @lastLoggedToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged today'**
+  String get lastLoggedToday;
+
+  /// No description provided for @lastLoggedYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Last logged yesterday'**
+  String get lastLoggedYesterday;
+
+  /// No description provided for @lastLoggedDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'Last logged {count} days ago'**
+  String lastLoggedDaysAgo(int count);
+
+  /// No description provided for @lastLoggedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Last logged {date}'**
+  String lastLoggedOn(String date);
+
+  /// No description provided for @notToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Not today'**
+  String get notToday;
+
+  /// No description provided for @weeklyProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done}/{target} this week'**
+  String weeklyProgress(int done, int target);
+
+  /// No description provided for @currentStreakSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Current streak: {streak}'**
+  String currentStreakSemantics(String streak);
+
+  /// No description provided for @habitRowLoggedToday.
+  ///
+  /// In en, this message translates to:
+  /// **'{habit}, logged today: {objective}'**
+  String habitRowLoggedToday(String habit, String objective);
+
+  /// No description provided for @habitRowNotLoggedToday.
+  ///
+  /// In en, this message translates to:
+  /// **'{habit}, not logged today'**
+  String habitRowNotLoggedToday(String habit);
+
+  /// No description provided for @habitRowNotPlannedToday.
+  ///
+  /// In en, this message translates to:
+  /// **'{habit}, not planned today'**
+  String habitRowNotPlannedToday(String habit);
+
+  /// No description provided for @logHabitToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Log {habit} for today'**
+  String logHabitToday(String habit);
+
+  /// No description provided for @changeTodayLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Change today\'s log for {habit}'**
+  String changeTodayLog(String habit);
+
+  /// No description provided for @chooseAnObjectiveHint.
+  ///
+  /// In en, this message translates to:
+  /// **'choose an objective'**
+  String get chooseAnObjectiveHint;
+
+  /// No description provided for @dayLoggedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{objective} logged for {habit}'**
+  String dayLoggedMessage(String objective, String habit);
+
+  /// No description provided for @dayClearedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Day cleared for {habit}'**
+  String dayClearedMessage(String habit);
+
+  /// No description provided for @undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get undo;
+
+  /// No description provided for @stripDayLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'{date}: {objective}'**
+  String stripDayLogged(String date, String objective);
+
+  /// No description provided for @stripDayNotLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'{date}: not logged'**
+  String stripDayNotLogged(String date);
+
+  /// No description provided for @stripDayNotAvailableYet.
+  ///
+  /// In en, this message translates to:
+  /// **'{date}: not available yet'**
+  String stripDayNotAvailableYet(String date);
+
+  /// No description provided for @relativeToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get relativeToday;
+
+  /// No description provided for @relativeYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get relativeYesterday;
+
+  /// No description provided for @futureLogExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'This future day was logged in the original Komit app. You can only clear it.'**
+  String get futureLogExplanation;
+
+  /// No description provided for @countsTowardStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Extends the streak'**
+  String get countsTowardStreak;
+
+  /// No description provided for @schedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get schedule;
+
+  /// No description provided for @scheduleEveryDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day'**
+  String get scheduleEveryDay;
+
+  /// No description provided for @scheduleSomeDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Some days'**
+  String get scheduleSomeDays;
+
+  /// No description provided for @schedulePerWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Per week'**
+  String get schedulePerWeek;
+
+  /// No description provided for @targetDaysPerWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day per week} other{{count} days per week}}'**
+  String targetDaysPerWeek(int count);
+
+  /// No description provided for @fewerDaysPerWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Fewer days per week'**
+  String get fewerDaysPerWeek;
+
+  /// No description provided for @moreDaysPerWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'More days per week'**
+  String get moreDaysPerWeek;
+
+  /// No description provided for @pickAtLeastOneDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick at least one day.'**
+  String get pickAtLeastOneDay;
+
+  /// No description provided for @preview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get preview;
+
+  /// No description provided for @habitNamePlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Your habit'**
+  String get habitNamePlaceholder;
+
+  /// No description provided for @saveHabit.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get saveHabit;
+
+  /// No description provided for @createHabitAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Create habit'**
+  String get createHabitAction;
+
+  /// No description provided for @archiveHabit.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive habit'**
+  String get archiveHabit;
+
+  /// No description provided for @unarchiveHabit.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring back to my list'**
+  String get unarchiveHabit;
+
+  /// No description provided for @habitArchivedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{habit} archived'**
+  String habitArchivedMessage(String habit);
+
+  /// No description provided for @habitUnarchivedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{habit} is back on your list'**
+  String habitUnarchivedMessage(String habit);
+
+  /// No description provided for @archivedHabitsRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived ({count})'**
+  String archivedHabitsRow(int count);
+
+  /// No description provided for @archivedHabitsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get archivedHabitsTitle;
+
+  /// No description provided for @archivedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived on {date}'**
+  String archivedOn(String date);
+
+  /// No description provided for @noArchivedHabitsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing archived'**
+  String get noArchivedHabitsTitle;
+
+  /// No description provided for @noArchivedHabitsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive a habit from its page to pause it without losing its history.'**
+  String get noArchivedHabitsMessage;
+
+  /// No description provided for @moveUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Move up'**
+  String get moveUp;
+
+  /// No description provided for @moveDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Move down'**
+  String get moveDown;
+
+  /// No description provided for @noteSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Your note couldn\'t be saved. Copy its text, then try again.'**
+  String get noteSaveFailed;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

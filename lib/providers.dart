@@ -9,6 +9,7 @@ import 'data/repositories/backup_repository.dart';
 import 'data/repositories/habit_repository.dart';
 import 'data/repositories/note_repository.dart';
 import 'data/repositories/settings_repository.dart';
+import 'domain/habit_statistics.dart';
 import 'services/app_update_service.dart';
 import 'services/reminder_scheduler.dart';
 
@@ -57,6 +58,8 @@ final settingsControllerProvider = NotifierProvider<SettingsController, AppSetti
 
 final activeHabitsProvider = StreamProvider((ref) => ref.watch(habitRepositoryProvider).watchActiveHabits());
 
+final archivedHabitsProvider = StreamProvider((ref) => ref.watch(habitRepositoryProvider).watchArchivedHabits());
+
 final habitWithObjectivesProvider = StreamProvider.autoDispose.family<HabitWithObjectives?, int>(
   (ref, habitId) => ref.watch(habitRepositoryProvider).watchHabitWithObjectives(habitId),
 );
@@ -65,13 +68,45 @@ final objectiveIdByDayForHabitProvider = StreamProvider.autoDispose.family<Map<C
   (ref, habitId) => ref.watch(habitRepositoryProvider).watchObjectiveIdByDayForHabit(habitId),
 );
 
-/// Days shown on each dashboard row, today included: two weeks fit on one row at a readable
-/// cell size on a phone, and the logs query loads no more than that.
-const int recentDayCountShownOnDashboard = 14;
+/// Days shown on each dashboard row: last week and this week, Monday first. Two weeks fit on
+/// one row at a readable cell size on a phone, weekly targets read week by week, and every
+/// row's columns are the same weekdays.
+const int recentDayCountShownOnDashboard = 2 * DateTime.daysPerWeek;
+
+/// The Monday of last week: the first day of every dashboard row.
+CalendarDay firstDayShownOnDashboard(CalendarDay today) => today.mondayOfWeek.addDays(-DateTime.daysPerWeek);
 
 final recentObjectiveIdByDayByHabitIdProvider = StreamProvider((ref) {
-  final firstDay = ref.watch(currentCalendarDayProvider).addDays(-(recentDayCountShownOnDashboard - 1));
+  final firstDay = firstDayShownOnDashboard(ref.watch(currentCalendarDayProvider));
   return ref.watch(habitRepositoryProvider).watchObjectiveIdByDayForAllHabitsSince(firstDay);
+});
+
+/// The habit's current and best streak, null while its history loads. Memoized per habit, so a
+/// dashboard row does not walk the whole history again on every rebuild.
+final streakSummaryForHabitProvider = Provider.autoDispose.family<StreakSummary?, int>((ref, habitId) {
+  final habit = ref.watch(habitWithObjectivesProvider(habitId)).value;
+  final objectiveIdByDay = ref.watch(objectiveIdByDayForHabitProvider(habitId)).value;
+  if (habit == null || objectiveIdByDay == null) return null;
+  return computeScheduledStreakSummary(
+    objectiveIdByDay,
+    successObjectiveIds: habit.successObjectiveIds,
+    scheduledWeekdayMask: habit.habit.scheduledWeekdayMask,
+    targetDaysPerWeek: habit.habit.targetDaysPerWeek,
+    today: ref.watch(currentCalendarDayProvider),
+  );
+});
+
+/// Today's progress over the habits scheduled today; null while habits or logs load.
+final todayProgressProvider = Provider<({int doneCount, int scheduledCount})?>((ref) {
+  final habits = ref.watch(activeHabitsProvider).value;
+  final logsByHabitId = ref.watch(recentObjectiveIdByDayByHabitIdProvider).value;
+  if (habits == null || logsByHabitId == null) return null;
+  final today = ref.watch(currentCalendarDayProvider);
+  final scheduledHabits = habits.where((habit) => isHabitScheduledOn(habit, today));
+  return (
+    doneCount: scheduledHabits.where((habit) => logsByHabitId[habit.habit.id]?.containsKey(today) ?? false).length,
+    scheduledCount: scheduledHabits.length,
+  );
 });
 
 final lastLoggedDayByHabitIdProvider = StreamProvider(

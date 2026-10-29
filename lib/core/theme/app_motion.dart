@@ -17,6 +17,9 @@ abstract final class AppDurations {
   /// A freshly logged day popping into its cell.
   static const Duration emphasized = Duration(milliseconds: 460);
 
+  /// How long an "Undo" message stays: long enough to read it and reach the button.
+  static const Duration undoSnackBar = Duration(seconds: 5);
+
   static const Duration mascotBreathCycle = Duration(milliseconds: 3600);
   static const Duration mascotHopCycle = Duration(milliseconds: 820);
   static const Duration mascotWaveCycle = Duration(milliseconds: 1400);
@@ -38,6 +41,12 @@ abstract final class AppCurves {
 
 /// Pressed cards and buttons shrink to this scale.
 const double pressedScale = 0.96;
+
+/// A card picked up for reordering grows to this scale, like an object lifted toward the eye.
+const double liftedScale = 1.03;
+
+/// A freshly logged button starts at this scale, then springs back past full size.
+const double loggedButtonInitialScale = 0.8;
 
 /// [Duration.zero] when the user asked the system to remove animations.
 Duration motionAwareDuration(BuildContext context, Duration duration) =>

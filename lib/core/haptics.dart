@@ -21,6 +21,9 @@ abstract final class KomitHaptics {
     await HapticFeedback.lightImpact();
   }
 
+  /// A card was picked up to be moved.
+  static Future<void> lift() => HapticFeedback.mediumImpact();
+
   /// Something was removed or cleared on purpose.
   static Future<void> warning() => HapticFeedback.mediumImpact();
 

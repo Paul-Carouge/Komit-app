@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import '../../core/calendar_day.dart';
+import '../../domain/habit_schedule.dart';
 import '../database/app_database.dart';
 
 class HabitWithObjectives {
@@ -24,6 +25,10 @@ class HabitWithObjectives {
     return null;
   }
 }
+
+/// Whether [habit] asks for a log on [day]. A weekly target can be met on any day of the week.
+bool isHabitScheduledOn(HabitWithObjectives habit, CalendarDay day) =>
+    isWeekdayScheduled(habit.habit.scheduledWeekdayMask, day.weekday);
 
 /// What the editor submits; [id] is null for a new habit or objective.
 class HabitDraft {
