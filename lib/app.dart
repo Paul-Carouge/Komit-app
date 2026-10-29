@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 
 import 'core/theme/app_theme.dart';
 import 'core/current_calendar_day.dart';
+import 'features/mascot/komo_season_scope.dart';
 import 'features/app_lock/app_lock_gate.dart';
 import 'features/splash/splash_handoff.dart';
 import 'l10n/app_localizations.dart';
@@ -83,11 +84,14 @@ class _KomitAppState extends ConsumerState<KomitApp> {
       builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
         // Screens without an app bar still get transparent bars with readable icons.
         value: systemUiOverlayStyleFor(Theme.of(context).brightness),
-        child: SplashHandoff(
-          isFirstScreenReady: ref.watch(activeHabitsProvider.select((habits) => habits.hasValue || habits.hasError)),
-          child: _ReminderSynchronizer(
-            child: _HomeWidgetSynchronizer(
-              child: _DailyAutomaticBackupScheduler(child: AppLockGate(child: child!)),
+        child: KomoSeasonScope(
+          season: ref.watch(currentSeasonProvider),
+          child: SplashHandoff(
+            isFirstScreenReady: ref.watch(activeHabitsProvider.select((habits) => habits.hasValue || habits.hasError)),
+            child: _ReminderSynchronizer(
+              child: _HomeWidgetSynchronizer(
+                child: _DailyAutomaticBackupScheduler(child: AppLockGate(child: child!)),
+              ),
             ),
           ),
         ),

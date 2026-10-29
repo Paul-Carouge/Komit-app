@@ -21,6 +21,7 @@ import '../../data/repositories/habit_repository.dart';
 import '../../domain/greeting_period.dart';
 import '../../domain/habit_schedule.dart';
 import '../../domain/habit_statistics.dart';
+import '../../domain/seasons.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
 import '../../router.dart';
@@ -130,6 +131,12 @@ class _TodayHeader extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
     final progress = ref.watch(todayProgressProvider);
     final today = ref.watch(currentCalendarDayProvider);
+    final seasonGreeting = switch (ref.watch(currentSeasonProvider)) {
+      Season.halloween => localizations.seasonGreetingHalloween,
+      Season.christmas => localizations.seasonGreetingChristmas,
+      Season.easter => localizations.seasonGreetingEaster,
+      null => null,
+    };
     final doneCount = progress?.doneCount ?? 0;
     final scheduledCount = progress?.scheduledCount ?? 0;
     final isEverythingDone = scheduledCount > 0 && doneCount == scheduledCount;
@@ -164,7 +171,7 @@ class _TodayHeader extends ConsumerWidget {
                 children: [
                   Text(title, style: textTheme.titleMedium),
                   Text(
-                    formatWeekdayAndDate(context, today),
+                    [formatWeekdayAndDate(context, today), ?seasonGreeting].join(' · '),
                     style: textTheme.bodySmall?.copyWith(color: KomitColors.of(context).mutedText),
                   ),
                 ],

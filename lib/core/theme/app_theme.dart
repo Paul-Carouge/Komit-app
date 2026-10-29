@@ -140,6 +140,16 @@ abstract final class AchievementFamilyColors {
   static const Color resilience = Color(0xFF7E57C2);
 }
 
+/// Komo's holiday accessories; fixed colors, since a hat looks the same in light and dark mode.
+abstract final class SeasonalAccessoryColors {
+  static const Color witchHat = Color(0xFF2E2440);
+  static const Color witchHatBand = Color(0xFF8E5CF7);
+  static const Color santaHat = Color(0xFFD7263D);
+  static const Color santaHatFur = Color(0xFFFFFFFF);
+  static const Color santaHatFurOutline = Color(0xFFE2D9CE);
+  static const Color bunnyEarInside = Color(0xFFF8A5C2);
+}
+
 abstract final class AppElevation {
   static const double flat = 0;
   static const double floating = 3;

@@ -12,6 +12,7 @@ import 'data/repositories/settings_repository.dart';
 import 'domain/achievements.dart';
 import 'domain/habit_history.dart';
 import 'domain/habit_statistics.dart';
+import 'domain/seasons.dart';
 import 'domain/weekly_recap.dart';
 import 'services/app_lock_service.dart';
 import 'services/app_update_service.dart';
@@ -200,6 +201,9 @@ final habitHistoriesProvider = Provider<List<HabitHistory>?>((ref) {
   if (habits == null || logsByHabitId == null) return null;
   return [for (final habit in habits) habitHistoryOf(habit, logsByHabitId[habit.habit.id] ?? const {})];
 });
+
+/// Null on an ordinary day; changes at midnight with the current day.
+final currentSeasonProvider = Provider<Season?>((ref) => seasonOn(ref.watch(currentCalendarDayProvider)));
 
 final unlockedAchievementsProvider = Provider<Set<Achievement>?>((ref) {
   final histories = ref.watch(habitHistoriesProvider);

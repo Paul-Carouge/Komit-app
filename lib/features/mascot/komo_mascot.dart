@@ -7,6 +7,7 @@ import '../../core/theme/app_motion.dart';
 import '../../core/theme/app_theme.dart';
 import 'komo_mood.dart';
 import 'komo_painter.dart';
+import 'komo_season_scope.dart';
 
 export 'komo_mood.dart';
 
@@ -101,6 +102,7 @@ class _KomoMascotState extends State<KomoMascot> with SingleTickerProviderStateM
           painter: KomoPainter(
             mood: widget.mood,
             animation: _controller,
+            season: KomoSeasonScope.of(context),
             palette: KomoPalette(
               body: komitColors.mascotBody,
               eyes: komitColors.mascotFace,
