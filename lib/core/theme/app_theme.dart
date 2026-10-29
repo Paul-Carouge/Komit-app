@@ -63,6 +63,9 @@ abstract final class AppSizes {
   /// One weekday toggle in the schedule picker; seven fit side by side on a 390 dp phone.
   static const double weekdayToggle = 44;
 
+  /// Thickness of each habit's bar in the weekly recap: visible at a glance, thinner than text.
+  static const double recapProgressBarHeight = 6;
+
   static const double mascotSmall = 48;
   static const double mascotMedium = 112;
   static const double mascotLarge = 168;

@@ -52,8 +52,26 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
   per-app language settings.
 - Before Komit asks to install apps for an update, it explains why; once you allow it and
   come back, the update continues on its own.
+- Milestones are celebrated: the first day of a habit, streaks of 3, 7, 14, 30 days and
+  more, and each new achievement show a short card at the top of the screen with Komo and a
+  burst in the habit's color. Each one plays only once, the card never blocks the screen,
+  and it appears without motion when animations are turned off.
+- Achievements: five long-term goals (first week, perfect week, 100 days, comeback, one
+  year), opened from the trophy on the home screen. They are worked out from your logs, so
+  they always match your history.
+- On Mondays, the home screen recaps last week: success days per habit against its
+  schedule, the longest streak and the change from the week before. Dismiss it with the
+  close button; it stays hidden for that week.
+- The habit icon now travels from the home screen to the habit page, and the first habits
+  and notes rise gently into place when a list opens. Streaks and totals count up.
+- Monthly statistics use the habit's color, highlight the current month, and show the
+  month and count when you touch a bar.
 
 ### Changed
+- Screens slide in and out again, with Android's back gesture preview: an update of the
+  navigation library had silently turned every screen transition off.
+- Komo next to the home screen greeting no longer moves on its own; it hops when the last
+  habit of the day is logged, or when you tap it.
 - Komit now draws behind transparent status and navigation bars on every Android
   version, and the screen behind the app has the page color, so there is no orange flash
   after the splash screen.

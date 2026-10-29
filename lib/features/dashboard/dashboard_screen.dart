@@ -29,6 +29,7 @@ import '../shared/day_grid.dart';
 import '../shared/entrance_animation.dart';
 import '../shared/habit_icon_hero.dart';
 import '../shared/shared_widgets.dart';
+import 'weekly_recap_card.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -84,6 +85,7 @@ class DashboardScreen extends ConsumerWidget {
               sliver: SliverMainAxisGroup(
                 slivers: [
                   const SliverToBoxAdapter(child: _TodayHeader()),
+                  const SliverToBoxAdapter(child: WeeklyRecapSection()),
                   _ReorderableHabitList(habits: habits),
                   const SliverToBoxAdapter(child: _NewHabitRow()),
                   const SliverToBoxAdapter(child: _ArchivedHabitsRow()),

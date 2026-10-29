@@ -43,6 +43,25 @@ changes and cross-fades, `emphasized` (460 ms) for a freshly logged day. Loading
 nothing for `loadingSkeletonDelay` (150 ms), then placeholder rows. Every animation goes
 through `motionAwareDuration`, which removes it when the system asks for reduced motion.
 
+One expressive moment per surface:
+- **Hero**: the habit icon flies from its home row to the habit page (`HabitIconHero`),
+  lerping size, corner radius and colors. `HeroMode` turns it off under reduced motion.
+- **Entrance**: `ListEntranceChoreographer` staggers the first `maximumStaggeredEntranceCount`
+  (8) rows of the first build by `entranceStaggerStep` (40 ms), each fading and rising
+  `entranceRiseDistance` (8 dp) over `entrance` (360 ms). Rows inserted later open room for
+  themselves; scrolled-in rows, moves and rebuilds never animate. Removal is not animated.
+- **Counters**: `AnimatedCount` counts up over `counter` (720 ms) in tabular figures; screen
+  readers hear only the final value.
+- **Celebrations**: a card drops in at the top (never modal, so "Undo" stays reachable),
+  with Komo hopping and a hand-painted burst of rays in the habit color over
+  `celebrationBurst`, for `celebrationVisible` (4 s). Reduced motion shows the same card,
+  static, without the burst. Each celebration id is stored, so it plays once ever.
+- **Komo in headers** moves only on a mood change or a tap, for
+  `mascotHeaderAnimationBudget` (2.5 s): it sits next to text and must not pull the eye.
+
+Achievements use Komo's face as their badge: open eyes on the orange square when unlocked,
+closed eyes on a gray square, in an outlined tile, when locked. The status is also written.
+
 ## Layout patterns
 
 ```

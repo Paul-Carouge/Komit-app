@@ -6,7 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:komit/core/calendar_day.dart';
 import 'package:komit/core/theme/app_theme.dart';
+import 'package:komit/data/repositories/habit_repository.dart';
+import 'package:komit/features/shared/shared_widgets.dart';
 import 'package:komit/router.dart';
 
 import '../support/komit_test_app.dart';
@@ -107,6 +110,52 @@ void main() {
       await tester.pumpAndSettle();
       await _saveScreenshot(tester, 'details_scrolled_$themeName');
       await environment.dispose(tester);
+    });
+  }
+
+  for (final (themeName, theme) in [('light', lightAppTheme), ('dark', darkAppTheme)]) {
+    testWidgets('renders the recap, a celebration and the achievements in $themeName', skip: _outputDirectory == null, (
+      tester,
+    ) async {
+      await tester.runAsync(_loadRealFonts);
+      final monday = DateTime(2026, 11, 2, 9);
+      final environment = await KomitTestEnvironment.create(tester, additionalHabitTitles: ['Drink water']);
+      await tester.runAsync(() async {
+        final repository = HabitRepository(environment.database, now: () => monday);
+        final water = (await repository.watchActiveHabits().first).firstWhere(
+          (habit) => habit.habit.title == 'Drink water',
+        );
+        for (var daysAgo = 1; daysAgo <= 6; daysAgo++) {
+          await repository.logObjectiveForDay(
+            habitId: water.habit.id,
+            objectiveId: water.objectives.first.id,
+            day: CalendarDay.fromDateTime(monday).addDays(-daysAgo),
+          );
+        }
+      });
+      final router = await pumpKomitApp(tester, environment, theme: theme, logicalSize: _phoneLogicalSize, now: monday);
+      await _saveScreenshot(tester, 'recap_$themeName');
+
+      final waterLogButton = find.descendant(
+        of: find.ancestor(of: find.text('Drink water'), matching: find.byType(PressableCard)).first,
+        matching: find.byTooltip('Log today'),
+      );
+      await tester.ensureVisible(waterLogButton);
+      await tester.pumpAndSettle();
+      await tester.tap(waterLogButton);
+      for (var step = 0; step < 5; step++) {
+        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 10)));
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      await _saveScreenshot(tester, 'celebration_burst_$themeName');
+      await tester.pumpAndSettle();
+      await _saveScreenshot(tester, 'celebration_$themeName');
+
+      unawaited(router.push(AppRoutes.achievements));
+      await settleWithDatabaseWork(tester);
+      await _saveScreenshot(tester, 'achievements_$themeName');
+      await environment.dispose(tester);
+      await tester.pump(const Duration(milliseconds: 100));
     });
   }
 }

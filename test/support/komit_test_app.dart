@@ -166,6 +166,7 @@ Future<GoRouter> pumpKomitApp(
   NotificationPermissionService? notificationPermissionService,
   double textScaleFactor = 1,
   Size logicalSize = compactPhoneLogicalSize,
+  DateTime? now,
 }) async {
   tester.view.devicePixelRatio = _compactPhoneDevicePixelRatio;
   tester.view.physicalSize = logicalSize * _compactPhoneDevicePixelRatio;
@@ -179,7 +180,7 @@ Future<GoRouter> pumpKomitApp(
         appDatabaseProvider.overrideWithValue(environment.database),
         settingsRepositoryProvider.overrideWithValue(SettingsRepository(environment.preferences)),
         appLoggerProvider.overrideWithValue(AppLogger(Directory.systemTemp.createTempSync('komit_test_logs'))),
-        clockProvider.overrideWithValue(() => komitTestNow),
+        clockProvider.overrideWithValue(() => now ?? komitTestNow),
         notificationPermissionServiceProvider.overrideWithValue(
           notificationPermissionService ?? FakeNotificationPermissionService(),
         ),
