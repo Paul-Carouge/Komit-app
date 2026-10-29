@@ -124,9 +124,20 @@ Back up both files somewhere safe: losing them means users must uninstall and re
 3. Build and publish:
 
 ```sh
-flutter build apk --release --target-platform android-arm64
+flutter build apk --release --target-platform android-arm64 --split-debug-info=build/symbols/vX.Y.Z
 cp build/app/outputs/flutter-apk/app-release.apk komit-vX.Y.Z.apk
 gh release create vX.Y.Z komit-vX.Y.Z.apk --title "Komit X.Y.Z" --notes-file <notes.md>
 ```
 
 The release notes are what users see in the in-app update dialog.
+
+`--split-debug-info` moves the Dart debug symbols out of the APK (1.4 MB smaller). Keep
+`build/symbols/vX.Y.Z/app.android-arm64.symbols` with the keystore backup: without it, the stack
+traces of that version's error log cannot be read
+(`flutter symbolize -d app.android-arm64.symbols -i <trace.txt>`).
+
+To check what takes space: `flutter build apk --release --analyze-size --target-platform android-arm64`.
+Native libraries stay uncompressed in the APK (no `useLegacyPackaging`): compressing them would
+shrink the download from about 22.6 MB to about 11 MB, but Android would then extract 21 MB of
+libraries at install, so the app would take about 32 MB on the phone instead of 22.6 MB and
+install more slowly.
