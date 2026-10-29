@@ -30,10 +30,18 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
   DateTime? _createdAt;
   bool _isLoading = true;
 
+  /// The last save in the queue. Saves run one after another: a back gesture while the
+  /// check button's save is still writing would otherwise insert the new note twice.
+  Future<void> _lastQueuedSave = Future.value();
+
+  /// Android may end a paused app without warning; saving then keeps what was typed.
+  late final AppLifecycleListener _lifecycleListener;
+
   @override
   void initState() {
     super.initState();
     _noteId = widget.noteId;
+    _lifecycleListener = AppLifecycleListener(onPause: _saveInBackground);
     _loadNote();
   }
 
@@ -55,28 +63,53 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
 
   @override
   void dispose() {
+    _lifecycleListener.dispose();
     _contentController.dispose();
     super.dispose();
   }
 
-  bool get _hasUnsavedChanges => _contentController.text.trim() != _savedContent.trim();
-
-  /// Saving on leave means a note is never lost to an accidental back gesture.
-  Future<void> _saveIfChanged() async {
+  /// Queues a save of the text as it is now. The text and the repository are read right away,
+  /// because the queued save may run after this screen is gone.
+  Future<void> _enqueueSave() {
     final content = _contentController.text.trim();
-    if (!_hasUnsavedChanges || content.isEmpty) return;
-    _noteId = await ref.read(noteRepositoryProvider).saveNote(noteId: _noteId, content: content);
-    _savedContent = content;
+    final repository = ref.read(noteRepositoryProvider);
+    final save = _lastQueuedSave.then((_) async {
+      if (content.isEmpty || content == _savedContent.trim()) return;
+      _noteId = await repository.saveNote(noteId: _noteId, content: content);
+      _savedContent = content;
+    });
+    // The caller awaiting [save] reports its error; the queue itself only needs to move on.
+    _lastQueuedSave = save.then<void>((_) {}, onError: (Object _) {});
+    return save;
+  }
+
+  /// Saving on leave and on pause means a note is never lost to a back gesture or a closed app.
+  /// A failure is logged and explained, even if the screen has closed meanwhile.
+  Future<void> _saveInBackground() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final localizations = AppLocalizations.of(context);
+    final logger = ref.read(appLoggerProvider);
+    try {
+      await _enqueueSave();
+    } on Object catch (error, stackTrace) {
+      unawaited(KomitHaptics.error());
+      unawaited(logger.logError(event: 'note_save_failed', error: error, stackTrace: stackTrace));
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(localizations.noteSaveFailed)));
+    }
   }
 
   Future<void> _saveAndClose() async {
+    final logger = ref.read(appLoggerProvider);
     try {
-      await _saveIfChanged();
+      await _enqueueSave();
       unawaited(KomitHaptics.success());
       if (mounted) context.pop();
-    } on Object {
+    } on Object catch (error, stackTrace) {
       unawaited(KomitHaptics.error());
-      if (mounted) showMessageSnackBar(context, AppLocalizations.of(context).genericError);
+      unawaited(logger.logError(event: 'note_save_failed', error: error, stackTrace: stackTrace));
+      if (mounted) showMessageSnackBar(context, AppLocalizations.of(context).noteSaveFailed);
     }
   }
 
@@ -93,8 +126,18 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
       confirmLabel: localizations.delete,
     );
     if (!isConfirmed || !mounted) return;
-    await ref.read(noteRepositoryProvider).deleteNote(noteId);
+    try {
+      await ref.read(noteRepositoryProvider).deleteNote(noteId);
+    } on Object catch (error, stackTrace) {
+      unawaited(KomitHaptics.error());
+      unawaited(
+        ref.read(appLoggerProvider).logError(event: 'note_delete_failed', error: error, stackTrace: stackTrace),
+      );
+      if (mounted) showMessageSnackBar(context, localizations.genericError);
+      return;
+    }
     unawaited(KomitHaptics.warning());
+    // The note is gone: leaving must not save it again.
     _savedContent = _contentController.text;
     if (mounted) context.pop();
   }
@@ -106,7 +149,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
         .format(_createdAt ?? DateTime.now());
     return PopScope(
       onPopInvokedWithResult: (didPop, _) {
-        if (didPop) unawaited(_saveIfChanged());
+        if (didPop) unawaited(_saveInBackground());
       },
       child: Scaffold(
         appBar: AppBar(
@@ -140,13 +183,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
                   textCapitalization: TextCapitalization.sentences,
                   keyboardType: TextInputType.multiline,
                   style: Theme.of(context).textTheme.bodyLarge,
-                  decoration: InputDecoration(
-                    hintText: localizations.noteHint,
-                    counterText: '',
-                    filled: false,
-                    border: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                  ),
+                  decoration: borderlessInlineInputDecoration(hintText: localizations.noteHint),
                 ),
               ),
       ),
