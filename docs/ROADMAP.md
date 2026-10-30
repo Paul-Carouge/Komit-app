@@ -9,7 +9,7 @@ Status: `todo`, `in progress`, `done (vX.Y.Z)`.
 
 | # | Item | Status | Target version |
 |---|------|--------|----------------|
-| 1 | [CI and scripted release](#1-ci-and-scripted-release) | todo | none (tooling) |
+| 1 | [CI and scripted release](#1-ci-and-scripted-release) | done (tooling) | none (tooling) |
 | 2 | [Audit fixes and on-device update check](#2-audit-fixes-and-on-device-update-check) | todo | 2.3.1 |
 | 3 | [Year in review](#3-year-in-review) | todo | 2.4.0, before December 1 |
 | 4 | [Pause and rest days](#4-pause-and-rest-days) | todo | 2.5.0 |
@@ -35,6 +35,14 @@ a green CI before merging, and none exists yet.
   password in CI.
 - Acceptance: a pull request shows the checks; the script refuses a dirty tree, a wrong key or
   an unchanged versionCode; README points to the script.
+
+**Decisions:** `.github/workflows/ci.yml` pins its actions by commit and Flutter to 3.47.7, and
+also runs the Kotlin unit tests (`:app:testDebugUnitTest`; AGP 9 creates no release unit test
+task). Without `android/key.properties` the release build type is left unsigned instead of
+failing, which is what lets CI build it; an unsigned APK cannot be installed and the script
+rejects it. `tool/release.sh` holds the certificate SHA-256 next to README's copy, reads the
+previous versionCode from the latest release's tagged `pubspec.yaml`, checks the built APK with
+`aapt2`, puts it in `build/release/` (ignored), and asks before tagging and publishing.
 
 ## 2. Audit fixes and on-device update check
 
@@ -115,3 +123,6 @@ before a day can also be "half done".
 ## Shipped
 
 Record each finished item here: date, version, pull request or commit, and anything left out.
+
+- 2026-10-30, item 1, no app version: CI workflow and `tool/release.sh`, branch
+  `chore/ci-and-scripted-release`. The script's first real run is the 2.3.1 release (item 2).
