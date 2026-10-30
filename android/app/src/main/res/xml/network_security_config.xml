@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Komit only talks to GitHub over HTTPS: refuse any cleartext connection and trust only
-     the system certificate authorities, never ones the user installed. -->
+     the system certificate authorities, never ones the user installed. This covers platform
+     networking only: the updater's dart:io requests are guarded in app_update_service.dart. -->
 <network-security-config>
     <base-config cleartextTrafficPermitted="false">
         <trust-anchors>

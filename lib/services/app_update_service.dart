@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -15,6 +16,9 @@ const Duration _networkTimeout = Duration(seconds: 20);
 /// The automatic check runs at most this often, so GitHub sees the device's IP address at
 /// most once a day however often Komit is opened.
 const Duration minimumIntervalBetweenAutomaticUpdateChecks = Duration(hours: 24);
+
+/// dart:io's own default; GitHub's APK download takes one redirect to its file host.
+const int _maximumRedirectCount = 5;
 
 /// Far above a real Komit APK (~25 MB); only guards the cache against a bogus asset.
 const int _maximumApkSizeBytes = 200 * 1024 * 1024;
@@ -96,9 +100,11 @@ class AppUpdateService {
     final installedVersion = await readInstalledVersion();
     final client = HttpClient()..connectionTimeout = _networkTimeout;
     try {
-      final request = await client.getUrl(Uri.parse(_latestReleaseApiUrl));
-      request.headers.set(HttpHeaders.acceptHeader, 'application/vnd.github+json');
-      final response = await request.close().timeout(_networkTimeout);
+      final response = await getFollowingHttpsRedirects(
+        client,
+        Uri.parse(_latestReleaseApiUrl),
+        acceptHeader: 'application/vnd.github+json',
+      );
       if (response.statusCode != HttpStatus.ok) {
         throw AppUpdateException(AppUpdateFailureReason.network, 'GitHub answered ${response.statusCode}');
       }
@@ -151,7 +157,7 @@ class AppUpdateService {
   }) async {
     final client = HttpClient()..connectionTimeout = _networkTimeout;
     try {
-      final response = await (await client.getUrl(update.apkDownloadUrl)).close().timeout(_networkTimeout);
+      final response = await getFollowingHttpsRedirects(client, update.apkDownloadUrl);
       if (response.statusCode != HttpStatus.ok) {
         throw AppUpdateException(AppUpdateFailureReason.network, 'Download answered ${response.statusCode}');
       }
@@ -178,6 +184,35 @@ class AppUpdateService {
       client.close();
     }
   }
+}
+
+/// Follows redirects by hand: dart:io would follow one to plain HTTP, and Android's network
+/// security config does not apply to dart:io sockets.
+@visibleForTesting
+Future<HttpClientResponse> getFollowingHttpsRedirects(HttpClient client, Uri url, {String? acceptHeader}) async {
+  var currentUrl = url;
+  for (var redirectCount = 0; ; redirectCount++) {
+    final request = await client.getUrl(currentUrl);
+    request.followRedirects = false;
+    if (acceptHeader != null) request.headers.set(HttpHeaders.acceptHeader, acceptHeader);
+    final response = await request.close().timeout(_networkTimeout);
+    if (!response.isRedirect) return response;
+    await response.drain<void>().timeout(_networkTimeout);
+    if (redirectCount == _maximumRedirectCount) {
+      throw const AppUpdateException(AppUpdateFailureReason.network, 'Too many redirects');
+    }
+    currentUrl = httpsRedirectTarget(currentUrl, response.headers.value(HttpHeaders.locationHeader));
+  }
+}
+
+/// Resolves a redirect's Location against [currentUrl]; refuses anything but HTTPS.
+Uri httpsRedirectTarget(Uri currentUrl, String? location) {
+  final target = location == null ? null : Uri.tryParse(location);
+  final resolvedTarget = target == null ? null : currentUrl.resolveUri(target);
+  if (resolvedTarget == null || resolvedTarget.scheme != 'https' || resolvedTarget.host.isEmpty) {
+    throw const AppUpdateException(AppUpdateFailureReason.network, 'Redirect away from HTTPS');
+  }
+  return resolvedTarget;
 }
 
 /// Returns true, and records [now] as the last check, when an automatic check should run now:

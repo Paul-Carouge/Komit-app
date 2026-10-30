@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:komit/data/repositories/settings_repository.dart';
@@ -99,6 +100,48 @@ void main() {
         throwsA(isA<AppUpdateException>()),
       );
     });
+  });
+
+  group('httpsRedirectTarget', () {
+    final downloadUrl = Uri.parse('https://github.com/Paul-Carouge/Komit-app/releases/download/v1.1.0/komit.apk');
+
+    test('follows an absolute or relative HTTPS location', () {
+      expect(
+        httpsRedirectTarget(downloadUrl, 'https://objects.githubusercontent.com/komit.apk?sig=1'),
+        Uri.parse('https://objects.githubusercontent.com/komit.apk?sig=1'),
+      );
+      expect(
+        httpsRedirectTarget(downloadUrl, '/Paul-Carouge/Komit-app/other.apk'),
+        Uri.parse('https://github.com/Paul-Carouge/Komit-app/other.apk'),
+      );
+    });
+
+    test('refuses a redirect to plain HTTP, another scheme or nowhere', () {
+      for (final location in ['http://objects.githubusercontent.com/komit.apk', 'ftp://example.com/komit.apk', null]) {
+        expect(() => httpsRedirectTarget(downloadUrl, location), throwsA(isA<AppUpdateException>()), reason: location);
+      }
+    });
+  });
+
+  test('getFollowingHttpsRedirects refuses a server redirect to plain HTTP instead of following it', () async {
+    final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+    addTearDown(() => server.close(force: true));
+    var requestCount = 0;
+    server.listen((request) {
+      requestCount++;
+      request.response
+        ..statusCode = HttpStatus.found
+        ..headers.set(HttpHeaders.locationHeader, '/komit.apk')
+        ..close();
+    });
+    final client = HttpClient();
+    addTearDown(client.close);
+
+    await expectLater(
+      getFollowingHttpsRedirects(client, Uri.parse('http://127.0.0.1:${server.port}/download')),
+      throwsA(isA<AppUpdateException>()),
+    );
+    expect(requestCount, 1, reason: 'the HTTP target must never be requested');
   });
 
   test('installFailureReasonNamed reads the native names and falls back to a generic failure', () {

@@ -88,9 +88,12 @@ Komit has no account, no ads and no analytics; the in-app screen Settings → Pr
 
 - **Network:** only the update check, at most once a day and only while "Check for updates
   automatically" is on, asks `api.github.com` for the latest release (GitHub sees the
-  device IP address); an accepted update is downloaded from `github.com`. Cleartext
-  traffic and user-installed certificate authorities are refused
-  (`res/xml/network_security_config.xml`).
+  device IP address); an accepted update is downloaded from `github.com`. Both requests use
+  `dart:io`, which ignores Android's network security config but trusts only the system
+  certificate store, never user-installed authorities, and checks host names (no pinning).
+  The updater starts only from HTTPS GitHub URLs and refuses any redirect away from HTTPS
+  (`lib/services/app_update_service.dart`). `res/xml/network_security_config.xml` applies
+  the same rules to platform networking, which Komit itself does not use.
 - **Android backups:** cloud backups exclude every file; device-to-device transfers keep
   everything on Android 9 and later (`res/xml/data_extraction_rules.xml`,
   `res/xml*/backup_rules.xml`).
@@ -100,7 +103,8 @@ Komit has no account, no ads and no analytics; the in-app screen Settings → Pr
 - **Exports:** plain JSON by default; optionally sealed with a passphrase
   (PBKDF2-HMAC-SHA256, AES-256-GCM, `komit-encrypted` envelope).
 - **App lock:** optional fingerprint, face or screen lock at launch and after a minute in
-  the background; "Hide from screenshots" sets `FLAG_SECURE`.
+  the background. While it is on, the recent apps card is blank: Android 13+ hides the
+  screenshot, older versions set `FLAG_SECURE`. "Hide from screenshots" sets `FLAG_SECURE`.
 - **Permissions:** the release build fails when the merged manifest requests a permission
   outside `releaseManifestAllowedPermissions` in `android/app/build.gradle.kts`
   (`./gradlew :app:verifyReleaseManifest`).

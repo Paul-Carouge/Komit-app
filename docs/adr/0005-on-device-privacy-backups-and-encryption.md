@@ -33,7 +33,10 @@ comes up for any privacy-focused app.
   `dataExtractionRules`.
 - **HTTPS only.** `res/xml/network_security_config.xml` forbids cleartext traffic and
   trusts only the system certificate authorities. Komit's only network traffic is the
-  GitHub release check and the APK download.
+  GitHub release check and the APK download. Correction (2.3.1): that config does not
+  govern `dart:io`, which the updater uses. `dart:io` trusts only the system certificate
+  store, not user-installed authorities; `app_update_service.dart` follows redirects itself
+  and refuses any that leave HTTPS.
 - **Encrypted exports are optional.** The user may protect an export with a passphrase.
   The file is a JSON envelope `{format: "komit-encrypted", version, kdf, salt, nonce,
   ciphertext}` around the usual v2 backup JSON. The key is derived with
