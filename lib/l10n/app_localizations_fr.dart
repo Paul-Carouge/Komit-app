@@ -1613,4 +1613,145 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get pauseHabit => 'Mettre en pause';
+
+  @override
+  String get resumeHabit => 'Reprendre';
+
+  @override
+  String get cancelPlannedPause => 'Annuler la pause prévue';
+
+  @override
+  String pausedUntil(String date) {
+    return 'En pause jusqu\'au $date';
+  }
+
+  @override
+  String get pausedUntilResumed => 'En pause jusqu\'à ce que tu reprennes';
+
+  @override
+  String get pausedShort => 'En pause';
+
+  @override
+  String pausePlannedFrom(String date) {
+    return 'Pause prévue à partir du $date';
+  }
+
+  @override
+  String pauseSheetTitle(String habit) {
+    return 'Mettre $habit en pause';
+  }
+
+  @override
+  String get pauseExplanation =>
+      'Les jours en pause ne cassent ni n\'allongent ta série, et Komit n\'envoie aucun rappel.';
+
+  @override
+  String get pauseStartsLabel => 'Début';
+
+  @override
+  String get pauseEndsLabel => 'Fin';
+
+  @override
+  String get relativeTomorrow => 'Demain';
+
+  @override
+  String get pickADay => 'Choisir un jour';
+
+  @override
+  String get pauseUntilIResume => 'Jusqu\'à ce que je reprenne';
+
+  @override
+  String pauseForWeeks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: '$count semaines', one: '1 semaine');
+    return '$_temp0';
+  }
+
+  @override
+  String pauseSummaryOpenEnded(String start) {
+    return 'À partir du $start, jusqu\'à ce que tu reprennes';
+  }
+
+  @override
+  String pauseSummaryRange(String start, String end, String days) {
+    return 'Du $start au $end · $days';
+  }
+
+  @override
+  String get confirmPauseHabit => 'Mettre en pause';
+
+  @override
+  String habitPausedMessage(String habit) {
+    return '$habit est en pause';
+  }
+
+  @override
+  String habitPausePlannedMessage(String habit, String date) {
+    return '$habit sera en pause à partir du $date';
+  }
+
+  @override
+  String habitResumedMessage(String habit) {
+    return '$habit compte de nouveau dès aujourd\'hui';
+  }
+
+  @override
+  String plannedPauseCancelledMessage(String habit) {
+    return 'Pause prévue de $habit annulée';
+  }
+
+  @override
+  String get pauseOverlapError => 'Cette habitude est déjà en pause certains de ces jours. Choisis d\'autres dates.';
+
+  @override
+  String get pauseCardHint => 'Ta série t\'attend.';
+
+  @override
+  String stripDayPaused(String date) {
+    return '$date : en pause';
+  }
+
+  @override
+  String stripDayLoggedWhilePaused(String date, String objective) {
+    return '$date : $objective, en pause, ne compte pas';
+  }
+
+  @override
+  String habitRowPausedToday(String habit) {
+    return '$habit, en pause';
+  }
+
+  @override
+  String get logDayPausedNote => 'En pause ce jour-là : noter ce jour ne compte pas dans ta série.';
+
+  @override
+  String get restDaysTitle => 'Jours de repos';
+
+  @override
+  String get restDaysHelp => 'Jours manqués par semaine qui ne cassent pas ta série';
+
+  @override
+  String restDaysOption(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count jours',
+      one: '1 jour',
+      zero: 'Aucun',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String restDaysAllowance(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count jours de repos par semaine gardent ta série',
+      one: '1 jour de repos par semaine garde ta série',
+    );
+    return '$_temp0';
+  }
 }

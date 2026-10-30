@@ -87,10 +87,12 @@ abstract final class KomitIcons {
   static const IconData notebookPen = IconData(0xe596, fontFamily: _fontFamily);
   static const IconData palette = IconData(0xe1dd, fontFamily: _fontFamily);
   static const IconData partyPopper = IconData(0xe343, fontFamily: _fontFamily);
+  static const IconData pause = IconData(0xe12e, fontFamily: _fontFamily);
   static const IconData pencil = IconData(0xe1f9, fontFamily: _fontFamily);
   static const IconData phoneOff = IconData(0xe138, fontFamily: _fontFamily);
   static const IconData piggyBank = IconData(0xe13a, fontFamily: _fontFamily);
   static const IconData pill = IconData(0xe3bd, fontFamily: _fontFamily);
+  static const IconData play = IconData(0xe13c, fontFamily: _fontFamily);
   static const IconData plus = IconData(0xe13d, fontFamily: _fontFamily);
   static const IconData power = IconData(0xe140, fontFamily: _fontFamily);
   static const IconData rabbit = IconData(0xe4f6, fontFamily: _fontFamily);

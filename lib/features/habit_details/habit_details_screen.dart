@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,15 +14,19 @@ import '../../core/theme/app_motion.dart';
 import '../../core/habit_appearance.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/repositories/habit_repository.dart';
+import '../../domain/habit_pause.dart';
+import '../../domain/habit_schedule.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
 import '../../router.dart';
 import '../mascot/komo_empty_state.dart';
 import '../mascot/komo_mascot.dart';
+import '../shared/day_grid.dart';
 import '../shared/habit_icon_hero.dart';
 import '../shared/shared_widgets.dart';
 import 'habit_actions_sheet.dart';
 import 'log_day_sheet.dart';
+import 'pause_habit_sheet.dart';
 import 'streak_cards.dart';
 import 'yearly_grid.dart';
 
@@ -166,6 +171,11 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
   ) {
     final localizations = AppLocalizations.of(context);
     final streaks = streakSummaryOf(habit, objectiveIdByDay, today: today);
+    // An imported habit may hold more rest days than its schedule allows; show what applies.
+    final allowedRestDaysPerWeek = math.min(
+      habit.habit.restDaysPerWeek,
+      maximumRestDaysFor(habit.habit.scheduledWeekdayMask),
+    );
     final firstYear = _firstYearWithData(habit, objectiveIdByDay);
     return SliverPadding(
       padding: EdgeInsets.fromLTRB(
@@ -177,8 +187,30 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
       sliver: SliverList.list(
         children: [
           _HabitHeroCard(habit: habit),
+          // Archived habits offer no pause, here as in the actions sheet.
+          if (habit.currentOrPlannedPause(today) case final pause? when habit.habit.archivedAt == null) ...[
+            const SizedBox(height: AppSpacing.medium),
+            _PauseCard(key: ValueKey(pause), habit: habit, pause: pause, today: today),
+          ],
           const SizedBox(height: AppSpacing.extraLarge),
           StreakCards(streaks: streaks),
+          // Rest days only apply to daily and weekday habits (docs/adr/0007).
+          if (allowedRestDaysPerWeek > 0 && habit.habit.targetDaysPerWeek == null)
+            Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.medium),
+              child: Row(
+                children: [
+                  Icon(KomitIcons.bed, size: AppSizes.iconSmall, color: KomitColors.of(context).mutedText),
+                  const SizedBox(width: AppSpacing.small),
+                  Expanded(
+                    child: Text(
+                      localizations.restDaysAllowance(allowedRestDaysPerWeek),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: KomitColors.of(context).mutedText),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           SectionTitle(
             localizations.yearlyProgress,
             trailing: _selectedYear == today.year
@@ -324,6 +356,81 @@ class _YearPickerSheet extends StatelessWidget {
               ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// The current or planned pause, with the one action that ends it: the habit page is where
+/// people come to check on a paused habit, so "Resume" is not hidden in the menu.
+/// Keyed by its pause, so a new pause gets a fresh, enabled button.
+class _PauseCard extends ConsumerStatefulWidget {
+  const _PauseCard({required this.habit, required this.pause, required this.today, super.key});
+
+  final HabitWithObjectives habit;
+  final HabitPause pause;
+  final CalendarDay today;
+
+  @override
+  ConsumerState<_PauseCard> createState() => _PauseCardState();
+}
+
+class _PauseCardState extends ConsumerState<_PauseCard> {
+  /// A second tap before the card rebuilds would resume again and cancel the next planned pause.
+  bool _isResuming = false;
+
+  Future<void> _resume() async {
+    // Two taps in one frame both reach the old callback, before the disabled button is built.
+    if (_isResuming) return;
+    setState(() => _isResuming = true);
+    await resumeHabitWithMessage(context, ref, widget.habit);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final pause = widget.pause;
+    final today = widget.today;
+    final localizations = AppLocalizations.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    return SoftCard(
+      padding: const EdgeInsetsDirectional.fromSTEB(
+        AppSpacing.large,
+        AppSpacing.large,
+        AppSpacing.small,
+        AppSpacing.small,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          MergeSemantics(
+            child: Row(
+              children: [
+                const PausedDaySwatch(),
+                const SizedBox(width: AppSpacing.medium),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(describeCurrentOrPlannedPause(context, pause, today: today), style: textTheme.titleMedium),
+                      Text(
+                        localizations.pauseCardHint,
+                        style: textTheme.bodyMedium?.copyWith(color: KomitColors.of(context).mutedText),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: TextButton.icon(
+              onPressed: _isResuming ? null : _resume,
+              icon: const Icon(KomitIcons.play),
+              label: Text(pause.startDay.isAfter(today) ? localizations.cancelPlannedPause : localizations.resumeHabit),
+            ),
+          ),
+        ],
       ),
     );
   }

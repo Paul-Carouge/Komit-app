@@ -20,6 +20,7 @@ import '../../core/theme/app_motion.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/repositories/habit_repository.dart';
 import '../../domain/greeting_period.dart';
+import '../../domain/habit_pause.dart';
 import '../../domain/habit_schedule.dart';
 import '../../domain/habit_statistics.dart';
 import '../../domain/seasons.dart';
@@ -446,17 +447,31 @@ class _HabitRow extends ConsumerWidget {
       StreakUnit.weeks => localizations.weekCount(currentStreakLength),
       _ => localizations.dayCount(currentStreakLength),
     };
+    final pauseToday = habit.pauseOn(today);
+    final pauseEndDay = pauseToday?.endDay;
     final details = [
-      if (!isScheduledToday && todayObjective == null) localizations.notToday,
+      // A paused habit says until when instead of asking for today's log (docs/design/pauses.md).
+      if (pauseToday != null)
+        pauseEndDay == null
+            ? localizations.pausedShort
+            : localizations.pausedUntil(formatShortDate(context, pauseEndDay))
+      else if (!isScheduledToday && todayObjective == null)
+        localizations.notToday,
       if (targetDaysPerWeek != null)
         localizations.weeklyProgress(
-          countSuccessDaysInWeekOf(recentObjectiveIdByDay, successObjectiveIds: habit.successObjectiveIds, day: today),
+          countSuccessDaysInWeekOf(
+            recentObjectiveIdByDay,
+            successObjectiveIds: habit.successObjectiveIds,
+            day: today,
+            pauses: habit.pauses,
+          ),
           targetDaysPerWeek,
         ),
       _lastActivityText(context, localizations, lastLoggedDay),
     ];
     final todayState = switch (todayObjective) {
       final objective? => localizations.habitRowLoggedToday(title, objective.title),
+      null when pauseToday != null => localizations.habitRowPausedToday(title),
       null when !isScheduledToday => localizations.habitRowNotPlannedToday(title),
       null => localizations.habitRowNotLoggedToday(title),
     };
@@ -598,19 +613,29 @@ class _HabitRow extends ConsumerWidget {
     final date = formatWeekdayAndDate(context, day);
     final objectiveId = recentObjectiveIdByDay[day];
     final objective = objectiveId == null ? null : habit.objectiveWithId(objectiveId);
+    final isPaused = isPausedOn(habit.pauses, day);
     if (day.isAfter(today) && objective == null) {
-      return DayGridCell(color: komitColors.futureCell, semanticLabel: localizations.stripDayNotAvailableYet(date));
+      // A planned pause already shows on the rest of this week.
+      return DayGridCell(
+        color: komitColors.futureCell,
+        semanticLabel: isPaused ? localizations.stripDayPaused(date) : localizations.stripDayNotAvailableYet(date),
+        isPaused: isPaused,
+      );
     }
     final isScheduled = isWeekdayScheduled(habit.habit.scheduledWeekdayMask, day.weekday);
     return DayGridCell(
-      // A day off the schedule is lighter than a missed one: nothing was expected that day.
+      // A day off the schedule or paused is lighter than a missed one: nothing was expected that day.
       color: objective != null
           ? Color(objective.colorArgb)
-          : (isScheduled ? komitColors.emptyCell : komitColors.futureCell),
-      semanticLabel: objective == null
-          ? localizations.stripDayNotLogged(date)
-          : localizations.stripDayLogged(date, objective.title),
+          : (isScheduled && !isPaused ? komitColors.emptyCell : komitColors.futureCell),
+      semanticLabel: switch ((objective, isPaused)) {
+        (final objective?, true) => localizations.stripDayLoggedWhilePaused(date, objective.title),
+        (final objective?, false) => localizations.stripDayLogged(date, objective.title),
+        (null, true) => localizations.stripDayPaused(date),
+        (null, false) => localizations.stripDayNotLogged(date),
+      },
       isOutlined: day == today,
+      isPaused: isPaused && objective == null,
       onTap: () => _openLogSheet(context, ref, day, objectiveId),
     );
   }

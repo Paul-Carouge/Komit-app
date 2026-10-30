@@ -1019,5 +1019,154 @@
         "type": "int"
       }
     }
+  },
+  "pauseHabit": "Pause",
+  "resumeHabit": "Resume",
+  "cancelPlannedPause": "Cancel the planned pause",
+  "pausedUntil": "Paused until {date}",
+  "@pausedUntil": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "pausedUntilResumed": "Paused until you resume",
+  "pausedShort": "Paused",
+  "pausePlannedFrom": "Pause starts {date}",
+  "@pausePlannedFrom": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "pauseSheetTitle": "Pause {habit}",
+  "@pauseSheetTitle": {
+    "placeholders": {
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "pauseExplanation": "Paused days neither break nor extend your streak, and Komit sends no reminder.",
+  "pauseStartsLabel": "Starts",
+  "pauseEndsLabel": "Ends",
+  "relativeTomorrow": "Tomorrow",
+  "pickADay": "Pick a day",
+  "pauseUntilIResume": "Until I resume",
+  "pauseForWeeks": "{count, plural, =1{1 week} other{{count} weeks}}",
+  "@pauseForWeeks": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pauseSummaryOpenEnded": "From {start}, until you resume",
+  "@pauseSummaryOpenEnded": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      }
+    }
+  },
+  "pauseSummaryRange": "{start} to {end} · {days}",
+  "@pauseSummaryRange": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      },
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "confirmPauseHabit": "Pause habit",
+  "habitPausedMessage": "{habit} is paused",
+  "@habitPausedMessage": {
+    "placeholders": {
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "habitPausePlannedMessage": "{habit} pauses from {date}",
+  "@habitPausePlannedMessage": {
+    "placeholders": {
+      "habit": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "habitResumedMessage": "{habit} counts again from today",
+  "@habitResumedMessage": {
+    "placeholders": {
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "plannedPauseCancelledMessage": "Planned pause of {habit} cancelled",
+  "@plannedPauseCancelledMessage": {
+    "placeholders": {
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "pauseOverlapError": "This habit is already paused on some of these days. Pick other dates.",
+  "pauseCardHint": "Your streak waits for you.",
+  "stripDayPaused": "{date}: paused",
+  "@stripDayPaused": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "stripDayLoggedWhilePaused": "{date}: {objective}, paused, does not count",
+  "@stripDayLoggedWhilePaused": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "objective": {
+        "type": "String"
+      }
+    }
+  },
+  "habitRowPausedToday": "{habit}, paused",
+  "@habitRowPausedToday": {
+    "placeholders": {
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "logDayPausedNote": "Paused that day: a log here does not count toward the streak.",
+  "restDaysTitle": "Rest days",
+  "restDaysHelp": "Missed days each week that keep your streak alive",
+  "restDaysOption": "{count, plural, =0{None} =1{1 day} other{{count} days}}",
+  "@restDaysOption": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "restDaysAllowance": "{count, plural, =1{1 rest day a week keeps your streak alive} other{{count} rest days a week keep your streak alive}}",
+  "@restDaysAllowance": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

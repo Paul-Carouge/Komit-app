@@ -63,6 +63,8 @@ class HabitSchedulePicker extends StatelessWidget {
     required this.onScheduleKindChanged,
     required this.onWeekdayToggled,
     required this.onTargetDaysPerWeekChanged,
+    required this.restDaysPerWeek,
+    required this.onRestDaysPerWeekChanged,
     super.key,
   });
 
@@ -73,6 +75,10 @@ class HabitSchedulePicker extends StatelessWidget {
   final ValueChanged<HabitScheduleKind> onScheduleKindChanged;
   final ValueChanged<int> onWeekdayToggled;
   final ValueChanged<int> onTargetDaysPerWeekChanged;
+
+  /// Already capped for the chosen days by the editor; see [maximumRestDaysFor].
+  final int restDaysPerWeek;
+  final ValueChanged<int> onRestDaysPerWeekChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -123,8 +129,106 @@ class HabitSchedulePicker extends StatelessWidget {
             localizations.habitEditorPerWeekHint,
             setting: _DaysPerWeekStepper(targetDaysPerWeek: targetDaysPerWeek, onChanged: onTargetDaysPerWeekChanged),
           ),
+          // A weekly target already lets the user pick their days: rest days would mean nothing.
+          AnimatedSize(
+            duration: motionAwareDuration(context, AppDurations.standard),
+            curve: AppCurves.standard,
+            alignment: AlignmentDirectional.topCenter,
+            child: scheduleKind == HabitScheduleKind.perWeek
+                ? const SizedBox(width: double.infinity)
+                : _RestDaysSetting(
+                    habitColor: habitColor,
+                    restDaysPerWeek: restDaysPerWeek,
+                    allowedRestDaysPerWeek: maximumRestDaysFor(
+                      scheduleKind == HabitScheduleKind.someDays ? scheduledWeekdayMask : everyWeekdayMask,
+                    ),
+                    onChanged: onRestDaysPerWeekChanged,
+                  ),
+          ),
         ],
       ),
+    );
+  }
+}
+
+/// None, one or two rest days a week, below the schedule rows it qualifies. Values the chosen
+/// days cannot allow (one rest day on a Monday-only habit) are disabled, not hidden, so the
+/// control keeps its shape while weekdays are toggled.
+class _RestDaysSetting extends StatelessWidget {
+  const _RestDaysSetting({
+    required this.habitColor,
+    required this.restDaysPerWeek,
+    required this.allowedRestDaysPerWeek,
+    required this.onChanged,
+  });
+
+  final Color habitColor;
+  final int restDaysPerWeek;
+
+  /// The most the chosen days allow, at most [maximumRestDaysPerWeek].
+  final int allowedRestDaysPerWeek;
+  final ValueChanged<int> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Divider(indent: AppSpacing.large, endIndent: AppSpacing.large),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(AppSpacing.large, AppSpacing.medium, AppSpacing.large, AppSpacing.small),
+          child: Row(
+            children: [
+              Container(
+                width: AppSizes.iconBadge,
+                height: AppSizes.iconBadge,
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHigh,
+                  borderRadius: BorderRadius.circular(AppRadii.badge),
+                ),
+                child: Icon(KomitIcons.bed, size: AppSizes.iconMedium, color: colorScheme.onSurfaceVariant),
+              ),
+              const SizedBox(width: AppSpacing.medium),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Semantics(header: true, child: Text(localizations.restDaysTitle, style: textTheme.titleMedium)),
+                    Text(
+                      localizations.restDaysHelp,
+                      style: textTheme.bodyMedium?.copyWith(color: KomitColors.of(context).mutedText),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(AppSpacing.large, AppSpacing.small, AppSpacing.large, AppSpacing.medium),
+          child: SegmentedButton<int>(
+            showSelectedIcon: false,
+            style: SegmentedButton.styleFrom(
+              selectedBackgroundColor: habitColor,
+              selectedForegroundColor: foregroundColorReadableOn(habitColor),
+            ),
+            segments: [
+              for (var restDayCount = 0; restDayCount <= maximumRestDaysPerWeek; restDayCount++)
+                ButtonSegment(
+                  value: restDayCount,
+                  // Shrinks rather than wraps at large text: "Aucun" split over two lines reads as two words.
+                  label: FittedBox(fit: BoxFit.scaleDown, child: Text(localizations.restDaysOption(restDayCount))),
+                  enabled: restDayCount <= allowedRestDaysPerWeek,
+                ),
+            ],
+            selected: {restDaysPerWeek},
+            onSelectionChanged: (selection) => onChanged(selection.single),
+          ),
+        ),
+      ],
     );
   }
 }

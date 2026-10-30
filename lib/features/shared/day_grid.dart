@@ -6,7 +6,13 @@ import '../../core/theme/app_theme.dart';
 
 /// One square of a [DayGrid]; a null [color] leaves the slot blank (e.g. February 30).
 class DayGridCell {
-  const DayGridCell({required this.color, required this.semanticLabel, this.onTap, this.isOutlined = false});
+  const DayGridCell({
+    required this.color,
+    required this.semanticLabel,
+    this.onTap,
+    this.isOutlined = false,
+    this.isPaused = false,
+  });
 
   final Color? color;
   final String semanticLabel;
@@ -14,6 +20,63 @@ class DayGridCell {
 
   /// Rings the cell, to point out today among the other days.
   final bool isOutlined;
+
+  /// Stripes the cell to show a paused day. A paused day that was logged anyway keeps its plain
+  /// color: the log is still a fact, and its label says it does not count.
+  final bool isPaused;
+}
+
+/// Diagonal stripes clipped to [cell]: the one mark of a paused day, on grids and next to a
+/// pause's dates, so it reads as "on hold" without relying on color.
+void paintPausedHatch(Canvas canvas, RRect cell, Color stripeColor) {
+  final stripePaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = AppSizes.pausedHatchStrokeWidth
+    ..color = stripeColor;
+  final bounds = cell.outerRect;
+  canvas
+    ..save()
+    ..clipRRect(cell);
+  for (var offset = -bounds.height; offset < bounds.width; offset += AppSizes.pausedHatchSpacing) {
+    canvas.drawLine(
+      Offset(bounds.left + offset, bounds.bottom),
+      Offset(bounds.left + offset + bounds.height, bounds.top),
+      stripePaint,
+    );
+  }
+  canvas.restore();
+}
+
+/// A single paused day cell, drawn next to a pause's dates so the grids' stripes need no legend.
+class PausedDaySwatch extends StatelessWidget {
+  const PausedDaySwatch({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final komitColors = KomitColors.of(context);
+    return CustomPaint(
+      size: const Size.square(AppSizes.pausedDaySwatch),
+      painter: _PausedDaySwatchPainter(fillColor: komitColors.futureCell, stripeColor: komitColors.pausedCellStripe),
+    );
+  }
+}
+
+class _PausedDaySwatchPainter extends CustomPainter {
+  const _PausedDaySwatchPainter({required this.fillColor, required this.stripeColor});
+
+  final Color fillColor;
+  final Color stripeColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cell = RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(AppRadii.gridCell));
+    canvas.drawRRect(cell, Paint()..color = fillColor);
+    paintPausedHatch(canvas, cell, stripeColor);
+  }
+
+  @override
+  bool shouldRepaint(_PausedDaySwatchPainter oldDelegate) =>
+      oldDelegate.fillColor != fillColor || oldDelegate.stripeColor != stripeColor;
 }
 
 /// More changed cells than this at once is a data swap (another year, a new day), not a log:
@@ -119,6 +182,7 @@ class _DayGridState extends State<DayGrid> with SingleTickerProviderStateMixin {
               previousColorByPoppingCellIndex: _previousColorByPoppingCellIndex,
               cellTapActionLabel: widget.cellTapActionLabel,
               outlineColor: Theme.of(context).colorScheme.onSurface,
+              pausedStripeColor: KomitColors.of(context).pausedCellStripe,
             ),
           ),
         );
@@ -168,6 +232,7 @@ class _DayGridPainter extends CustomPainter {
     required this.previousColorByPoppingCellIndex,
     required this.cellTapActionLabel,
     required this.outlineColor,
+    required this.pausedStripeColor,
   }) : super(repaint: popAnimation);
 
   final List<DayGridCell> cells;
@@ -176,6 +241,7 @@ class _DayGridPainter extends CustomPainter {
   final Map<int, Color?> previousColorByPoppingCellIndex;
   final String? cellTapActionLabel;
   final Color outlineColor;
+  final Color pausedStripeColor;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -186,12 +252,14 @@ class _DayGridPainter extends CustomPainter {
       final color = cell.color;
       if (color == null) continue;
       if (cell.isOutlined) _paintOutline(canvas, index, radius);
+      final cellShape = RRect.fromRectAndRadius(geometry.cellRect(index), radius);
       if (isPopping && previousColorByPoppingCellIndex.containsKey(index)) {
         _paintPoppingCell(canvas, paint, index, color, radius);
-        continue;
+      } else {
+        paint.color = color;
+        canvas.drawRRect(cellShape, paint);
       }
-      paint.color = color;
-      canvas.drawRRect(RRect.fromRectAndRadius(geometry.cellRect(index), radius), paint);
+      if (cell.isPaused) paintPausedHatch(canvas, cellShape, pausedStripeColor);
     }
   }
 
@@ -266,6 +334,7 @@ class _DayGridPainter extends CustomPainter {
       oldDelegate.geometry.cellSize != geometry.cellSize ||
       oldDelegate.geometry.rowExtent != geometry.rowExtent ||
       oldDelegate.outlineColor != outlineColor ||
+      oldDelegate.pausedStripeColor != pausedStripeColor ||
       !identical(oldDelegate.previousColorByPoppingCellIndex, previousColorByPoppingCellIndex);
 
   @override

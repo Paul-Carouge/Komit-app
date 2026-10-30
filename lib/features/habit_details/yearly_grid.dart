@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../core/calendar_day.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/repositories/habit_repository.dart';
+import '../../domain/habit_pause.dart';
 import '../../l10n/app_localizations.dart';
 import '../shared/day_grid.dart';
 
@@ -35,11 +36,12 @@ class YearlyGrid extends StatelessWidget {
     final monthInitialFormat = DateFormat('MMMMM', languageTag);
     final fullDateFormat = DateFormat.yMMMMd(languageTag);
     final labelStyle = textTheme.labelSmall?.copyWith(color: komitColors.mutedText);
+    final localizations = AppLocalizations.of(context);
 
     final cells = <DayGridCell>[];
     for (var dayOfMonth = 1; dayOfMonth <= _maximumDaysInMonth; dayOfMonth++) {
       for (var month = 1; month <= DateTime.monthsPerYear; month++) {
-        cells.add(_cellFor(month, dayOfMonth, komitColors, fullDateFormat));
+        cells.add(_cellFor(month, dayOfMonth, komitColors, fullDateFormat, localizations));
       }
     }
 
@@ -90,7 +92,7 @@ class YearlyGrid extends StatelessWidget {
                     columnCount: DateTime.monthsPerYear,
                     cells: cells,
                     cellGap: cellGap,
-                    cellTapActionLabel: AppLocalizations.of(context).logThisDayAction,
+                    cellTapActionLabel: localizations.logThisDayAction,
                   ),
                 ),
               ],
@@ -101,20 +103,33 @@ class YearlyGrid extends StatelessWidget {
     );
   }
 
-  DayGridCell _cellFor(int month, int dayOfMonth, KomitColors komitColors, DateFormat fullDateFormat) {
+  DayGridCell _cellFor(
+    int month,
+    int dayOfMonth,
+    KomitColors komitColors,
+    DateFormat fullDateFormat,
+    AppLocalizations localizations,
+  ) {
     final isRealDate = DateTime.utc(year, month, dayOfMonth).month == month;
     if (!isRealDate) return const DayGridCell(color: null, semanticLabel: '');
     final day = CalendarDay.fromDate(year, month, dayOfMonth);
     final objectiveId = objectiveIdByDay[day];
     final objective = objectiveId == null ? null : habit.objectiveWithId(objectiveId);
     final isFuture = day.isAfter(today);
+    final isPaused = isPausedOn(habit.pauses, day);
+    final date = fullDateFormat.format(day.asLocalDate);
     return DayGridCell(
       color: objective != null
           ? Color(objective.colorArgb)
-          : isFuture
+          : isFuture || isPaused
           ? komitColors.futureCell
           : komitColors.emptyCell,
-      semanticLabel: '${fullDateFormat.format(day.asLocalDate)}: ${objective?.title ?? '-'}',
+      semanticLabel: switch ((objective, isPaused)) {
+        (final objective?, true) => localizations.stripDayLoggedWhilePaused(date, objective.title),
+        (null, true) => localizations.stripDayPaused(date),
+        _ => '$date: ${objective?.title ?? '-'}',
+      },
+      isPaused: isPaused && objective == null,
       // Future days cannot be logged: the old app allowed it and produced misleading streaks.
       // An imported future log stays tappable so it can be cleared.
       onTap: isFuture && objective == null ? null : () => onDayTapped(day),

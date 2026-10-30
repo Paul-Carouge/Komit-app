@@ -16,6 +16,7 @@ import '../../data/repositories/habit_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
 import '../celebrations/log_celebrations.dart';
+import '../shared/day_grid.dart';
 import '../shared/shared_widgets.dart';
 
 sealed class LogDayChoice {
@@ -185,6 +186,21 @@ Future<LogDayChoice?> showLogDaySheet(
                   ),
                 ],
               ),
+              if (habit.pauseOn(day) != null) ...[
+                const SizedBox(height: AppSpacing.medium),
+                Row(
+                  children: [
+                    const PausedDaySwatch(),
+                    const SizedBox(width: AppSpacing.medium),
+                    Expanded(
+                      child: Text(
+                        localizations.logDayPausedNote,
+                        style: textTheme.bodyMedium?.copyWith(color: mutedText),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
               const SizedBox(height: AppSpacing.extraLarge),
               if (canLogObjective)
                 for (final objective in habit.objectives)

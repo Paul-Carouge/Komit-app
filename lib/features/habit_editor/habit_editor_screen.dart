@@ -14,6 +14,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/theme/komit_icons.dart';
 import '../../data/database/app_database.dart';
 import '../../data/repositories/habit_repository.dart';
+import '../../domain/habit_schedule.dart' show maximumRestDaysFor;
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
 import '../../services/notification_permission_service.dart';
@@ -66,6 +67,10 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
   HabitScheduleKind _scheduleKind = HabitScheduleKind.everyDay;
   int _scheduledWeekdayMask = everyWeekdayMask;
   int _targetDaysPerWeek = _defaultTargetDaysPerWeek;
+
+  /// As chosen; [_restDaysPerWeekForSchedule] caps it for the chosen days without forgetting it
+  /// while weekdays are toggled.
+  int _restDaysPerWeek = 0;
   bool _isLoading = true;
   bool _hasLoadFailed = false;
   bool _isSaving = false;
@@ -127,6 +132,7 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
       _initialReminderMinuteOfDay = habit.reminderMinuteOfDay;
       _scheduledWeekdayMask = habit.scheduledWeekdayMask;
       _targetDaysPerWeek = habit.targetDaysPerWeek ?? _defaultTargetDaysPerWeek;
+      _restDaysPerWeek = habit.restDaysPerWeek;
       _scheduleKind = switch ((habit.targetDaysPerWeek, habit.scheduledWeekdayMask)) {
         (_?, _) => HabitScheduleKind.perWeek,
         (null, everyWeekdayMask) => HabitScheduleKind.everyDay,
@@ -165,6 +171,14 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
     super.dispose();
   }
 
+  int get _scheduledWeekdayMaskToSave =>
+      _scheduleKind == HabitScheduleKind.someDays ? _scheduledWeekdayMask : everyWeekdayMask;
+
+  /// What gets saved: none with a weekly target, and never more than the chosen days allow.
+  int get _restDaysPerWeekForSchedule => _scheduleKind == HabitScheduleKind.perWeek
+      ? 0
+      : math.min(_restDaysPerWeek, maximumRestDaysFor(_scheduledWeekdayMaskToSave));
+
   /// Everything the save would write, in a comparable form.
   List<Object?> _formSnapshot() => [
     _titleController.text,
@@ -175,6 +189,7 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
     _scheduleKind,
     _scheduledWeekdayMask,
     _targetDaysPerWeek,
+    _restDaysPerWeekForSchedule,
     for (final objective in _objectives) ...[
       objective.id,
       objective.titleController.text,
@@ -313,6 +328,11 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
       onTargetDaysPerWeekChanged: (targetDaysPerWeek) {
         unawaited(KomitHaptics.selection());
         setState(() => _targetDaysPerWeek = targetDaysPerWeek);
+      },
+      restDaysPerWeek: _restDaysPerWeekForSchedule,
+      onRestDaysPerWeekChanged: (restDaysPerWeek) {
+        unawaited(KomitHaptics.selection());
+        setState(() => _restDaysPerWeek = restDaysPerWeek);
       },
     ),
     const SizedBox(height: AppSpacing.medium),
@@ -516,10 +536,9 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
               colorArgb: _colorArgb,
               iconName: _iconName,
               reminderMinuteOfDay: _reminderMinuteOfDay,
-              scheduledWeekdayMask: _scheduleKind == HabitScheduleKind.someDays
-                  ? _scheduledWeekdayMask
-                  : everyWeekdayMask,
+              scheduledWeekdayMask: _scheduledWeekdayMaskToSave,
               targetDaysPerWeek: _scheduleKind == HabitScheduleKind.perWeek ? _targetDaysPerWeek : null,
+              restDaysPerWeek: _restDaysPerWeekForSchedule,
               objectives: [
                 for (final objective in _objectives)
                   ObjectiveDraft(

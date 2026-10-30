@@ -257,4 +257,75 @@ void main() {
       });
     }
   }
+
+  for (final (themeName, theme) in [('light', lightAppTheme), ('dark', darkAppTheme)]) {
+    for (final (localeName, locale, textScaleFactor, logicalSize) in [
+      ('en', const Locale('en'), 1.0, _phoneLogicalSize),
+      ('fr', const Locale('fr'), 1.0, _phoneLogicalSize),
+      ('fr_200_compact', const Locale('fr'), 2.0, compactPhoneLogicalSize),
+    ]) {
+      testWidgets('renders pauses and rest days in $themeName ($localeName)', skip: _outputDirectory == null, (
+        tester,
+      ) async {
+        await tester.runAsync(_loadRealFonts);
+        final environment = await KomitTestEnvironment.create(tester);
+        final today = CalendarDay.fromDateTime(komitTestNow);
+        await tester.runAsync(
+          () => HabitRepository(
+            environment.database,
+            now: () => today.addDays(-2).asLocalDate,
+          ).pauseHabit(environment.runningHabitId, startDay: today.addDays(-2), endDay: today.addDays(12)),
+        );
+        final router = await pumpKomitApp(
+          tester,
+          environment,
+          theme: theme,
+          locale: locale,
+          textScaleFactor: textScaleFactor,
+          logicalSize: logicalSize,
+        );
+        final suffix = '${localeName}_$themeName';
+        await _saveScreenshot(tester, 'pause_dashboard_$suffix');
+        unawaited(router.push(AppRoutes.habitDetails(environment.runningHabitId)));
+        await settleWithDatabaseWork(tester);
+        await _saveScreenshot(tester, 'pause_details_$suffix');
+        await tester.drag(find.byType(CustomScrollView).first, const Offset(0, -400));
+        await tester.pumpAndSettle();
+        await _saveScreenshot(tester, 'pause_details_grid_$suffix');
+        await tester.tap(find.byIcon(KomitIcons.ellipsis));
+        await tester.pumpAndSettle();
+        await _saveScreenshot(tester, 'pause_actions_$suffix');
+        Navigator.of(tester.element(find.byType(BottomSheet))).pop();
+        await tester.pumpAndSettle();
+
+        // The reading habit is not paused: its actions open the pause sheet.
+        router.go(AppRoutes.habits);
+        await settleWithDatabaseWork(tester);
+        final readingHabit = (await tester.runAsync(
+          () => HabitRepository(environment.database).watchActiveHabits().first,
+        ))!.firstWhere((habit) => habit.habit.title == 'Read before bed');
+        unawaited(router.push(AppRoutes.habitDetails(readingHabit.habit.id)));
+        await settleWithDatabaseWork(tester);
+        await tester.tap(find.byIcon(KomitIcons.ellipsis));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byIcon(KomitIcons.pause));
+        await tester.pumpAndSettle();
+        await _saveScreenshot(tester, 'pause_sheet_$suffix');
+        await tester.tap(find.text(lookupAppLocalizations(locale).pauseForWeeks(2)));
+        await tester.pumpAndSettle();
+        await _saveScreenshot(tester, 'pause_sheet_two_weeks_$suffix');
+        Navigator.of(tester.element(find.byType(BottomSheet))).pop();
+        await tester.pumpAndSettle();
+
+        unawaited(router.push(AppRoutes.habitEditor(readingHabit.habit.id)));
+        await settleWithDatabaseWork(tester);
+        final restDaysTitle = find.text(lookupAppLocalizations(locale).restDaysTitle);
+        await tester.scrollUntilVisible(restDaysTitle, 200, scrollable: find.byType(Scrollable).first);
+        await tester.drag(find.byType(Scrollable).first, const Offset(0, -150));
+        await tester.pumpAndSettle();
+        await _saveScreenshot(tester, 'rest_days_editor_$suffix');
+        await environment.dispose(tester);
+      });
+    }
+  }
 }

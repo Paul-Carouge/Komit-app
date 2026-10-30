@@ -1565,4 +1565,138 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get pauseHabit => 'Pause';
+
+  @override
+  String get resumeHabit => 'Resume';
+
+  @override
+  String get cancelPlannedPause => 'Cancel the planned pause';
+
+  @override
+  String pausedUntil(String date) {
+    return 'Paused until $date';
+  }
+
+  @override
+  String get pausedUntilResumed => 'Paused until you resume';
+
+  @override
+  String get pausedShort => 'Paused';
+
+  @override
+  String pausePlannedFrom(String date) {
+    return 'Pause starts $date';
+  }
+
+  @override
+  String pauseSheetTitle(String habit) {
+    return 'Pause $habit';
+  }
+
+  @override
+  String get pauseExplanation => 'Paused days neither break nor extend your streak, and Komit sends no reminder.';
+
+  @override
+  String get pauseStartsLabel => 'Starts';
+
+  @override
+  String get pauseEndsLabel => 'Ends';
+
+  @override
+  String get relativeTomorrow => 'Tomorrow';
+
+  @override
+  String get pickADay => 'Pick a day';
+
+  @override
+  String get pauseUntilIResume => 'Until I resume';
+
+  @override
+  String pauseForWeeks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: '$count weeks', one: '1 week');
+    return '$_temp0';
+  }
+
+  @override
+  String pauseSummaryOpenEnded(String start) {
+    return 'From $start, until you resume';
+  }
+
+  @override
+  String pauseSummaryRange(String start, String end, String days) {
+    return '$start to $end · $days';
+  }
+
+  @override
+  String get confirmPauseHabit => 'Pause habit';
+
+  @override
+  String habitPausedMessage(String habit) {
+    return '$habit is paused';
+  }
+
+  @override
+  String habitPausePlannedMessage(String habit, String date) {
+    return '$habit pauses from $date';
+  }
+
+  @override
+  String habitResumedMessage(String habit) {
+    return '$habit counts again from today';
+  }
+
+  @override
+  String plannedPauseCancelledMessage(String habit) {
+    return 'Planned pause of $habit cancelled';
+  }
+
+  @override
+  String get pauseOverlapError => 'This habit is already paused on some of these days. Pick other dates.';
+
+  @override
+  String get pauseCardHint => 'Your streak waits for you.';
+
+  @override
+  String stripDayPaused(String date) {
+    return '$date: paused';
+  }
+
+  @override
+  String stripDayLoggedWhilePaused(String date, String objective) {
+    return '$date: $objective, paused, does not count';
+  }
+
+  @override
+  String habitRowPausedToday(String habit) {
+    return '$habit, paused';
+  }
+
+  @override
+  String get logDayPausedNote => 'Paused that day: a log here does not count toward the streak.';
+
+  @override
+  String get restDaysTitle => 'Rest days';
+
+  @override
+  String get restDaysHelp => 'Missed days each week that keep your streak alive';
+
+  @override
+  String restDaysOption(int count) {
+    String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: '$count days', one: '1 day', zero: 'None');
+    return '$_temp0';
+  }
+
+  @override
+  String restDaysAllowance(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rest days a week keep your streak alive',
+      one: '1 rest day a week keeps your streak alive',
+    );
+    return '$_temp0';
+  }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:komit/core/theme/app_theme.dart';
 import 'package:komit/features/shared/day_grid.dart';
 
 const Color _emptyColor = Color(0xFFEEEEEE);
@@ -7,6 +8,7 @@ const Color _loggedColor = Color(0xFF66BB6A);
 const int _cellCount = 14;
 
 Widget _grid(List<Color> colors, {bool areAnimationsDisabled = false}) => MaterialApp(
+  theme: lightAppTheme,
   home: MediaQuery(
     data: MediaQueryData(disableAnimations: areAnimationsDisabled),
     child: SizedBox(

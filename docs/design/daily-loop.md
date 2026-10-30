@@ -43,9 +43,12 @@ Compact phone (360 dp)                    Large screen: same column, content wid
 - **Editor**: see [habit-editor.md](habit-editor.md): an identity card that is its own
   preview, a schedule card whose chosen row opens its setting, grouped objectives, and a
   frosted save bar at the bottom where the thumb is.
+- **Paused habits**: see [pauses.md](pauses.md). The row says "Paused until Nov 12" instead
+  of asking for today, stays loggable (the log does not count), and paused days are hatched
+  on the strip.
 - **Reorder and actions**: long press lifts a row (scale `liftedScale`, `AppShadows.lifted`,
   lift haptic). Dragging it reorders; releasing it in place (under `kTouchSlop`) opens the
-  same actions sheet as the details screen (edit, archive, delete). "Move up", "Move down"
+  same actions sheet as the details screen (edit, pause or resume, archive, delete). "Move up", "Move down"
   and "More actions" are screen reader actions on each card.
 
 ## Defaults we rejected

@@ -57,6 +57,13 @@ abstract final class AppSizes {
   static const double logButton = 48;
   static const double checkMarkStrokeWidth = 2.5;
 
+  /// Diagonal stripes of a paused day cell: thin and close, so a 20 dp cell reads as a texture.
+  static const double pausedHatchStrokeWidth = 1.5;
+  static const double pausedHatchSpacing = 4;
+
+  /// The hatched sample next to a pause's dates, teaching what a paused cell looks like.
+  static const double pausedDaySwatch = 20;
+
   /// The today header's progress ring, and the thickness of its track.
   static const double todayProgressRing = 56;
   static const double todayProgressRingStrokeWidth = 6;
@@ -201,6 +208,7 @@ class KomitColors extends ThemeExtension<KomitColors> {
   const KomitColors({
     required this.emptyCell,
     required this.futureCell,
+    required this.pausedCellStripe,
     required this.mutedText,
     required this.accentText,
     required this.highlightContainer,
@@ -213,6 +221,9 @@ class KomitColors extends ThemeExtension<KomitColors> {
 
   final Color emptyCell;
   final Color futureCell;
+
+  /// Stripes over a paused day, drawn on [futureCell]: like a day off, with a texture that says why.
+  final Color pausedCellStripe;
   final Color mutedText;
 
   /// Orange that keeps a 4.5:1 contrast on cards, unlike the brand orange.
@@ -238,6 +249,7 @@ class KomitColors extends ThemeExtension<KomitColors> {
     return KomitColors(
       emptyCell: lerpColor(emptyCell, other.emptyCell),
       futureCell: lerpColor(futureCell, other.futureCell),
+      pausedCellStripe: lerpColor(pausedCellStripe, other.pausedCellStripe),
       mutedText: lerpColor(mutedText, other.mutedText),
       accentText: lerpColor(accentText, other.accentText),
       highlightContainer: lerpColor(highlightContainer, other.highlightContainer),
@@ -313,6 +325,7 @@ final ThemeData lightAppTheme = _buildTheme(
   komitColors: const KomitColors(
     emptyCell: Color(0xFFECE9E4),
     futureCell: Color(0xFFF4F2EF),
+    pausedCellStripe: Color(0xFFCFC9C0),
     mutedText: Color(0xFF6B665F),
     accentText: Color(0xFFAD4E00),
     highlightContainer: Color(0xFFFFE7D1),
@@ -357,6 +370,7 @@ final ThemeData darkAppTheme = _buildTheme(
   komitColors: const KomitColors(
     emptyCell: Color(0xFF2B2927),
     futureCell: Color(0xFF211F1E),
+    pausedCellStripe: Color(0xFF4A4642),
     mutedText: Color(0xFFA19C94),
     accentText: _BrandColors.orangeOnDark,
     highlightContainer: Color(0xFF4D2A08),

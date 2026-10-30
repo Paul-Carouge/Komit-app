@@ -79,6 +79,44 @@ void main() {
       await environment.dispose(tester);
     });
 
+    testWidgets('rest days are saved for a daily habit and hidden with a weekly target', (tester) async {
+      final (:router, :environment) = await _openNewHabitEditor(tester);
+      await _fillNameAndObjective(tester);
+
+      await _scrollToAndTap(tester, find.text('1 day'));
+      await _save(tester);
+      expect((await _savedHabitTitled(tester, environment, 'Stretch')).habit.restDaysPerWeek, 1);
+
+      unawaited(router.push(AppRoutes.newHabit));
+      await settleWithDatabaseWork(tester);
+      expect(find.text('Rest days'), findsOneWidget);
+      await _scrollToAndTap(tester, find.text('Per week'));
+      expect(find.text('Rest days'), findsNothing);
+      await environment.dispose(tester);
+    });
+
+    testWidgets('rest days the chosen weekdays cannot allow are disabled and not saved', (tester) async {
+      final (:router, :environment) = await _openNewHabitEditor(tester);
+      final semantics = tester.ensureSemantics();
+      await _fillNameAndObjective(tester);
+      await _scrollToAndTap(tester, find.text('2 days'));
+
+      // Monday to Friday, then down to Monday and Tuesday: at most one rest day is left.
+      await _scrollToAndTap(tester, find.text('Some days'));
+      for (final weekday in ['Wednesday', 'Thursday', 'Friday']) {
+        await _scrollToAndTap(tester, find.bySemanticsLabel(weekday));
+      }
+      final twoDaysSegment = find.ancestor(of: find.text('2 days'), matching: find.byType(TextButton));
+      expect(tester.widget<TextButton>(twoDaysSegment).onPressed, isNull);
+
+      await _save(tester);
+      final saved = await _savedHabitTitled(tester, environment, 'Stretch');
+      expect(saved.habit.scheduledWeekdayMask, 0x03);
+      expect(saved.habit.restDaysPerWeek, 1);
+      semantics.dispose();
+      await environment.dispose(tester);
+    });
+
     testWidgets('saving an empty form names the problems and stays open', (tester) async {
       final (:router, :environment) = await _openNewHabitEditor(tester);
 

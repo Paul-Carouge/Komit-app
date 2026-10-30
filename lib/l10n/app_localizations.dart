@@ -2719,6 +2719,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{achievement unlocked} other{achievements unlocked}}'**
   String yearInReviewShareAchievementsLabel(int count);
+
+  /// No description provided for @pauseHabit.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get pauseHabit;
+
+  /// No description provided for @resumeHabit.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get resumeHabit;
+
+  /// No description provided for @cancelPlannedPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel the planned pause'**
+  String get cancelPlannedPause;
+
+  /// No description provided for @pausedUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused until {date}'**
+  String pausedUntil(String date);
+
+  /// No description provided for @pausedUntilResumed.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused until you resume'**
+  String get pausedUntilResumed;
+
+  /// No description provided for @pausedShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get pausedShort;
+
+  /// No description provided for @pausePlannedFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause starts {date}'**
+  String pausePlannedFrom(String date);
+
+  /// No description provided for @pauseSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause {habit}'**
+  String pauseSheetTitle(String habit);
+
+  /// No description provided for @pauseExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused days neither break nor extend your streak, and Komit sends no reminder.'**
+  String get pauseExplanation;
+
+  /// No description provided for @pauseStartsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts'**
+  String get pauseStartsLabel;
+
+  /// No description provided for @pauseEndsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends'**
+  String get pauseEndsLabel;
+
+  /// No description provided for @relativeTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get relativeTomorrow;
+
+  /// No description provided for @pickADay.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a day'**
+  String get pickADay;
+
+  /// No description provided for @pauseUntilIResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Until I resume'**
+  String get pauseUntilIResume;
+
+  /// No description provided for @pauseForWeeks.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 week} other{{count} weeks}}'**
+  String pauseForWeeks(int count);
+
+  /// No description provided for @pauseSummaryOpenEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'From {start}, until you resume'**
+  String pauseSummaryOpenEnded(String start);
+
+  /// No description provided for @pauseSummaryRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} to {end} · {days}'**
+  String pauseSummaryRange(String start, String end, String days);
+
+  /// No description provided for @confirmPauseHabit.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause habit'**
+  String get confirmPauseHabit;
+
+  /// No description provided for @habitPausedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{habit} is paused'**
+  String habitPausedMessage(String habit);
+
+  /// No description provided for @habitPausePlannedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{habit} pauses from {date}'**
+  String habitPausePlannedMessage(String habit, String date);
+
+  /// No description provided for @habitResumedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{habit} counts again from today'**
+  String habitResumedMessage(String habit);
+
+  /// No description provided for @plannedPauseCancelledMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned pause of {habit} cancelled'**
+  String plannedPauseCancelledMessage(String habit);
+
+  /// No description provided for @pauseOverlapError.
+  ///
+  /// In en, this message translates to:
+  /// **'This habit is already paused on some of these days. Pick other dates.'**
+  String get pauseOverlapError;
+
+  /// No description provided for @pauseCardHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your streak waits for you.'**
+  String get pauseCardHint;
+
+  /// No description provided for @stripDayPaused.
+  ///
+  /// In en, this message translates to:
+  /// **'{date}: paused'**
+  String stripDayPaused(String date);
+
+  /// No description provided for @stripDayLoggedWhilePaused.
+  ///
+  /// In en, this message translates to:
+  /// **'{date}: {objective}, paused, does not count'**
+  String stripDayLoggedWhilePaused(String date, String objective);
+
+  /// No description provided for @habitRowPausedToday.
+  ///
+  /// In en, this message translates to:
+  /// **'{habit}, paused'**
+  String habitRowPausedToday(String habit);
+
+  /// No description provided for @logDayPausedNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused that day: a log here does not count toward the streak.'**
+  String get logDayPausedNote;
+
+  /// No description provided for @restDaysTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest days'**
+  String get restDaysTitle;
+
+  /// No description provided for @restDaysHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed days each week that keep your streak alive'**
+  String get restDaysHelp;
+
+  /// No description provided for @restDaysOption.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{None} =1{1 day} other{{count} days}}'**
+  String restDaysOption(int count);
+
+  /// No description provided for @restDaysAllowance.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 rest day a week keeps your streak alive} other{{count} rest days a week keep your streak alive}}'**
+  String restDaysAllowance(int count);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

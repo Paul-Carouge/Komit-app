@@ -16,6 +16,7 @@ records why the tokens are what they are.
 | `surfaceContainerLow` | `#FFFFFF` | `#1F1D1B` | Cards |
 | `surfaceContainerHigh` | `#EAE6E1` | `#2C2A28` | Controls on cards; sheets and dialogs in dark |
 | `primaryContainer` | `#FFE7D1` | `#4D2A08` | Warm highlights: streak, notes banner, nav indicator |
+| `pausedCellStripe` | `#CFC9C0` | `#4A4642` | Stripes of a paused day, over `futureCell` ([pauses.md](pauses.md)) |
 
 Depth: light mode lifts cards with one large, faint, offset shadow (`AppShadows.card`:
 blur 32, spread -8, offset 12, no tight contact shadow, so no gray ledge). Dark mode has no

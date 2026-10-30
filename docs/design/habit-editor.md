@@ -28,6 +28,9 @@ Phone (360-412 dp)                         Tablet: the same column, capped at
 | | [o] Per week                   | |
 | |     ( - )     3      ( + )     | |
 | |           days per week        | |
+| |--------------------------------| |   rest days: hidden for "Per week"
+| | [bed] Rest days                | |
+| |  [ None | 1 day | 2 days ]     | |   values the days cannot allow are disabled
 | +--------------------------------+ |
 | +--------------------------------+ |
 | | [bell] Daily reminder    [==]  | |
@@ -86,6 +89,10 @@ picked up, `warning` on removal, `error` on a failed save, `success` on save.
 - **Large text (200 %)**: placeholders wrap instead of being cut, the weekday letters
   are clamped to 1.5x so they stay inside their circles, everything else wraps at word
   boundaries. French strings keep non-breaking spaces before "?" and inside guillemets.
+
+- **Rest days**: see [pauses.md](pauses.md). The segmented control takes the habit's color,
+  disables values above scheduled days minus one, remembers the choice while weekdays are
+  toggled and saves it capped; at 200 % text its labels shrink instead of wrapping.
 
 ## Defaults we rejected
 
