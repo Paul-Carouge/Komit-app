@@ -92,7 +92,7 @@
   "updateAvailableTitle": "Komit {version} est disponible",
   "whatsNew": "Nouveautés",
   "whatsNewTitle": "Bienvenue dans la {version}",
-  "whatsNewMessage": "Komit est à jour. Voici ce qui change :",
+  "whatsNewMessage": "Komit est à jour. Voici ce qui change :",
   "whatsNewDismiss": "C'est parti",
   "upToDateCheckedToday": "À jour · vérifié aujourd'hui à {time}",
   "upToDateCheckedOn": "À jour · vérifié le {date}",

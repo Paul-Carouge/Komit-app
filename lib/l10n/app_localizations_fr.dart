@@ -332,7 +332,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get whatsNewMessage => 'Komit est à jour. Voici ce qui change :';
+  String get whatsNewMessage => 'Komit est à jour. Voici ce qui change :';
 
   @override
   String get whatsNewDismiss => 'C\'est parti';

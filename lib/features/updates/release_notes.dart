@@ -23,8 +23,7 @@ final RegExp _versionHeadingPattern = RegExp(r'^Komit\s+v?\d+\.\d+\.\d+\s*$');
 /// links, images or HTML.
 List<ReleaseNotesBlock> parseReleaseNotes(String releaseNotes) {
   final blocks = <ReleaseNotesBlock>[];
-  for (final rawLine in releaseNotes.split('\n')) {
-    final line = rawLine.trim();
+  for (final line in _joinWrappedLines(releaseNotes)) {
     if (line.isEmpty) continue;
     final heading = _headingPattern.firstMatch(line)?.group(1);
     if (heading != null) {
@@ -41,6 +40,23 @@ List<ReleaseNotesBlock> parseReleaseNotes(String releaseNotes) {
     );
   }
   return blocks;
+}
+
+/// Trimmed lines, where an indented line continues the one above it, as Markdown wraps a
+/// bullet (the CHANGELOG and the release notes template wrap theirs).
+List<String> _joinWrappedLines(String releaseNotes) {
+  final lines = <String>[];
+  for (final rawLine in releaseNotes.split('\n')) {
+    final line = rawLine.trim();
+    final isContinuation =
+        line.isNotEmpty && rawLine.startsWith(RegExp(r'[ \t]')) && lines.isNotEmpty && lines.last.isNotEmpty;
+    if (isContinuation) {
+      lines.last = '${lines.last} $line';
+    } else {
+      lines.add(line);
+    }
+  }
+  return lines;
 }
 
 /// Splits on `**`; an unmatched marker stays visible rather than bolding the rest of the line.

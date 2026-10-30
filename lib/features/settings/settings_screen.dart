@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import '../../core/theme/komit_icons.dart';
 
@@ -197,9 +196,12 @@ String _upToDateStatus(BuildContext context, DateTime checkedAt, {required Calen
   final localizations = AppLocalizations.of(context);
   final checkedDay = CalendarDay.fromDateTime(checkedAt);
   if (checkedDay != today) return localizations.upToDateCheckedOn(formatShortDate(context, checkedDay));
-  return localizations.upToDateCheckedToday(
-    DateFormat.Hm(Localizations.localeOf(context).toLanguageTag()).format(checkedAt),
+  // Follows the phone's 12 or 24-hour setting, like reminder times.
+  final time = MaterialLocalizations.of(context).formatTimeOfDay(
+    TimeOfDay.fromDateTime(checkedAt),
+    alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context),
   );
+  return localizations.upToDateCheckedToday(time);
 }
 
 Future<void> _openReleasesPage(BuildContext context, WidgetRef ref) async {

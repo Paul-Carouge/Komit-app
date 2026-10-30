@@ -60,7 +60,9 @@ class _StartupUpdateCheckState extends ConsumerState<StartupUpdateCheck> {
     final outcome = pendingUpdateOutcome(pendingVersion: pendingUpdate.version, installedVersion: installedVersion);
     if (outcome == PendingUpdateOutcome.keepWaiting) return;
     await settingsRepository.clearPendingUpdate();
-    if (outcome != PendingUpdateOutcome.showWhatsNew || !mounted) return;
+    // Notes holding only the version heading would leave the sheet with nothing to show.
+    final hasNotesToShow = parseReleaseNotes(pendingUpdate.releaseNotes).isNotEmpty;
+    if (outcome != PendingUpdateOutcome.showWhatsNew || !hasNotesToShow || !mounted) return;
     await showWhatsNewSheet(context, version: pendingUpdate.version, releaseNotes: pendingUpdate.releaseNotes);
   }
 

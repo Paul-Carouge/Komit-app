@@ -42,6 +42,13 @@ Merci d'utiliser Komit !
     expect(blocks.single.spans, ['[clic](https://example.com) <b>x</b> **pas fermé']);
   });
 
+  test('an indented line continues the bullet above it, bold included', () {
+    final blocks = parseReleaseNotes('- **Un bilan\n  de ton année** : Komo raconte\n  ton année.\nUn paragraphe.');
+
+    expect([for (final block in blocks) block.kind], [ReleaseNotesBlockKind.bullet, ReleaseNotesBlockKind.paragraph]);
+    expect(blocks.first.spans, ['', 'Un bilan de ton année', ' : Komo raconte ton année.']);
+  });
+
   test('empty notes give no block', () {
     expect(parseReleaseNotes('  \n\n'), isEmpty);
   });
