@@ -4,6 +4,13 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-10-30
+
+### Added
+- Hold a habit on the home screen and let go to edit, archive or delete it, without
+  opening its page. Holding and dragging still reorders your habits. Screen readers get
+  a "More actions" action on each habit.
+
 ## [2.2.0] - 2026-10-29
 
 ### Added
