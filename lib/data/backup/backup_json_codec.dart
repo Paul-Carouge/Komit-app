@@ -1,11 +1,15 @@
 import 'dart:convert';
 
 import '../../core/calendar_day.dart';
+import '../../domain/habit_pause.dart';
 import '../database/app_database.dart';
 import 'backup_snapshot.dart';
 
 const String backupFormatName = 'komit-backup';
-const int currentBackupFormatVersion = 2;
+
+/// Version 3 adds rest days and pauses (docs/adr/0007); version 2 files still import.
+const int currentBackupFormatVersion = 3;
+const int _versionBeforePauses = 2;
 
 /// Versions written by the first Komit app (Isar based) have no `format` key.
 const int legacyBackupFormatVersion = 1;
@@ -32,6 +36,17 @@ String encodeBackupSnapshotToJson(BackupSnapshot snapshot, {required DateTime ex
           'scheduledWeekdayMask': habit.scheduledWeekdayMask,
           'targetDaysPerWeek': habit.targetDaysPerWeek,
           'archivedAt': habit.archivedAt?.toUtc().toIso8601String(),
+          'restDaysPerWeek': habit.restDaysPerWeek,
+          'pauses': [
+            for (final pause in habit.pauses)
+              {
+                'start': _formatIsoDate(pause.startDay),
+                'end': switch (pause.endDay) {
+                  final endDay? => _formatIsoDate(endDay),
+                  null => null,
+                },
+              },
+          ],
           'objectives': [
             for (final objective in habit.objectives)
               {
@@ -54,7 +69,7 @@ String encodeBackupSnapshotToJson(BackupSnapshot snapshot, {required DateTime ex
   });
 }
 
-/// Decodes a backup written by this app (v2) or by the original Komit app (v1).
+/// Decodes a backup written by this app (v2, v3) or by the original Komit app (v1).
 ///
 /// Throws [InvalidBackupException] with a readable reason on any malformed input:
 /// nothing must be written to the database from a half-understood file.
@@ -71,11 +86,12 @@ BackupSnapshot decodeBackupSnapshotFromJson(String jsonText) {
   final root = _asMap(decoded, 'root');
   final version = root['version'];
   final snapshot = switch (version) {
-    currentBackupFormatVersion when root['format'] == backupFormatName => _decodeCurrentFormat(root),
+    currentBackupFormatVersion ||
+    _versionBeforePauses when root['format'] == backupFormatName => _decodeCurrentFormat(root),
     legacyBackupFormatVersion => _decodeLegacyFormat(root),
     _ => throw InvalidBackupException('Unsupported backup version: $version'),
   };
-  _validateSnapshot(snapshot, isCurrentFormat: version == currentBackupFormatVersion);
+  _validateSnapshot(snapshot, isCurrentFormat: version != legacyBackupFormatVersion);
   return snapshot;
 }
 
@@ -111,12 +127,25 @@ BackupHabit _decodeCurrentHabit(Map<String, Object?> habit, String path) {
         ? null
         : _requiredInt(habit['targetDaysPerWeek'], '$path.targetDaysPerWeek'),
     archivedAt: habit['archivedAt'] == null ? null : _requiredDateTime(habit['archivedAt'], '$path.archivedAt'),
+    // Version 3 keys; a version 2 file has no rest day and no pause.
+    restDaysPerWeek: habit['restDaysPerWeek'] == null
+        ? 0
+        : _requiredInt(habit['restDaysPerWeek'], '$path.restDaysPerWeek'),
+    pauses: [
+      for (final (index, rawPause) in _asList(habit['pauses'] ?? const <Object?>[], '$path.pauses').indexed)
+        _decodePause(_asMap(rawPause, '$path.pauses[$index]'), '$path.pauses[$index]'),
+    ],
     objectives: [
       for (final (index, rawObjective) in _asList(habit['objectives'], '$path.objectives').indexed)
         _decodeCurrentObjective(_asMap(rawObjective, '$path.objectives[$index]'), '$path.objectives[$index]'),
     ],
   );
 }
+
+HabitPause _decodePause(Map<String, Object?> pause, String path) => HabitPause(
+  startDay: _requiredCalendarDay(pause['start'], '$path.start'),
+  endDay: pause['end'] == null ? null : _requiredCalendarDay(pause['end'], '$path.end'),
+);
 
 BackupObjective _decodeCurrentObjective(Map<String, Object?> objective, String path) {
   return BackupObjective(
@@ -269,6 +298,10 @@ void _validateSnapshot(BackupSnapshot snapshot, {required bool isCurrentFormat})
         when target < minimumTargetDaysPerWeek || target > maximumTargetDaysPerWeek) {
       throw InvalidBackupException('Habit "${habit.title}": invalid target of $target days per week');
     }
+    if (habit.restDaysPerWeek < 0 || habit.restDaysPerWeek > maximumRestDaysPerWeek) {
+      throw InvalidBackupException('Habit "${habit.title}": invalid ${habit.restDaysPerWeek} rest days per week');
+    }
+    _validatePauses(habit);
     if (habit.reminderMinuteOfDay case final minute? when minute < 0 || minute >= Duration.minutesPerDay) {
       throw InvalidBackupException('Habit "${habit.title}": invalid reminder minute $minute');
     }
@@ -289,6 +322,22 @@ void _validateSnapshot(BackupSnapshot snapshot, {required bool isCurrentFormat})
           throw InvalidBackupException('Habit "${habit.title}": two logs on ${_formatIsoDate(day)}');
         }
       }
+    }
+  }
+}
+
+/// Each pause ends after it starts, at most the last one is open, and none overlap: the
+/// database and the streak rules rely on it.
+void _validatePauses(BackupHabit habit) {
+  final pauses = [...habit.pauses]
+    ..sort((first, second) => first.startDay.daysSinceEpoch.compareTo(second.startDay.daysSinceEpoch));
+  for (final (index, pause) in pauses.indexed) {
+    final endDay = pause.endDay;
+    if (endDay != null && pause.startDay.isAfter(endDay)) {
+      throw InvalidBackupException('Habit "${habit.title}": a pause ends before it starts');
+    }
+    if (index + 1 < pauses.length && (endDay == null || !pauses[index + 1].startDay.isAfter(endDay))) {
+      throw InvalidBackupException('Habit "${habit.title}": two pauses overlap');
     }
   }
 }

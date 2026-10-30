@@ -9,6 +9,7 @@ import 'package:komit/data/backup/backup_json_codec.dart';
 import 'package:komit/data/backup/backup_snapshot.dart';
 import 'package:komit/data/database/app_database.dart';
 import 'package:komit/data/repositories/backup_repository.dart';
+import 'package:komit/domain/habit_pause.dart';
 import 'package:komit/data/repositories/habit_repository.dart';
 import 'package:komit/domain/habit_statistics.dart';
 
@@ -304,6 +305,72 @@ void main() {
     });
   });
 
+  group('decodeBackupSnapshotFromJson with a v3 file', () {
+    BackupSnapshot snapshotWith({int restDaysPerWeek = 0, List<HabitPause> pauses = const []}) => BackupSnapshot(
+      userName: null,
+      notes: const [],
+      habits: [
+        BackupHabit(
+          title: 'Walk',
+          description: '',
+          colorArgb: 1,
+          iconName: 'footprints',
+          reminderMinuteOfDay: null,
+          createdAt: DateTime.utc(2026),
+          restDaysPerWeek: restDaysPerWeek,
+          pauses: pauses,
+          objectives: [
+            BackupObjective(title: 'Done', colorArgb: 2, loggedDays: [CalendarDay.fromDate(2026, 10, 5)]),
+          ],
+        ),
+      ],
+    );
+    String encode(BackupSnapshot snapshot) =>
+        encodeBackupSnapshotToJson(snapshot, exportedAt: DateTime.utc(2026, 10, 28));
+
+    test('round-trips rest days and pauses, an open one included', () {
+      final pauses = [
+        HabitPause(startDay: CalendarDay.fromDate(2026, 8, 1), endDay: CalendarDay.fromDate(2026, 8, 15)),
+        HabitPause(startDay: CalendarDay.fromDate(2026, 10, 20)),
+      ];
+      final json = encode(snapshotWith(restDaysPerWeek: 1, pauses: pauses));
+      expect((jsonDecode(json) as Map<String, Object?>)['version'], 3);
+
+      final habit = decodeBackupSnapshotFromJson(json).habits.single;
+      expect(habit.restDaysPerWeek, 1);
+      expect(habit.pauses, pauses);
+    });
+
+    test('a v2 file imports with no rest day and no pause', () {
+      final habit = decodeBackupSnapshotFromJson(buildOldCurrentBackupJson()).habits.single;
+      expect(habit.restDaysPerWeek, 0);
+      expect(habit.pauses, isEmpty);
+    });
+
+    test('rejects overlapping pauses, a pause ending before it starts and too many rest days', () {
+      for (final snapshot in [
+        snapshotWith(
+          pauses: [
+            HabitPause(startDay: CalendarDay.fromDate(2026, 8, 1), endDay: CalendarDay.fromDate(2026, 8, 15)),
+            HabitPause(startDay: CalendarDay.fromDate(2026, 8, 15), endDay: CalendarDay.fromDate(2026, 8, 20)),
+          ],
+        ),
+        snapshotWith(
+          pauses: [
+            HabitPause(startDay: CalendarDay.fromDate(2026, 1, 1)),
+            HabitPause(startDay: CalendarDay.fromDate(2026, 3, 1)),
+          ],
+        ),
+        snapshotWith(
+          pauses: [HabitPause(startDay: CalendarDay.fromDate(2026, 8, 15), endDay: CalendarDay.fromDate(2026, 8, 1))],
+        ),
+        snapshotWith(restDaysPerWeek: 3),
+      ]) {
+        expect(() => decodeBackupSnapshotFromJson(encode(snapshot)), throwsA(isA<InvalidBackupException>()));
+      }
+    });
+  });
+
   group('BackupRepository', () {
     late AppDatabase database;
     late BackupRepository backupRepository;
@@ -362,6 +429,36 @@ void main() {
       expect(habit.targetDaysPerWeek, 3);
       expect(habit.archivedAt?.toUtc(), archivedAt);
       expect(habit.objectives.single.countsAsSuccess, isFalse);
+    });
+
+    test('stores and reads back rest days and pauses', () async {
+      final pauses = [
+        HabitPause(startDay: CalendarDay.fromDate(2026, 8, 1), endDay: CalendarDay.fromDate(2026, 8, 15)),
+        HabitPause(startDay: CalendarDay.fromDate(2026, 10, 20)),
+      ];
+      await backupRepository.replaceAllDataWith(
+        BackupSnapshot(
+          userName: null,
+          notes: const [],
+          habits: [
+            BackupHabit(
+              title: 'Walk',
+              description: '',
+              colorArgb: 1,
+              iconName: 'footprints',
+              reminderMinuteOfDay: null,
+              createdAt: DateTime.utc(2026),
+              restDaysPerWeek: 2,
+              pauses: pauses,
+              objectives: const [BackupObjective(title: 'Done', colorArgb: 2, loggedDays: [])],
+            ),
+          ],
+        ),
+      );
+
+      final habit = (await backupRepository.readSnapshot(userName: null)).habits.single;
+      expect(habit.restDaysPerWeek, 2);
+      expect(habit.pauses, pauses);
     });
 
     test('leaves existing data untouched when an import fails midway', () async {

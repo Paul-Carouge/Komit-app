@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import '../../core/calendar_day.dart';
+import '../../domain/habit_pause.dart';
 import '../backup/backup_snapshot.dart';
 import '../database/app_database.dart';
 
@@ -21,6 +22,9 @@ class BackupRepository {
       final notes = await (_database.select(
         _database.notes,
       )..orderBy([(note) => OrderingTerm.asc(note.createdAt)])).get();
+      final pauses = await (_database.select(
+        _database.habitPauses,
+      )..orderBy([(pause) => OrderingTerm.asc(pause.startDay)])).get();
 
       final loggedDaysByObjectiveId = <int, List<CalendarDay>>{};
       for (final log in logs) {
@@ -40,6 +44,17 @@ class BackupRepository {
               scheduledWeekdayMask: habit.scheduledWeekdayMask,
               targetDaysPerWeek: habit.targetDaysPerWeek,
               archivedAt: habit.archivedAt,
+              restDaysPerWeek: habit.restDaysPerWeek,
+              pauses: [
+                for (final pause in pauses.where((pause) => pause.habitId == habit.id))
+                  HabitPause(
+                    startDay: CalendarDay(pause.startDay),
+                    endDay: switch (pause.endDay) {
+                      final endDay? => CalendarDay(endDay),
+                      null => null,
+                    },
+                  ),
+              ],
               objectives: [
                 for (final objective in objectives.where((objective) => objective.habitId == habit.id))
                   BackupObjective(
@@ -62,6 +77,7 @@ class BackupRepository {
   /// Replaces every habit, log and note in one transaction: on any failure nothing changes.
   Future<void> replaceAllDataWith(BackupSnapshot snapshot) {
     return _database.transaction(() async {
+      await _database.delete(_database.habitPauses).go();
       await _database.delete(_database.habitLogs).go();
       await _database.delete(_database.objectives).go();
       await _database.delete(_database.habits).go();
@@ -82,8 +98,19 @@ class BackupRepository {
                 scheduledWeekdayMask: Value(habit.scheduledWeekdayMask),
                 targetDaysPerWeek: Value(habit.targetDaysPerWeek),
                 archivedAt: Value(habit.archivedAt),
+                restDaysPerWeek: Value(habit.targetDaysPerWeek == null ? habit.restDaysPerWeek : 0),
               ),
             );
+        await _database.batch((batch) {
+          batch.insertAll(_database.habitPauses, [
+            for (final pause in habit.pauses)
+              HabitPausesCompanion.insert(
+                habitId: habitId,
+                startDay: pause.startDay.daysSinceEpoch,
+                endDay: Value(pause.endDay?.daysSinceEpoch),
+              ),
+          ]);
+        });
         for (final (objectiveSortOrder, objective) in habit.objectives.indexed) {
           final objectiveId = await _database
               .into(_database.objectives)

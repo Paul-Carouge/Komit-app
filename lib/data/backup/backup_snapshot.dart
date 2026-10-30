@@ -1,4 +1,5 @@
 import '../../core/calendar_day.dart';
+import '../../domain/habit_pause.dart';
 import '../database/app_database.dart';
 
 /// Storage-independent copy of all user data, used for import and export.
@@ -27,6 +28,8 @@ class BackupHabit {
     this.scheduledWeekdayMask = everyWeekdayMask,
     this.targetDaysPerWeek,
     this.archivedAt,
+    this.restDaysPerWeek = 0,
+    this.pauses = const [],
   });
 
   final String title;
@@ -39,6 +42,8 @@ class BackupHabit {
   final int scheduledWeekdayMask;
   final int? targetDaysPerWeek;
   final DateTime? archivedAt;
+  final int restDaysPerWeek;
+  final List<HabitPause> pauses;
 
   int get logCount => objectives.fold(0, (total, objective) => total + objective.loggedDays.length);
 }
