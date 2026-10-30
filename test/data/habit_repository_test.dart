@@ -266,7 +266,7 @@ void main() {
       }
     });
 
-    test('resuming ends the current pause on yesterday, cancels planned ones and keeps past ones', () async {
+    test('resuming ends only the current pause on yesterday, keeping past and planned ones', () async {
       final habitId = await createHabit();
       // Inserted directly: the repository refuses pauses that start in the past.
       for (final (startDay, endDay) in [(today.addDays(-30), today.addDays(-20)), (today.addDays(-3), null)]) {
@@ -289,7 +289,12 @@ void main() {
       expect((await read(habitId)).pauses, [
         HabitPause(startDay: today.addDays(-30), endDay: today.addDays(-20)),
         HabitPause(startDay: today.addDays(-3), endDay: today.addDays(-1)),
+        HabitPause(startDay: today.addDays(5)),
       ]);
+
+      // With no pause holding today, resuming cancels the earliest planned one.
+      await repository.resumeHabit(habitId);
+      expect((await read(habitId)).pauses, hasLength(2));
     });
 
     test('resuming a pause that starts today removes it', () async {

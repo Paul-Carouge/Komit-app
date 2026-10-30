@@ -252,6 +252,46 @@ void main() {
       expect(streak.bestStreakLength, 0);
     });
 
+    test('a planned pause does not change today', () {
+      final logs = successBeforeToday([3, 2, 1]);
+      final streak = streakWith(
+        logs,
+        pauses: [HabitPause(startDay: today.addDays(1), endDay: today.addDays(5))],
+      );
+      expect((streak.currentStreakLength, streak.bestStreakLength), (3, 3));
+    });
+
+    test('rest days never make a streak unbreakable', () {
+      // Monday only: no rest day allowed, so a missed Monday breaks the streak.
+      const mondayOnly = 1 << (DateTime.monday - 1);
+      final logs = successOn([lastMonday.addDays(-7)]);
+      final streak = streakWith(logs, scheduledWeekdayMask: mondayOnly, restDaysPerWeek: 2);
+      expect(streak.currentStreakLength, 0);
+      expect(maximumRestDaysFor(mondayOnly), 0);
+      expect(maximumRestDaysFor(1 << (DateTime.monday - 1) | 1 << (DateTime.thursday - 1)), 1);
+      expect(maximumRestDaysFor(everyWeekdayMask), 2);
+    });
+
+    test('a weekly target ignores rest days', () {
+      final logs = successOn([lastMonday.addDays(-7), lastMonday.addDays(-6), lastMonday]);
+      final streak = streakWith(logs, targetDaysPerWeek: 2, restDaysPerWeek: 2);
+      expect(streak.currentStreakLength, 0);
+      expect(streak.bestStreakLength, 1);
+    });
+
+    test('successes on paused days leave the weekly progress', () {
+      final logs = successOn([lastMonday, lastMonday.addDays(1)]);
+      expect(
+        countSuccessDaysInWeekOf(
+          logs,
+          successObjectiveIds: successObjectiveIds,
+          day: lastMonday,
+          pauses: [HabitPause(startDay: lastMonday.addDays(1), endDay: lastMonday.addDays(1))],
+        ),
+        1,
+      );
+    });
+
     test('the success rate leaves paused days out', () {
       final logs = successBeforeToday([0, 1]);
       final rate = computeSuccessRate(

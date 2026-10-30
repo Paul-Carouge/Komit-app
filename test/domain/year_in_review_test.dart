@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:komit/core/calendar_day.dart';
 import 'package:komit/domain/achievements.dart';
 import 'package:komit/domain/habit_history.dart';
+import 'package:komit/domain/habit_pause.dart';
 import 'package:komit/domain/habit_statistics.dart';
 import 'package:komit/domain/year_in_review.dart';
 
@@ -179,5 +180,24 @@ void main() {
 
     expect(review.longestStreak?.unit, StreakUnit.weeks);
     expect(review.longestStreak?.length, 3);
+  });
+
+  test('an achievement earned before the year thanks to a pause is not listed again', () {
+    // 2025: four days, a paused week, three more days: a seven-day streak only with the pause.
+    final first = CalendarDay.fromDate(2025, 6, 2);
+    final history = HabitHistory(
+      habitId: 1,
+      objectiveIdByDay: {
+        for (final day in [..._days(first, 4), ..._days(first.addDays(11), 3)]) day: _success,
+        CalendarDay.fromDate(2026, 3, 2): _success,
+      },
+      successObjectiveIds: const {_success},
+      startDay: CalendarDay.fromDate(2025, 1, 1),
+      pauses: [HabitPause(startDay: first.addDays(4), endDay: first.addDays(10))],
+    );
+
+    final review = computeYearInReview([history], year: 2026, today: _december15);
+
+    expect(review.achievementsUnlocked, isNot(contains(Achievement.firstWeek)));
   });
 }

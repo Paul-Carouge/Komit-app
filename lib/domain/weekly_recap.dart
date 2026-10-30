@@ -27,7 +27,8 @@ class WeeklyRecap {
   /// The Monday that starts the week this recap is about.
   final CalendarDay weekMonday;
 
-  /// In the order of the histories given, for the habits active at the end of that week.
+  /// In the order of the histories given, for the habits active at the end of that week, except
+  /// those the week asked nothing of or that a pause made neutral.
   final List<HabitWeekResult> habitResults;
   final int previousWeekSuccessDayCount;
 
@@ -62,14 +63,7 @@ WeeklyRecap computeWeeklyRecap(List<HabitHistory> histories, {required CalendarD
   }
   return WeeklyRecap(
     weekMonday: weekMonday,
-    habitResults: [
-      for (final history in weekHistories)
-        HabitWeekResult(
-          habitId: history.habitId,
-          successDayCount: history.countSuccessDaysInWeekOf(weekMonday),
-          expectedSuccessDayCount: history.expectedSuccessDaysInWeekOf(weekMonday),
-        ),
-    ],
+    habitResults: [for (final history in weekHistories) ?_weekResultOf(history, weekMonday)],
     previousWeekSuccessDayCount: weekHistories.fold(
       0,
       (total, history) => total + history.countSuccessDaysInWeekOf(previousWeekMonday),
@@ -77,6 +71,19 @@ WeeklyRecap computeWeeklyRecap(List<HabitHistory> histories, {required CalendarD
     bestStreakHabitId: bestStreakHabitId,
     bestStreak: bestStreak,
   );
+}
+
+/// Null when the week asked nothing of the habit, or was not met while it held a paused day:
+/// such a week is neutral (docs/adr/0007), so the recap leaves the habit out.
+HabitWeekResult? _weekResultOf(HabitHistory history, CalendarDay weekMonday) {
+  final result = HabitWeekResult(
+    habitId: history.habitId,
+    successDayCount: history.countSuccessDaysInWeekOf(weekMonday),
+    expectedSuccessDayCount: history.expectedSuccessDaysInWeekOf(weekMonday),
+  );
+  if (result.expectedSuccessDayCount == 0) return null;
+  if (!result.isWeekMet && history.hasPausedDayInWeekOf(weekMonday)) return null;
+  return result;
 }
 
 bool _isActiveAtEndOfDay(HabitHistory history, CalendarDay day) {

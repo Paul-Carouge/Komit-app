@@ -181,21 +181,7 @@ Set<Achievement> computeUnlockedAchievements(List<HabitHistory> histories, {requ
   };
 }
 
-HabitHistory _withoutDaysAfter(HabitHistory history, CalendarDay today) {
-  if (!history.objectiveIdByDay.keys.any((day) => day.isAfter(today))) return history;
-  return HabitHistory(
-    habitId: history.habitId,
-    objectiveIdByDay: {
-      for (final MapEntry(key: day, value: objectiveId) in history.objectiveIdByDay.entries)
-        if (!day.isAfter(today)) day: objectiveId,
-    },
-    successObjectiveIds: history.successObjectiveIds,
-    startDay: history.startDay,
-    scheduledWeekdayMask: history.scheduledWeekdayMask,
-    targetDaysPerWeek: history.targetDaysPerWeek,
-    archivedDay: history.archivedDay,
-  );
-}
+HabitHistory _withoutDaysAfter(HabitHistory history, CalendarDay today) => history.withoutDaysAfter(today);
 
 /// A weekly-target streak counts as seven days per successful week, so the same milestones
 /// apply to every kind of schedule.
@@ -278,9 +264,10 @@ bool _hasPerfectWeek(List<HabitHistory> histories, CalendarDay today) {
   return false;
 }
 
+/// An unmet week holding a paused day is neutral (docs/adr/0007), so it does not block a perfect week.
 bool _isWeekMet(HabitHistory history, CalendarDay monday) {
   if (history.targetDaysPerWeek case final targetDaysPerWeek?) {
-    return history.countSuccessDaysInWeekOf(monday) >= targetDaysPerWeek;
+    return history.countSuccessDaysInWeekOf(monday) >= targetDaysPerWeek || history.hasPausedDayInWeekOf(monday);
   }
   for (var offset = 0; offset < DateTime.daysPerWeek; offset++) {
     final day = monday.addDays(offset);

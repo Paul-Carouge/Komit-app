@@ -7,3 +7,13 @@ bool isWeekdayScheduled(int scheduledWeekdayMask, int weekday) => scheduledWeekd
 
 /// Daily and weekday habits may skip up to this many scheduled days per ISO week (docs/adr/0007).
 const int maximumRestDaysPerWeek = 2;
+
+/// At least one scheduled day a week must still be done, or the streak could never break.
+int maximumRestDaysFor(int scheduledWeekdayMask) {
+  var scheduledDayCount = 0;
+  for (var weekday = DateTime.monday; weekday <= DateTime.sunday; weekday++) {
+    if (isWeekdayScheduled(scheduledWeekdayMask, weekday)) scheduledDayCount++;
+  }
+  final cap = scheduledDayCount - 1;
+  return cap < maximumRestDaysPerWeek ? (cap < 0 ? 0 : cap) : maximumRestDaysPerWeek;
+}

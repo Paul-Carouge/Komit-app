@@ -359,20 +359,31 @@ class HabitRepository {
     });
   }
 
-  /// Ends the current pause on yesterday and cancels any planned one, so the habit counts again
-  /// from today. Past pauses stay, so the history reads the same.
+  /// Ends the pause holding today on yesterday (or removes it when it started today); without
+  /// one, cancels the earliest planned pause. Other pauses stay, so the history reads the same.
   Future<void> resumeHabit(int habitId) {
     final today = CalendarDay.fromDateTime(_now()).daysSinceEpoch;
     final pauses = _database.habitPauses;
     return _database.transaction(() async {
-      await (_database.delete(
-        pauses,
-      )..where((pause) => pause.habitId.equals(habitId) & pause.startDay.isBiggerOrEqualValue(today))).go();
-      await (_database.update(pauses)..where(
-            (pause) =>
-                pause.habitId.equals(habitId) & (pause.endDay.isNull() | pause.endDay.isBiggerOrEqualValue(today)),
-          ))
-          .write(HabitPausesCompanion(endDay: Value(today - 1)));
+      final pause =
+          await (_database.select(pauses)
+                ..where(
+                  (pause) =>
+                      pause.habitId.equals(habitId) &
+                      (pause.endDay.isNull() | pause.endDay.isBiggerOrEqualValue(today)),
+                )
+                ..orderBy([(pause) => OrderingTerm.asc(pause.startDay)])
+                ..limit(1))
+              .getSingleOrNull();
+      if (pause == null) return;
+      final whereThisPause = _database.delete(pauses)..where((row) => row.id.equals(pause.id));
+      if (pause.startDay >= today) {
+        await whereThisPause.go();
+      } else {
+        await (_database.update(
+          pauses,
+        )..where((row) => row.id.equals(pause.id))).write(HabitPausesCompanion(endDay: Value(today - 1)));
+      }
     });
   }
 

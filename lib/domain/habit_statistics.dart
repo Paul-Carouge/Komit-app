@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import '../core/calendar_day.dart';
 import 'habit_pause.dart';
 import 'habit_schedule.dart';
@@ -86,25 +88,33 @@ StreakSummary computeScheduledStreakSummary(
   List<HabitPause> pauses = const [],
   int restDaysPerWeek = 0,
 }) {
-  final pausedDays = _pausedDaysSinceEpoch(pauses, today);
+  final successDaySet = _successDaysSinceEpoch(objectiveIdByDay, successObjectiveIds);
+  // Paused days before the first success cannot matter; bounding them keeps a very old open
+  // pause from building a huge set on every computation.
+  final firstSuccessDay = successDaySet.isEmpty ? today.daysSinceEpoch : successDaySet.reduce(math.min);
+  final pausedDays = _pausedDaysSinceEpoch(
+    pauses,
+    fromDay: targetDaysPerWeek == null ? firstSuccessDay : firstSuccessDay - DateTime.daysPerWeek,
+    today: today,
+  );
   if (targetDaysPerWeek != null) {
     return _computeWeeklyTargetStreakSummary(
-      _successDaysSinceEpoch(objectiveIdByDay, successObjectiveIds).difference(pausedDays),
+      successDaySet.difference(pausedDays),
       pausedDays: pausedDays,
       targetDaysPerWeek: targetDaysPerWeek,
       today: today,
     );
   }
-  if (scheduledWeekdayMask == everyWeekdayMask && pausedDays.isEmpty && restDaysPerWeek == 0) {
+  final allowedRestDaysPerWeek = math.min(restDaysPerWeek, maximumRestDaysFor(scheduledWeekdayMask));
+  if (scheduledWeekdayMask == everyWeekdayMask && pausedDays.isEmpty && allowedRestDaysPerWeek == 0) {
     return computeStreakSummary(objectiveIdByDay, successObjectiveIds: successObjectiveIds, today: today);
   }
   assert(scheduledWeekdayMask & everyWeekdayMask != 0, 'A habit is scheduled on at least one weekday');
-  final successDays = _successDaysSinceEpoch(objectiveIdByDay, successObjectiveIds);
+  final successDays = successDaySet;
   if (successDays.isEmpty) return const StreakSummary(currentStreakLength: 0, bestStreakLength: 0);
   bool isCounted(int daySinceEpoch) =>
       isWeekdayScheduled(scheduledWeekdayMask, _weekdayOf(daySinceEpoch)) && !pausedDays.contains(daySinceEpoch);
 
-  final firstSuccessDay = successDays.reduce((earliest, day) => day < earliest ? day : earliest);
   var bestStreakLength = 0;
   var runLength = 0;
   int? restWeekIndex;
@@ -120,7 +130,7 @@ StreakSummary computeScheduledStreakSummary(
         restWeekIndex = weekIndex;
         restDaysTakenThisWeek = 0;
       }
-      if (restDaysTakenThisWeek < restDaysPerWeek) {
+      if (restDaysTakenThisWeek < allowedRestDaysPerWeek) {
         restDaysTakenThisWeek++;
       } else {
         runLength = 0;
@@ -143,11 +153,11 @@ int _isoWeekIndex(int daySinceEpoch) {
   return (daysSinceFirstMonday - daysSinceFirstMonday % DateTime.daysPerWeek) ~/ DateTime.daysPerWeek;
 }
 
-/// Days of [pauses] up to [today]: an open pause ends today, so the set stays finite.
-Set<int> _pausedDaysSinceEpoch(List<HabitPause> pauses, CalendarDay today) => {
+/// Days of [pauses] from [fromDay] to [today]: an open pause ends today, so the set stays finite.
+Set<int> _pausedDaysSinceEpoch(List<HabitPause> pauses, {required int fromDay, required CalendarDay today}) => {
   for (final pause in pauses)
     for (
-      var day = pause.startDay.daysSinceEpoch;
+      var day = math.max(pause.startDay.daysSinceEpoch, fromDay);
       day <= (pause.endDay ?? today).daysSinceEpoch && day <= today.daysSinceEpoch;
       day++
     )
@@ -190,17 +200,18 @@ StreakSummary _computeWeeklyTargetStreakSummary(
   return StreakSummary(currentStreakLength: runLength, bestStreakLength: bestStreakLength, unit: StreakUnit.weeks);
 }
 
-/// Success days in the ISO week (Monday to Sunday) holding [day], for a weekly target.
+/// Success days in the ISO week (Monday to Sunday) holding [day], for a weekly target. Days in
+/// [pauses] do not count, like in the streak.
 int countSuccessDaysInWeekOf(
   Map<CalendarDay, int> objectiveIdByDay, {
   required Set<int> successObjectiveIds,
   required CalendarDay day,
+  List<HabitPause> pauses = const [],
 }) {
   final weekIndex = _isoWeekIndex(day.daysSinceEpoch);
-  return _successDaysSinceEpoch(
-    objectiveIdByDay,
-    successObjectiveIds,
-  ).where((successDay) => _isoWeekIndex(successDay) == weekIndex).length;
+  return _successDaysSinceEpoch(objectiveIdByDay, successObjectiveIds)
+      .where((successDay) => _isoWeekIndex(successDay) == weekIndex && !isPausedOn(pauses, CalendarDay(successDay)))
+      .length;
 }
 
 /// Share of the scheduled, non-paused days from [firstDay] to [today] included that are success
@@ -214,7 +225,7 @@ double? computeSuccessRate(
   List<HabitPause> pauses = const [],
 }) {
   final successDays = _successDaysSinceEpoch(objectiveIdByDay, successObjectiveIds);
-  final pausedDays = _pausedDaysSinceEpoch(pauses, today);
+  final pausedDays = _pausedDaysSinceEpoch(pauses, fromDay: firstDay.daysSinceEpoch, today: today);
   var scheduledDayCount = 0;
   var successDayCount = 0;
   for (var day = firstDay.daysSinceEpoch; day <= today.daysSinceEpoch; day++) {

@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:komit/core/calendar_day.dart';
 import 'package:komit/domain/habit_history.dart';
+import 'package:komit/domain/habit_pause.dart';
 import 'package:komit/domain/habit_statistics.dart';
 import 'package:komit/domain/weekly_recap.dart';
 
@@ -99,5 +100,30 @@ void main() {
     ], today: _monday);
 
     expect(recap.habitResults.map((result) => result.habitId), [3]);
+  });
+
+  test('a week a pause made neutral leaves the habit out of the recap', () {
+    final pausedHistory = HabitHistory(
+      habitId: 2,
+      objectiveIdByDay: {_lastWeekMonday: _success},
+      successObjectiveIds: const {_success},
+      startDay: CalendarDay.fromDate(2026, 1, 1),
+      targetDaysPerWeek: 3,
+      pauses: [HabitPause(startDay: _lastWeekMonday.addDays(2), endDay: _lastWeekMonday.addDays(6))],
+    );
+    final wholeWeekPaused = HabitHistory(
+      habitId: 3,
+      objectiveIdByDay: const {},
+      successObjectiveIds: const {_success},
+      startDay: CalendarDay.fromDate(2026, 1, 1),
+      pauses: [HabitPause(startDay: _lastWeekMonday)],
+    );
+    final recap = computeWeeklyRecap([
+      _history(1, _days(_lastWeekMonday, 7)),
+      pausedHistory,
+      wholeWeekPaused,
+    ], today: _monday);
+
+    expect(recap.habitResults.map((result) => result.habitId), [1]);
   });
 }

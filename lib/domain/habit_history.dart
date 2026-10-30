@@ -43,6 +43,12 @@ class HabitHistory {
   bool isScheduledOn(CalendarDay day) =>
       isWeekdayScheduled(scheduledWeekdayMask, day.weekday) && !isPausedOn(pauses, day);
 
+  bool isPausedOnDay(CalendarDay day) => isPausedOn(pauses, day);
+
+  /// Whether the ISO week starting on [monday] holds a paused day: an unmet week then is neutral.
+  bool hasPausedDayInWeekOf(CalendarDay monday) =>
+      [for (var offset = 0; offset < DateTime.daysPerWeek; offset++) monday.addDays(offset)].any(isPausedOnDay);
+
   /// The streak as it stood at the end of [day].
   StreakSummary streakSummaryOn(CalendarDay day) => computeScheduledStreakSummary(
     objectiveIdByDay,
@@ -62,8 +68,11 @@ class HabitHistory {
           .where(isScheduledOn)
           .length;
 
+  /// Success days of that week, leaving paused days out like the streak does.
   int countSuccessDaysInWeekOf(CalendarDay monday) =>
-      [for (var offset = 0; offset < DateTime.daysPerWeek; offset++) monday.addDays(offset)].where(isSuccessOn).length;
+      [for (var offset = 0; offset < DateTime.daysPerWeek; offset++) monday.addDays(offset)]
+          .where((day) => isSuccessOn(day) && !isPausedOnDay(day))
+          .length;
 
   /// Whether the habit existed for the whole week starting on [monday].
   bool isActiveForWholeWeekOf(CalendarDay monday) {
@@ -72,12 +81,28 @@ class HabitHistory {
         (archivedDay == null || archivedDay.isAfter(monday.addDays(DateTime.daysPerWeek - 1)));
   }
 
+  /// The same history without the logs after [day], for computing what stood on that day.
+  HabitHistory withoutDaysAfter(CalendarDay day) {
+    if (!objectiveIdByDay.keys.any((loggedDay) => loggedDay.isAfter(day))) return this;
+    return _copyWith(
+      objectiveIdByDay: {
+        for (final MapEntry(key: loggedDay, value: objectiveId) in objectiveIdByDay.entries)
+          if (!loggedDay.isAfter(day)) loggedDay: objectiveId,
+      },
+    );
+  }
+
   /// The same history with [day] logged as [objectiveId], or cleared when it is null.
-  HabitHistory withDayLogged(CalendarDay day, int? objectiveId) => HabitHistory(
-    habitId: habitId,
+  HabitHistory withDayLogged(CalendarDay day, int? objectiveId) => _copyWith(
     objectiveIdByDay: objectiveId == null
         ? ({...objectiveIdByDay}..remove(day))
         : {...objectiveIdByDay, day: objectiveId},
+  );
+
+  /// Copies every field, so a new one is never dropped by one of the copies above.
+  HabitHistory _copyWith({required Map<CalendarDay, int> objectiveIdByDay}) => HabitHistory(
+    habitId: habitId,
+    objectiveIdByDay: objectiveIdByDay,
     successObjectiveIds: successObjectiveIds,
     startDay: startDay,
     scheduledWeekdayMask: scheduledWeekdayMask,
