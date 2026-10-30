@@ -1,6 +1,7 @@
 import 'package:timezone/timezone.dart' as tz;
 
 import '../core/calendar_day.dart';
+import 'habit_pause.dart';
 import 'habit_schedule.dart';
 
 /// Reminders are planned as one-shot notifications for this many calendar days, today
@@ -32,6 +33,7 @@ class ReminderPlanningHabit {
     required this.scheduledWeekdayMask,
     required this.isArchived,
     required this.isLoggedToday,
+    this.pauses = const [],
   });
 
   final int habitId;
@@ -42,8 +44,12 @@ class ReminderPlanningHabit {
   final bool isArchived;
   final bool isLoggedToday;
 
-  /// Whether a reminder about this habit may still be shown today.
-  bool get isDueToday => reminderMinuteOfDay != null && !isArchived && !isLoggedToday;
+  /// A paused habit sends no reminder (docs/adr/0007).
+  final List<HabitPause> pauses;
+
+  /// Whether a reminder about this habit may still be shown on [today].
+  bool isDueOn(CalendarDay today) =>
+      reminderMinuteOfDay != null && !isArchived && !isLoggedToday && !isPausedOn(pauses, today);
 }
 
 class PlannedReminder {
@@ -75,7 +81,8 @@ class PlannedReminder {
 }
 
 /// Every reminder due strictly after [now] over the next [reminderPlanningDayCount] days,
-/// skipping archived habits, days off the habit's schedule and today once it is logged.
+/// skipping archived habits, days off the habit's schedule, paused days and today once it is
+/// logged.
 List<PlannedReminder> planUpcomingReminders(Iterable<ReminderPlanningHabit> habits, {required tz.TZDateTime now}) {
   final today = CalendarDay.fromDate(now.year, now.month, now.day);
   return [
@@ -93,7 +100,7 @@ PlannedReminder? _plannedReminderOn(
   required tz.TZDateTime now,
   required CalendarDay today,
 }) {
-  if (!isWeekdayScheduled(habit.scheduledWeekdayMask, day.weekday)) return null;
+  if (!isWeekdayScheduled(habit.scheduledWeekdayMask, day.weekday) || isPausedOn(habit.pauses, day)) return null;
   if (day == today && habit.isLoggedToday) return null;
   final date = day.asUtcDate;
   // Built from calendar fields, not by adding 24 hours, so a DST change keeps the wall-clock
@@ -141,11 +148,11 @@ ReminderNotificationChanges diffReminderNotifications({
 }) {
   final habitIdsDueToday = {
     for (final habit in habits)
-      if (habit.isDueToday) habit.habitId,
+      if (habit.isDueOn(today)) habit.habitId,
   };
   final notificationIdsNoLongerDueToday = {
     for (final habit in habits)
-      if (!habit.isDueToday) ...[
+      if (!habit.isDueOn(today)) ...[
         reminderNotificationIdFor(habitId: habit.habitId, day: today),
         snoozedReminderNotificationIdFor(habit.habitId),
       ],

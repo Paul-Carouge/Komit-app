@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:komit/core/calendar_day.dart';
 import 'package:komit/data/database/app_database.dart';
 import 'package:komit/data/repositories/habit_repository.dart';
+import 'package:komit/domain/habit_pause.dart';
 import 'package:komit/domain/reminder_planning.dart';
 import 'package:timezone/data/latest_10y.dart' as time_zone_data;
 import 'package:timezone/timezone.dart' as tz;
@@ -16,12 +17,14 @@ ReminderPlanningHabit _habit({
   int scheduledWeekdayMask = everyWeekdayMask,
   bool isArchived = false,
   bool isLoggedToday = false,
+  List<HabitPause> pauses = const [],
 }) => ReminderPlanningHabit(
   habitId: habitId,
   reminderMinuteOfDay: reminderMinuteOfDay,
   scheduledWeekdayMask: scheduledWeekdayMask,
   isArchived: isArchived,
   isLoggedToday: isLoggedToday,
+  pauses: pauses,
 );
 
 void main() {
@@ -53,6 +56,23 @@ void main() {
       final reminders = planUpcomingReminders([_habit()], now: tz.TZDateTime(paris, 2026, 10, 28, 20));
 
       expect(reminders.first.day, wednesday.addDays(1));
+    });
+
+    test('skips paused days, an open pause included', () {
+      final reminders = planUpcomingReminders([
+        _habit(
+          pauses: [HabitPause(startDay: wednesday.addDays(1), endDay: wednesday.addDays(2))],
+        ),
+        _habit(habitId: 2, pauses: [HabitPause(startDay: wednesday.addDays(4))]),
+      ], now: wednesdayMorning);
+
+      expect(reminders.where((reminder) => reminder.habitId == 1).map((reminder) => reminder.day), [
+        wednesday,
+        for (var offset = 3; offset < 7; offset++) wednesday.addDays(offset),
+      ]);
+      expect(reminders.where((reminder) => reminder.habitId == 2).map((reminder) => reminder.day), [
+        for (var offset = 0; offset < 4; offset++) wednesday.addDays(offset),
+      ]);
     });
 
     test('skips the weekdays off the habit schedule', () {

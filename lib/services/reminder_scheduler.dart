@@ -168,13 +168,14 @@ class ReminderScheduler {
       for (final habit in [...activeHabits, ...archivedHabits]) habit.habit.id: habit,
     };
     final planningHabits = [
-      for (final HabitWithObjectives(:habit) in habitById.values)
+      for (final HabitWithObjectives(:habit, :pauses) in habitById.values)
         ReminderPlanningHabit(
           habitId: habit.id,
           reminderMinuteOfDay: habit.reminderMinuteOfDay,
           scheduledWeekdayMask: habit.scheduledWeekdayMask,
           isArchived: habit.archivedAt != null,
           isLoggedToday: logsSinceToday[habit.id]?.containsKey(today) ?? false,
+          pauses: pauses,
         ),
     ];
     final contentByNotificationId = <int, _ReminderContent>{
@@ -221,11 +222,9 @@ class ReminderScheduler {
     required tz.TZDateTime scheduledAt,
     required bool isAppLockEnabled,
   }) async {
-    final streak = computeScheduledStreakSummary(
+    final streak = streakSummaryOf(
+      habit,
       await repository.watchObjectiveIdByDayForHabit(habit.habit.id).first,
-      successObjectiveIds: habit.successObjectiveIds,
-      scheduledWeekdayMask: habit.habit.scheduledWeekdayMask,
-      targetDaysPerWeek: habit.habit.targetDaysPerWeek,
       today: day,
     );
     final title = isAppLockEnabled
