@@ -70,6 +70,7 @@ main() {
   [[ "$(grep -m 1 -v '^[[:space:]]*$' "$notes_path")" == "## Komit $version_name" ]] ||
     fail "release notes must start with '## Komit $version_name' (see tool/release-notes-template.md)"
   ! grep -q -e '<!--' -e 'X\.Y\.Z' "$notes_path" || fail "release notes still hold template text"
+  grep -q -v -e '^[[:space:]]*$' -e '^## Komit ' "$notes_path" || fail "release notes say nothing beyond the version"
 
   flutter build apk --release --target-platform android-arm64 --split-debug-info="build/symbols/$tag"
   local apk_path="build/release/komit-$tag.apk"
