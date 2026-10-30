@@ -13,6 +13,7 @@ import 'package:komit/data/repositories/habit_repository.dart';
 import 'package:komit/domain/achievements.dart';
 import 'package:komit/domain/habit_statistics.dart';
 import 'package:komit/domain/weekly_recap.dart';
+import 'package:komit/domain/year_in_review.dart';
 import 'package:komit/providers.dart';
 
 /// Far more than anyone tracks: 50 habits logged every day for ten years.
@@ -99,6 +100,19 @@ void main() {
       computeWeeklyRecap(histories, today: _today);
     });
     _report('achievements and weekly recap', elapsed);
+    expect(elapsed, lessThan(_allHabitsStatisticsBudget));
+  });
+
+  test('the year in review over every habit stays within budget', () async {
+    final (habits, logsByHabitId) = await (
+      habitRepository.watchAllHabits().first,
+      habitRepository.watchObjectiveIdByDayForAllHabits().first,
+    ).wait;
+    final histories = [for (final habit in habits) habitHistoryOf(habit, logsByHabitId[habit.habit.id] ?? const {})];
+    final elapsed = await _medianDurationOf(() async {
+      computeYearInReview(histories, year: _today.year, today: _today);
+    });
+    _report('year in review', elapsed);
     expect(elapsed, lessThan(_allHabitsStatisticsBudget));
   });
 
