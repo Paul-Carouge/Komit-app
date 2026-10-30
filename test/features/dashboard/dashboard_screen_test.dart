@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart' show Value;
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -202,6 +203,41 @@ void main() {
     await tester.tap(find.text('Archived (1)'));
     await settleWithDatabaseWork(tester);
     expect(find.text('Morning run'), findsOneWidget);
+    await environment.dispose(tester);
+  });
+
+  testWidgets('holding a row in place opens its actions, and archiving from there removes it', (tester) async {
+    final environment = await KomitTestEnvironment.create(tester);
+    await pumpKomitApp(tester, environment, theme: lightAppTheme);
+
+    await tester.longPress(find.text('Morning run'));
+    await tester.pumpAndSettle();
+    expect(find.text('Edit habit'), findsOneWidget);
+    await tester.tap(find.text('Archive habit'));
+    await settleWithDatabaseWork(tester);
+
+    expect(find.text('Morning run'), findsNothing);
+    expect(find.text('Morning run archived'), findsOneWidget);
+    await environment.dispose(tester);
+  });
+
+  testWidgets('dragging a held row reorders it without opening its actions', (tester) async {
+    final environment = await KomitTestEnvironment.create(tester);
+    await pumpKomitApp(tester, environment, theme: lightAppTheme);
+
+    final gesture = await tester.startGesture(tester.getCenter(find.text('Morning run')));
+    await tester.pump(kLongPressTimeout + kPressTimeout);
+    final rowHeight = tester.getSize(_rowOf('Morning run')).height;
+    for (var step = 0; step < 4; step++) {
+      await gesture.moveBy(Offset(0, rowHeight / 2));
+      await tester.pump();
+    }
+    await gesture.up();
+    await settleWithDatabaseWork(tester);
+
+    expect(find.text('Edit habit'), findsNothing);
+    final habits = await tester.runAsync(() => _repositoryOf(environment).watchActiveHabits().first);
+    expect(habits!.map((habit) => habit.habit.title), ['Read before bed', 'Morning run']);
     await environment.dispose(tester);
   });
 

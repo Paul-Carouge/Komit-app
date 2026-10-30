@@ -17,11 +17,11 @@ import '../../domain/habit_statistics.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
 import '../../router.dart';
-import '../archived_habits/archived_habits_screen.dart';
 import '../mascot/komo_empty_state.dart';
 import '../mascot/komo_mascot.dart';
 import '../shared/habit_icon_hero.dart';
 import '../shared/shared_widgets.dart';
+import 'habit_actions_sheet.dart';
 import 'log_day_sheet.dart';
 import 'streak_cards.dart';
 import 'yearly_grid.dart';
@@ -134,7 +134,8 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
                     IconButton(
                       tooltip: localizations.moreActionsTooltip,
                       icon: const Icon(KomitIcons.ellipsis),
-                      onPressed: () => _showMoreActions(loadedHabit),
+                      onPressed: () =>
+                          showHabitActionsSheet(context, ref, loadedHabit, onHabitRemoved: () => context.pop()),
                     ),
                   ],
                 ],
@@ -265,120 +266,7 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
     unawaited(KomitHaptics.selection());
     setState(() => _selectedYear = chosenYear);
   }
-
-  Future<void> _showMoreActions(HabitWithObjectives habit) async {
-    final localizations = AppLocalizations.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
-    final isArchived = habit.habit.archivedAt != null;
-    final chosenAction = await showModalBottomSheet<_MoreAction>(
-      context: context,
-      useRootNavigator: true,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(KomitIcons.pencil),
-              title: Text(localizations.editHabit),
-              onTap: () => Navigator.of(context).pop(_MoreAction.edit),
-            ),
-            if (isArchived)
-              ListTile(
-                leading: const Icon(KomitIcons.archiveRestore),
-                title: Text(localizations.unarchiveHabit),
-                onTap: () => Navigator.of(context).pop(_MoreAction.unarchive),
-              )
-            else
-              ListTile(
-                leading: const Icon(KomitIcons.archive),
-                title: Text(localizations.archiveHabit),
-                onTap: () => Navigator.of(context).pop(_MoreAction.archive),
-              ),
-            ListTile(
-              leading: Icon(KomitIcons.trash2, color: colorScheme.error),
-              title: Text(localizations.deleteHabit, style: TextStyle(color: colorScheme.error)),
-              onTap: () => Navigator.of(context).pop(_MoreAction.delete),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (!mounted) return;
-    switch (chosenAction) {
-      case null:
-        return;
-      case _MoreAction.edit:
-        unawaited(context.push(AppRoutes.habitEditor(habit.habit.id)));
-      case _MoreAction.archive:
-        await _archive(habit);
-      case _MoreAction.unarchive:
-        await unarchiveHabitWithMessage(context, ref, habit);
-      case _MoreAction.delete:
-        await _delete(habit);
-    }
-  }
-
-  /// Back to the dashboard, where the habit is gone, with a way to bring it back at once.
-  Future<void> _archive(HabitWithObjectives habit) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final localizations = AppLocalizations.of(context);
-    final repository = ref.read(habitRepositoryProvider);
-    try {
-      await repository.archiveHabit(habit.habit.id);
-    } on Object catch (error, stackTrace) {
-      _reportActionFailure('habit_archive_failed', error, stackTrace);
-      return;
-    }
-    unawaited(KomitHaptics.warning());
-    if (mounted) context.pop();
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(localizations.habitArchivedMessage(habit.habit.title)),
-          persist: false,
-          duration: AppDurations.undoSnackBar,
-          action: SnackBarAction(
-            label: localizations.undo,
-            onPressed: () => unawaited(
-              repository
-                  .unarchiveHabit(habit.habit.id)
-                  .catchError(
-                    (Object error, StackTrace stackTrace) => ref
-                        .read(appLoggerProvider)
-                        .logError(event: 'habit_unarchive_failed', error: error, stackTrace: stackTrace),
-                  ),
-            ),
-          ),
-        ),
-      );
-  }
-
-  Future<void> _delete(HabitWithObjectives habit) async {
-    final localizations = AppLocalizations.of(context);
-    final isConfirmed = await showDestructiveConfirmationDialog(
-      context,
-      message: localizations.deleteHabitConfirmation(habit.habit.title),
-      confirmLabel: localizations.delete,
-    );
-    if (!isConfirmed || !mounted) return;
-    try {
-      await ref.read(habitRepositoryProvider).deleteHabit(habit.habit.id);
-      unawaited(KomitHaptics.warning());
-      if (mounted) context.pop();
-    } on Object catch (error, stackTrace) {
-      _reportActionFailure('habit_delete_failed', error, stackTrace);
-    }
-  }
-
-  void _reportActionFailure(String event, Object error, StackTrace stackTrace) {
-    unawaited(KomitHaptics.error());
-    unawaited(ref.read(appLoggerProvider).logError(event: event, error: error, stackTrace: stackTrace));
-    if (mounted) showMessageSnackBar(context, AppLocalizations.of(context).genericError);
-  }
 }
-
-enum _MoreAction { edit, archive, unarchive, delete }
 
 class _YearChip extends StatelessWidget {
   const _YearChip({required this.year, required this.onPressed});

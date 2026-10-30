@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,6 +26,7 @@ import '../../domain/seasons.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
 import '../../router.dart';
+import '../habit_details/habit_actions_sheet.dart';
 import '../habit_details/log_day_sheet.dart';
 import '../mascot/komo_empty_state.dart';
 import '../mascot/komo_mascot.dart';
@@ -267,6 +269,44 @@ class _ReorderableHabitListState extends ConsumerState<_ReorderableHabitList> {
 
   final ListEntranceChoreographer _entranceChoreographer = ListEntranceChoreographer();
 
+  /// Where the finger was when the lifted row first followed it, and how far it went since:
+  /// a lift dropped where it started is a request for the row's actions, not a move.
+  Offset? _liftOrigin;
+  double _liftTravel = 0;
+  bool _isTrackingLift = false;
+
+  @override
+  void dispose() {
+    _stopTrackingLift();
+    super.dispose();
+  }
+
+  void _startTrackingLift(int _) {
+    unawaited(KomitHaptics.lift());
+    _liftOrigin = null;
+    _liftTravel = 0;
+    _isTrackingLift = true;
+    GestureBinding.instance.pointerRouter.addGlobalRoute(_trackLiftTravel);
+  }
+
+  void _stopTrackingLift() {
+    if (!_isTrackingLift) return;
+    _isTrackingLift = false;
+    GestureBinding.instance.pointerRouter.removeGlobalRoute(_trackLiftTravel);
+  }
+
+  void _trackLiftTravel(PointerEvent event) {
+    // The first event seen may already be a move: its start is where the finger was at the lift.
+    final origin = _liftOrigin ??= event.position - event.delta;
+    _liftTravel = math.max(_liftTravel, (event.position - origin).distance);
+  }
+
+  void _showActionsIfLiftStayedInPlace(List<HabitWithObjectives> habits, int index) {
+    _stopTrackingLift();
+    if (_liftTravel >= kTouchSlop) return;
+    unawaited(showHabitActionsSheet(context, ref, habits[index]));
+  }
+
   @override
   void didUpdateWidget(_ReorderableHabitList oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -299,8 +339,9 @@ class _ReorderableHabitListState extends ConsumerState<_ReorderableHabitList> {
     _entranceChoreographer.updateRowIds(habits.map((habit) => habit.habit.id));
     return SliverReorderableList(
       itemCount: habits.length,
-      onReorderStart: (_) => unawaited(KomitHaptics.lift()),
+      onReorderStart: _startTrackingLift,
       onReorderItem: (fromIndex, toIndex) => _move(habits, fromIndex, toIndex),
+      onReorderEnd: (index) => _showActionsIfLiftStayedInPlace(habits, index),
       proxyDecorator: _liftedRow,
       itemBuilder: (context, index) {
         final habit = habits[index];
@@ -316,6 +357,7 @@ class _ReorderableHabitListState extends ConsumerState<_ReorderableHabitList> {
                 today: today,
                 onMoveUp: index == 0 ? null : () => _move(habits, index, index - 1),
                 onMoveDown: index == habits.length - 1 ? null : () => _move(habits, index, index + 1),
+                onShowActions: () => showHabitActionsSheet(context, ref, habit),
               ),
             ),
           ),
@@ -349,12 +391,19 @@ class _ReorderableHabitListState extends ConsumerState<_ReorderableHabitList> {
 }
 
 class _HabitRow extends ConsumerWidget {
-  const _HabitRow({required this.habit, required this.today, required this.onMoveUp, required this.onMoveDown});
+  const _HabitRow({
+    required this.habit,
+    required this.today,
+    required this.onMoveUp,
+    required this.onMoveDown,
+    required this.onShowActions,
+  });
 
   final HabitWithObjectives habit;
   final CalendarDay today;
   final VoidCallback? onMoveUp;
   final VoidCallback? onMoveDown;
+  final VoidCallback onShowActions;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -400,6 +449,7 @@ class _HabitRow extends ConsumerWidget {
       customSemanticsActions: {
         CustomSemanticsAction(label: localizations.moveUp): ?onMoveUp,
         CustomSemanticsAction(label: localizations.moveDown): ?onMoveDown,
+        CustomSemanticsAction(label: localizations.moreActionsTooltip): onShowActions,
       },
       onTap: () => context.push(AppRoutes.habitDetails(habit.habit.id)),
       child: Padding(
