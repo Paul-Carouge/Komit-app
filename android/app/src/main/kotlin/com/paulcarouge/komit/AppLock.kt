@@ -21,6 +21,26 @@ private const val RESULT_CANCELLED = "cancelled"
 private const val RESULT_FAILED = "failed"
 private const val RESULT_UNAVAILABLE = "unavailable"
 
+/** What the window must hide; [isRecentsScreenshotEnabled] only exists on Android 13+. */
+internal data class WindowProtections(
+    val isSecureFlagSet: Boolean,
+    val isRecentsScreenshotEnabled: Boolean,
+)
+
+/**
+ * While the app lock is on, the recent apps card must not show habits. Android 13+ blanks the
+ * card alone; earlier versions need FLAG_SECURE, which also blocks screenshots.
+ */
+internal fun windowProtectionsFor(
+    sdkInt: Int,
+    isAppLockEnabled: Boolean,
+    isScreenContentHidden: Boolean,
+): WindowProtections =
+    WindowProtections(
+        isSecureFlagSet = isScreenContentHidden || (isAppLockEnabled && sdkInt < Build.VERSION_CODES.TIRAMISU),
+        isRecentsScreenshotEnabled = !isAppLockEnabled,
+    )
+
 /**
  * The optional app lock: a strong biometric or the device credential (PIN, pattern, password).
  * Android 11+ uses the system BiometricPrompt; earlier versions confirm the device credential,
@@ -44,26 +64,31 @@ class AppLock(
                 authenticate(call.argument<String>("title").orEmpty(), call.argument<String>("subtitle"), result)
             }
 
-            "setRecentsScreenshotEnabled" -> {
-                // Android 13+: the recents screen shows a blank card instead of the last frame.
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    activity.setRecentsScreenshotEnabled(call.argument<Boolean>("isEnabled") ?: true)
-                }
-                result.success(null)
-            }
-
-            "setSecureWindow" -> {
-                if (call.argument<Boolean>("isSecure") == true) {
-                    activity.window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-                } else {
-                    activity.window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
-                }
+            "applyWindowProtections" -> {
+                applyWindowProtections(
+                    windowProtectionsFor(
+                        sdkInt = Build.VERSION.SDK_INT,
+                        isAppLockEnabled = call.argument<Boolean>("isAppLockEnabled") == true,
+                        isScreenContentHidden = call.argument<Boolean>("isScreenContentHidden") == true,
+                    ),
+                )
                 result.success(null)
             }
 
             else -> {
                 result.notImplemented()
             }
+        }
+    }
+
+    private fun applyWindowProtections(protections: WindowProtections) {
+        if (protections.isSecureFlagSet) {
+            activity.window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        } else {
+            activity.window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            activity.setRecentsScreenshotEnabled(protections.isRecentsScreenshotEnabled)
         }
     }
 

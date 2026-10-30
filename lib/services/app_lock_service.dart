@@ -35,13 +35,14 @@ class AppLockService {
     return AppLockAuthenticationResult.values.asNameMap()[resultName] ?? AppLockAuthenticationResult.failed;
   }
 
-  /// Android 13+ only: when false, the recent apps screen shows a blank card for Komit.
-  Future<void> setRecentsScreenshotEnabled({required bool isEnabled}) async {
-    if (isSupported) await _channel.invokeMethod<void>('setRecentsScreenshotEnabled', {'isEnabled': isEnabled});
-  }
-
-  /// FLAG_SECURE: no screenshots, no screen recording, a blank card in recent apps.
-  Future<void> setSecureWindow({required bool isSecure}) async {
-    if (isSupported) await _channel.invokeMethod<void>('setSecureWindow', {'isSecure': isSecure});
+  /// Applies FLAG_SECURE and the recent apps card from both settings at once, so that one
+  /// never undoes the other: below Android 13 the lock alone needs FLAG_SECURE too.
+  Future<void> applyWindowProtections({required bool isAppLockEnabled, required bool isScreenContentHidden}) async {
+    if (isSupported) {
+      await _channel.invokeMethod<void>('applyWindowProtections', {
+        'isAppLockEnabled': isAppLockEnabled,
+        'isScreenContentHidden': isScreenContentHidden,
+      });
+    }
   }
 }

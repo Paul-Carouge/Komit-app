@@ -69,17 +69,16 @@ class _AppLockGateState extends ConsumerState<AppLockGate> with WidgetsBindingOb
   }
 
   void _applyWindowProtections({required bool isAppLockEnabled, required bool isScreenContentHidden}) {
-    final appLockService = ref.read(appLockServiceProvider);
     final logger = ref.read(appLoggerProvider);
     unawaited(
-      Future.wait([
-        appLockService.setRecentsScreenshotEnabled(isEnabled: !isAppLockEnabled),
-        appLockService.setSecureWindow(isSecure: isScreenContentHidden),
-      ]).then<void>(
-        (_) {},
-        onError: (Object error, StackTrace stackTrace) =>
-            logger.logError(event: 'window_protection_failed', error: error, stackTrace: stackTrace),
-      ),
+      ref
+          .read(appLockServiceProvider)
+          .applyWindowProtections(isAppLockEnabled: isAppLockEnabled, isScreenContentHidden: isScreenContentHidden)
+          .then<void>(
+            (_) {},
+            onError: (Object error, StackTrace stackTrace) =>
+                logger.logError(event: 'window_protection_failed', error: error, stackTrace: stackTrace),
+          ),
     );
   }
 

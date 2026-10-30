@@ -33,7 +33,7 @@ class _FakeAppLockPlatform {
 
   bool canAuthenticate;
   final List<Completer<String>> pendingPrompts = [];
-  bool? isRecentsScreenshotEnabled;
+  Map<Object?, Object?>? lastWindowProtectionsArguments;
 
   AppLockService get service => AppLockService(channel: _fakeAppLockChannel, isSupported: true);
 
@@ -45,10 +45,8 @@ class _FakeAppLockPlatform {
         final prompt = Completer<String>();
         pendingPrompts.add(prompt);
         return prompt.future;
-      case 'setRecentsScreenshotEnabled':
-        isRecentsScreenshotEnabled = (call.arguments as Map<Object?, Object?>)['isEnabled'] as bool?;
-        return null;
-      case 'setSecureWindow':
+      case 'applyWindowProtections':
+        lastWindowProtectionsArguments = call.arguments as Map<Object?, Object?>?;
         return null;
     }
     throw MissingPluginException(call.method);
@@ -110,13 +108,30 @@ void main() {
     expect(find.text('Komit is locked'), findsOneWidget);
     expect(find.text(_secretContent), findsNothing);
     expect(platform.pendingPrompts, hasLength(1), reason: 'the prompt opens on its own at launch');
-    expect(platform.isRecentsScreenshotEnabled, isFalse);
+    expect(platform.lastWindowProtectionsArguments, {'isAppLockEnabled': true, 'isScreenContentHidden': false});
 
     platform.answerLastPrompt('succeeded');
     await tester.pumpAndSettle();
 
     expect(find.text(_secretContent), findsOneWidget);
     expect(find.text('Komit is locked'), findsNothing);
+  });
+
+  testWidgets('turning screenshot hiding off keeps sending the lock, which still needs protecting', (tester) async {
+    final platform = _FakeAppLockPlatform();
+    await _pumpLockedApp(tester, platform, now: () => komitTestNow);
+    platform.answerLastPrompt('succeeded');
+    await tester.pumpAndSettle();
+    final settingsController = ProviderScope.containerOf(tester.element(find.text(_secretContent)))
+        .read(settingsControllerProvider.notifier);
+
+    await settingsController.updateScreenContentHidden(isHidden: true);
+    await tester.pump();
+    expect(platform.lastWindowProtectionsArguments, {'isAppLockEnabled': true, 'isScreenContentHidden': true});
+
+    await settingsController.updateScreenContentHidden(isHidden: false);
+    await tester.pump();
+    expect(platform.lastWindowProtectionsArguments, {'isAppLockEnabled': true, 'isScreenContentHidden': false});
   });
 
   testWidgets('a cancelled prompt keeps the lock and offers to try again', (tester) async {
