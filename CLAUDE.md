@@ -7,6 +7,10 @@ touches, tokens from `lib/core/theme/` only, shared widgets from
 minimal. Screen-specific notes: `docs/design/daily-loop.md`, `docs/design/habit-editor.md`.
 Architecture decisions: `docs/adr/`.
 
+Roadmap: `docs/ROADMAP.md` lists approved work in delivery order. An iteration takes the first
+item not `done`, follows its scope and acceptance criteria, and updates the file (status,
+decisions, shipped version, "Shipped" section) in the same branch.
+
 - French copy says "tu".
 - Releases are GitHub releases (signed arm64 APK with a sha256 digest) for the in-app updater;
   bump `version` (name and code) and `CHANGELOG.md` each time.
