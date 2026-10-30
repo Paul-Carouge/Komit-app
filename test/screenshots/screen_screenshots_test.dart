@@ -10,7 +10,9 @@ import 'package:komit/core/calendar_day.dart';
 import 'package:komit/core/theme/app_theme.dart';
 import 'package:komit/data/repositories/habit_repository.dart';
 import 'package:komit/features/shared/shared_widgets.dart';
+import 'package:komit/core/theme/komit_icons.dart';
 import 'package:komit/l10n/app_localizations.dart';
+import 'package:komit/providers.dart';
 import 'package:komit/router.dart';
 
 import '../support/komit_test_app.dart';
@@ -211,6 +213,46 @@ void main() {
         await tester.drag(find.byType(CustomScrollView).first, const Offset(0, -700));
         await tester.pumpAndSettle();
         await _saveScreenshot(tester, 'editor_edit_scrolled_$suffix');
+        await environment.dispose(tester);
+      });
+    }
+  }
+
+  for (final (themeName, theme) in [('light', lightAppTheme), ('dark', darkAppTheme)]) {
+    for (final (localeName, locale, textScaleFactor, logicalSize) in [
+      ('en', const Locale('en'), 1.0, _phoneLogicalSize),
+      ('fr', const Locale('fr'), 1.0, _phoneLogicalSize),
+      ('fr_200_compact', const Locale('fr'), 2.0, compactPhoneLogicalSize),
+    ]) {
+      testWidgets('renders the year in review in $themeName ($localeName)', skip: _outputDirectory == null, (
+        tester,
+      ) async {
+        await tester.runAsync(_loadRealFonts);
+        final localizations = lookupAppLocalizations(locale);
+        final environment = await KomitTestEnvironment.create(tester);
+        final router = await pumpKomitApp(
+          tester,
+          environment,
+          theme: theme,
+          locale: locale,
+          textScaleFactor: textScaleFactor,
+          logicalSize: logicalSize,
+          now: DateTime(2026, 12, 15, 10),
+          overrides: [imageShareServiceProvider.overrideWithValue(FakeImageShareService())],
+        );
+        final suffix = '${localeName}_$themeName';
+        await _saveScreenshot(tester, 'year_in_review_dashboard_$suffix');
+        unawaited(router.push(AppRoutes.yearInReview));
+        await tester.pumpAndSettle();
+        for (var cardNumber = 1; find.text(localizations.yearInReviewDone).evaluate().isEmpty; cardNumber++) {
+          await _saveScreenshot(tester, 'year_in_review_${cardNumber}_$suffix');
+          await tester.tap(find.byIcon(KomitIcons.arrowRight));
+          await tester.pumpAndSettle();
+        }
+        await _saveScreenshot(tester, 'year_in_review_last_$suffix');
+        await tester.drag(find.byType(Scrollable).last, const Offset(0, -600));
+        await tester.pumpAndSettle();
+        await _saveScreenshot(tester, 'year_in_review_last_scrolled_$suffix');
         await environment.dispose(tester);
       });
     }

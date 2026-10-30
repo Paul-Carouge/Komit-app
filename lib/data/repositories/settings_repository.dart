@@ -50,6 +50,7 @@ class SettingsRepository {
   static const String _languageCodeKey = 'language_code';
   static const String _shownCelebrationIdsKey = 'shown_celebration_ids';
   static const String _dismissedWeeklyRecapWeekKey = 'dismissed_weekly_recap_week';
+  static const String _dismissedYearInReviewYearKey = 'dismissed_year_in_review_year';
   static const String _isAutomaticUpdateCheckEnabledKey = 'automatic_update_check_enabled';
   static const String _lastAutomaticUpdateCheckAtKey = 'last_automatic_update_check_at';
   static const String _lastExportAtKey = 'last_export_at';
@@ -102,6 +103,11 @@ class SettingsRepository {
 
   Future<void> saveDismissedWeeklyRecapWeek(CalendarDay weekMonday) =>
       _preferences.setInt(_dismissedWeeklyRecapWeekKey, weekMonday.daysSinceEpoch);
+
+  /// The last year whose review card the user dismissed from the dashboard.
+  int? readDismissedYearInReviewYear() => _preferences.getInt(_dismissedYearInReviewYearKey);
+
+  Future<void> saveDismissedYearInReviewYear(int year) => _preferences.setInt(_dismissedYearInReviewYearKey, year);
 
   Future<void> saveAutomaticUpdateCheckEnabled({required bool isEnabled}) =>
       _preferences.setBool(_isAutomaticUpdateCheckEnabledKey, isEnabled);

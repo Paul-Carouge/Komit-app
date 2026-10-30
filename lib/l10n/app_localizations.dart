@@ -2258,6 +2258,18 @@ abstract class AppLocalizations {
   /// **'Encrypted with AES-256 on this phone. Only your passphrase opens the file, and nobody can recover a forgotten one.'**
   String get privacyEncryptedExportBody;
 
+  /// No description provided for @privacyYearInReviewImageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Year in review image'**
+  String get privacyYearInReviewImageTitle;
+
+  /// No description provided for @privacyYearInReviewImageBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It only leaves your phone if you share it, to the app you pick. Without your habit names, unless you show them. Komit deletes it at the next launch.'**
+  String get privacyYearInReviewImageBody;
+
   /// No description provided for @privacyErrorLogTitle.
   ///
   /// In en, this message translates to:
@@ -2419,6 +2431,294 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Keep editing'**
   String get habitEditorKeepEditing;
+
+  /// No description provided for @yearInReviewDashboardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {year} in review'**
+  String yearInReviewDashboardTitle(int year);
+
+  /// No description provided for @yearInReviewDashboardMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Komo gathered the best moments of your year.'**
+  String get yearInReviewDashboardMessage;
+
+  /// No description provided for @dismissYearInReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss the year in review'**
+  String get dismissYearInReview;
+
+  /// No description provided for @yearInReviewStatisticsRow.
+  ///
+  /// In en, this message translates to:
+  /// **'See your {year} in review'**
+  String yearInReviewStatisticsRow(int year);
+
+  /// No description provided for @yearInReviewNotYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Your year in review opens on December 1.'**
+  String get yearInReviewNotYet;
+
+  /// No description provided for @yearInReviewProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Card {currentCard} of {cardCount}'**
+  String yearInReviewProgress(int currentCard, int cardCount);
+
+  /// No description provided for @yearInReviewPreviousCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous card'**
+  String get yearInReviewPreviousCard;
+
+  /// No description provided for @yearInReviewNextCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get yearInReviewNextCard;
+
+  /// No description provided for @yearInReviewStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get yearInReviewStart;
+
+  /// No description provided for @yearInReviewDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get yearInReviewDone;
+
+  /// No description provided for @yearInReviewIntroNarration.
+  ///
+  /// In en, this message translates to:
+  /// **'I kept track of your days. Shall we look back together?'**
+  String get yearInReviewIntroNarration;
+
+  /// No description provided for @yearInReviewIntroLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Your year with Komit'**
+  String get yearInReviewIntroLabel;
+
+  /// No description provided for @yearInReviewPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'January 1 to {lastDay}'**
+  String yearInReviewPeriod(String lastDay);
+
+  /// No description provided for @yearInReviewSuccessDaysNarration.
+  ///
+  /// In en, this message translates to:
+  /// **'The days you kept your word:'**
+  String get yearInReviewSuccessDaysNarration;
+
+  /// No description provided for @yearInReviewSuccessDaysLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{success day} other{success days}}'**
+  String yearInReviewSuccessDaysLabel(int count);
+
+  /// No description provided for @yearInReviewSuccessDaysCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'At least one habit done on each of them.'**
+  String get yearInReviewSuccessDaysCaption;
+
+  /// No description provided for @yearInReviewStreakNarration.
+  ///
+  /// In en, this message translates to:
+  /// **'Your longest streak:'**
+  String get yearInReviewStreakNarration;
+
+  /// No description provided for @yearInReviewStreakDaysLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{day in a row} other{days in a row}}'**
+  String yearInReviewStreakDaysLabel(int count);
+
+  /// No description provided for @yearInReviewStreakWeeksLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{week in a row} other{weeks in a row}}'**
+  String yearInReviewStreakWeeksLabel(int count);
+
+  /// No description provided for @yearInReviewWeekdayNarration.
+  ///
+  /// In en, this message translates to:
+  /// **'Your most regular day:'**
+  String get yearInReviewWeekdayNarration;
+
+  /// No description provided for @yearInReviewWeekdayCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'The day you succeeded most often.'**
+  String get yearInReviewWeekdayCaption;
+
+  /// No description provided for @yearInReviewMonthNarration.
+  ///
+  /// In en, this message translates to:
+  /// **'Your best month:'**
+  String get yearInReviewMonthNarration;
+
+  /// No description provided for @yearInReviewMonthCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'The month you were most regular.'**
+  String get yearInReviewMonthCaption;
+
+  /// No description provided for @yearInReviewHabitNarration.
+  ///
+  /// In en, this message translates to:
+  /// **'The habit you kept best:'**
+  String get yearInReviewHabitNarration;
+
+  /// No description provided for @yearInReviewHabitCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 success day this year} other{{count} success days this year}}'**
+  String yearInReviewHabitCaption(int count);
+
+  /// No description provided for @yearInReviewAchievementsNarration.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlocked this year:'**
+  String get yearInReviewAchievementsNarration;
+
+  /// No description provided for @yearInReviewAchievementsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{achievement} other{achievements}}'**
+  String yearInReviewAchievementsLabel(int count);
+
+  /// No description provided for @yearInReviewQuietNarration.
+  ///
+  /// In en, this message translates to:
+  /// **'A calm year, and that\'s fine.'**
+  String get yearInReviewQuietNarration;
+
+  /// No description provided for @yearInReviewQuietMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{You succeeded on 1 day this year. It counts.} other{You succeeded on {count} days this year. Each one counts.}}'**
+  String yearInReviewQuietMessage(int count);
+
+  /// No description provided for @yearInReviewEmptyNarration.
+  ///
+  /// In en, this message translates to:
+  /// **'Your story starts here.'**
+  String get yearInReviewEmptyNarration;
+
+  /// No description provided for @yearInReviewEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No success day yet this year. One is all it takes to begin.'**
+  String get yearInReviewEmptyMessage;
+
+  /// No description provided for @yearInReviewOutroNarration.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you for this year. Shall we keep going in {nextYear}?'**
+  String yearInReviewOutroNarration(int nextYear);
+
+  /// No description provided for @yearInReviewQuietOutroNarration.
+  ///
+  /// In en, this message translates to:
+  /// **'{nextYear} is a blank page. I\'ll be right here.'**
+  String yearInReviewQuietOutroNarration(int nextYear);
+
+  /// No description provided for @yearInReviewShareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your year'**
+  String get yearInReviewShareTitle;
+
+  /// No description provided for @yearInReviewShowHabitNames.
+  ///
+  /// In en, this message translates to:
+  /// **'Show habit names'**
+  String get yearInReviewShowHabitNames;
+
+  /// No description provided for @yearInReviewHabitNamesHidden.
+  ///
+  /// In en, this message translates to:
+  /// **'The image doesn\'t say what you track.'**
+  String get yearInReviewHabitNamesHidden;
+
+  /// No description provided for @yearInReviewHabitNamesShown.
+  ///
+  /// In en, this message translates to:
+  /// **'Anyone who sees the image will read them.'**
+  String get yearInReviewHabitNamesShown;
+
+  /// No description provided for @yearInReviewShareImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Share the image'**
+  String get yearInReviewShareImage;
+
+  /// No description provided for @yearInReviewShareFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The image couldn\'t be shared. Try again.'**
+  String get yearInReviewShareFailed;
+
+  /// No description provided for @yearInReviewSharePreviewWithoutNames.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview of the image to share, without habit names'**
+  String get yearInReviewSharePreviewWithoutNames;
+
+  /// No description provided for @yearInReviewSharePreviewWithNames.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview of the image to share, with habit names'**
+  String get yearInReviewSharePreviewWithNames;
+
+  /// No description provided for @yearInReviewShareHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'My {year}'**
+  String yearInReviewShareHeading(int year);
+
+  /// No description provided for @yearInReviewShareSubheading.
+  ///
+  /// In en, this message translates to:
+  /// **'with Komit'**
+  String get yearInReviewShareSubheading;
+
+  /// No description provided for @yearInReviewShareStreakLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'longest streak'**
+  String get yearInReviewShareStreakLabel;
+
+  /// No description provided for @yearInReviewShareWeekdayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'most regular day'**
+  String get yearInReviewShareWeekdayLabel;
+
+  /// No description provided for @yearInReviewShareMonthLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'best month'**
+  String get yearInReviewShareMonthLabel;
+
+  /// No description provided for @yearInReviewShareHabitLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'habit kept best'**
+  String get yearInReviewShareHabitLabel;
+
+  /// No description provided for @yearInReviewShareAchievementsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{achievement unlocked} other{achievements unlocked}}'**
+  String yearInReviewShareAchievementsLabel(int count);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

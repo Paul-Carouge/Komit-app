@@ -102,6 +102,7 @@ abstract final class KomitIcons {
   static const IconData salad = IconData(0xe3a8, fontFamily: _fontFamily);
   static const IconData scrollText = IconData(0xe45f, fontFamily: _fontFamily);
   static const IconData settings = IconData(0xe154, fontFamily: _fontFamily);
+  static const IconData share2 = IconData(0xe156, fontFamily: _fontFamily);
   static const IconData shieldCheck = IconData(0xe1ff, fontFamily: _fontFamily);
   static const IconData showerHead = IconData(0xe37c, fontFamily: _fontFamily);
   static const IconData smartphone = IconData(0xe163, fontFamily: _fontFamily);

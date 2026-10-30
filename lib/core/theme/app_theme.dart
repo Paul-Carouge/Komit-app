@@ -398,7 +398,10 @@ ThemeData _buildTheme({
     extensions: [komitColors],
     textTheme: textTheme,
     splashFactory: InkSparkle.splashFactory,
-    actionIconTheme: ActionIconThemeData(backButtonIconBuilder: (context) => const Icon(KomitIcons.chevronLeft)),
+    actionIconTheme: ActionIconThemeData(
+      backButtonIconBuilder: (context) => const Icon(KomitIcons.chevronLeft),
+      closeButtonIconBuilder: (context) => const Icon(KomitIcons.x),
+    ),
     pageTransitionsTheme: PageTransitionsTheme(
       builders: {
         // Matches Android 14+ predictive back; the fallback fade uses the page color, not black.

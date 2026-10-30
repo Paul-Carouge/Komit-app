@@ -255,46 +255,12 @@ class _OnboardingTopBar extends StatelessWidget {
         children: [
           if (onBackPressed != null) BackButton(onPressed: onBackPressed),
           const Spacer(),
-          _StepIndicator(currentStepIndex: step.index, stepCount: _OnboardingStep.values.length),
-        ],
-      ),
-    );
-  }
-}
-
-/// Progress drawn as day cells: done and current steps are filled with amber, like logged days.
-class _StepIndicator extends StatelessWidget {
-  const _StepIndicator({required this.currentStepIndex, required this.stepCount});
-
-  final int currentStepIndex;
-  final int stepCount;
-
-  static const double _cellSize = 10;
-  static const double _currentCellWidth = 28;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final komitColors = KomitColors.of(context);
-    final duration = motionAwareDuration(context, AppDurations.standard);
-    return Semantics(
-      label: AppLocalizations.of(context).onboardingStepProgress(currentStepIndex + 1, stepCount),
-      excludeSemantics: true,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (var stepIndex = 0; stepIndex < stepCount; stepIndex++)
-            AnimatedContainer(
-              duration: duration,
-              curve: AppCurves.emphasized,
-              margin: const EdgeInsets.only(left: AppSpacing.extraSmall),
-              width: stepIndex == currentStepIndex ? _currentCellWidth : _cellSize,
-              height: _cellSize,
-              decoration: BoxDecoration(
-                color: stepIndex <= currentStepIndex ? colorScheme.primary : komitColors.emptyCell,
-                borderRadius: BorderRadius.circular(AppRadii.gridCell),
-              ),
-            ),
+          StepProgressCells(
+            currentStepIndex: step.index,
+            stepCount: _OnboardingStep.values.length,
+            semanticLabel: AppLocalizations.of(context)
+                .onboardingStepProgress(step.index + 1, _OnboardingStep.values.length),
+          ),
         ],
       ),
     );

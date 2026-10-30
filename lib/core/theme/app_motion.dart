@@ -38,6 +38,10 @@ abstract final class AppDurations {
   /// Gap between two rows of a staggered entrance; short, so the eighth row lands in about half a second.
   static const Duration entranceStaggerStep = Duration(milliseconds: 40);
 
+  /// One year in review card sliding to the next on a tap: slower than a state change, since
+  /// the whole screen moves.
+  static const Duration storyCard = Duration(milliseconds: 360);
+
   /// A number counting up to its value.
   static const Duration counter = Duration(milliseconds: 720);
 

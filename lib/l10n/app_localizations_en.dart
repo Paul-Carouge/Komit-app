@@ -1278,6 +1278,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Encrypted with AES-256 on this phone. Only your passphrase opens the file, and nobody can recover a forgotten one.';
 
   @override
+  String get privacyYearInReviewImageTitle => 'Year in review image';
+
+  @override
+  String get privacyYearInReviewImageBody =>
+      'It only leaves your phone if you share it, to the app you pick. Without your habit names, unless you show them. Komit deletes it at the next launch.';
+
+  @override
   String get privacyErrorLogTitle => 'Error log';
 
   @override
@@ -1364,4 +1371,198 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get habitEditorKeepEditing => 'Keep editing';
+
+  @override
+  String yearInReviewDashboardTitle(int year) {
+    return 'Your $year in review';
+  }
+
+  @override
+  String get yearInReviewDashboardMessage => 'Komo gathered the best moments of your year.';
+
+  @override
+  String get dismissYearInReview => 'Dismiss the year in review';
+
+  @override
+  String yearInReviewStatisticsRow(int year) {
+    return 'See your $year in review';
+  }
+
+  @override
+  String get yearInReviewNotYet => 'Your year in review opens on December 1.';
+
+  @override
+  String yearInReviewProgress(int currentCard, int cardCount) {
+    return 'Card $currentCard of $cardCount';
+  }
+
+  @override
+  String get yearInReviewPreviousCard => 'Previous card';
+
+  @override
+  String get yearInReviewNextCard => 'Next';
+
+  @override
+  String get yearInReviewStart => 'Start';
+
+  @override
+  String get yearInReviewDone => 'Done';
+
+  @override
+  String get yearInReviewIntroNarration => 'I kept track of your days. Shall we look back together?';
+
+  @override
+  String get yearInReviewIntroLabel => 'Your year with Komit';
+
+  @override
+  String yearInReviewPeriod(String lastDay) {
+    return 'January 1 to $lastDay';
+  }
+
+  @override
+  String get yearInReviewSuccessDaysNarration => 'The days you kept your word:';
+
+  @override
+  String yearInReviewSuccessDaysLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: 'success days', one: 'success day');
+    return '$_temp0';
+  }
+
+  @override
+  String get yearInReviewSuccessDaysCaption => 'At least one habit done on each of them.';
+
+  @override
+  String get yearInReviewStreakNarration => 'Your longest streak:';
+
+  @override
+  String yearInReviewStreakDaysLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: 'days in a row', one: 'day in a row');
+    return '$_temp0';
+  }
+
+  @override
+  String yearInReviewStreakWeeksLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: 'weeks in a row', one: 'week in a row');
+    return '$_temp0';
+  }
+
+  @override
+  String get yearInReviewWeekdayNarration => 'Your most regular day:';
+
+  @override
+  String get yearInReviewWeekdayCaption => 'The day you succeeded most often.';
+
+  @override
+  String get yearInReviewMonthNarration => 'Your best month:';
+
+  @override
+  String get yearInReviewMonthCaption => 'The month you were most regular.';
+
+  @override
+  String get yearInReviewHabitNarration => 'The habit you kept best:';
+
+  @override
+  String yearInReviewHabitCaption(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count success days this year',
+      one: '1 success day this year',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get yearInReviewAchievementsNarration => 'Unlocked this year:';
+
+  @override
+  String yearInReviewAchievementsLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: 'achievements', one: 'achievement');
+    return '$_temp0';
+  }
+
+  @override
+  String get yearInReviewQuietNarration => 'A calm year, and that\'s fine.';
+
+  @override
+  String yearInReviewQuietMessage(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'You succeeded on $count days this year. Each one counts.',
+      one: 'You succeeded on 1 day this year. It counts.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get yearInReviewEmptyNarration => 'Your story starts here.';
+
+  @override
+  String get yearInReviewEmptyMessage => 'No success day yet this year. One is all it takes to begin.';
+
+  @override
+  String yearInReviewOutroNarration(int nextYear) {
+    return 'Thank you for this year. Shall we keep going in $nextYear?';
+  }
+
+  @override
+  String yearInReviewQuietOutroNarration(int nextYear) {
+    return '$nextYear is a blank page. I\'ll be right here.';
+  }
+
+  @override
+  String get yearInReviewShareTitle => 'Share your year';
+
+  @override
+  String get yearInReviewShowHabitNames => 'Show habit names';
+
+  @override
+  String get yearInReviewHabitNamesHidden => 'The image doesn\'t say what you track.';
+
+  @override
+  String get yearInReviewHabitNamesShown => 'Anyone who sees the image will read them.';
+
+  @override
+  String get yearInReviewShareImage => 'Share the image';
+
+  @override
+  String get yearInReviewShareFailed => 'The image couldn\'t be shared. Try again.';
+
+  @override
+  String get yearInReviewSharePreviewWithoutNames => 'Preview of the image to share, without habit names';
+
+  @override
+  String get yearInReviewSharePreviewWithNames => 'Preview of the image to share, with habit names';
+
+  @override
+  String yearInReviewShareHeading(int year) {
+    return 'My $year';
+  }
+
+  @override
+  String get yearInReviewShareSubheading => 'with Komit';
+
+  @override
+  String get yearInReviewShareStreakLabel => 'longest streak';
+
+  @override
+  String get yearInReviewShareWeekdayLabel => 'most regular day';
+
+  @override
+  String get yearInReviewShareMonthLabel => 'best month';
+
+  @override
+  String get yearInReviewShareHabitLabel => 'habit kept best';
+
+  @override
+  String yearInReviewShareAchievementsLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'achievements unlocked',
+      one: 'achievement unlocked',
+    );
+    return '$_temp0';
+  }
 }

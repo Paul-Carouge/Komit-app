@@ -81,6 +81,12 @@ class PrivacyScreen extends StatelessWidget {
                       localizations.privacyEncryptedExportBody,
                     ),
                     (
+                      KomitIcons.share2,
+                      mutedColor,
+                      localizations.privacyYearInReviewImageTitle,
+                      localizations.privacyYearInReviewImageBody,
+                    ),
+                    (
                       KomitIcons.scrollText,
                       mutedColor,
                       localizations.privacyErrorLogTitle,

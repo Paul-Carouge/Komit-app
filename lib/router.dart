@@ -14,6 +14,7 @@ import 'features/onboarding/onboarding_screen.dart';
 import 'features/settings/privacy_screen.dart';
 import 'features/settings/settings_screen.dart';
 import 'features/statistics/habit_statistics_screen.dart';
+import 'features/year_in_review/year_in_review_screen.dart';
 import 'providers.dart';
 
 abstract final class AppRoutes {
@@ -26,6 +27,7 @@ abstract final class AppRoutes {
   static const String archivedHabits = '/archived';
   static const String achievements = '/achievements';
   static const String privacy = '/privacy';
+  static const String yearInReview = '/year-in-review';
 
   static String habitDetails(int habitId) => '/habit/$habitId';
   static String habitEditor(int habitId) => '/habit/$habitId/edit';
@@ -70,6 +72,12 @@ GoRouter buildAppRouter(WidgetRef ref) {
       GoRoute(
         path: AppRoutes.achievements,
         pageBuilder: (context, state) => _materialPage(state, const AchievementsScreen()),
+      ),
+      GoRoute(
+        path: AppRoutes.yearInReview,
+        // A full-screen dialog: it rises from the bottom and closes with a cross, like a story.
+        pageBuilder: (context, state) =>
+            MaterialPage(key: state.pageKey, fullscreenDialog: true, child: const YearInReviewScreen()),
       ),
       GoRoute(
         path: AppRoutes.newHabit,

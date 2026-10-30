@@ -474,6 +474,54 @@ class ColorDot extends StatelessWidget {
   );
 }
 
+/// Progress through a short sequence (onboarding, year in review) drawn as day cells: done and
+/// current steps are filled with the brand orange, like logged days, and the current one is wider.
+class StepProgressCells extends StatelessWidget {
+  const StepProgressCells({
+    required this.currentStepIndex,
+    required this.stepCount,
+    required this.semanticLabel,
+    super.key,
+  });
+
+  final int currentStepIndex;
+  final int stepCount;
+
+  /// Read instead of the cells, e.g. "Step 2 of 3".
+  final String semanticLabel;
+
+  static const double _cellSize = 10;
+  static const double _currentCellWidth = 28;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final komitColors = KomitColors.of(context);
+    final duration = motionAwareDuration(context, AppDurations.standard);
+    return Semantics(
+      label: semanticLabel,
+      excludeSemantics: true,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (var stepIndex = 0; stepIndex < stepCount; stepIndex++)
+            AnimatedContainer(
+              duration: duration,
+              curve: AppCurves.emphasized,
+              margin: const EdgeInsetsDirectional.only(start: AppSpacing.extraSmall),
+              width: stepIndex == currentStepIndex ? _currentCellWidth : _cellSize,
+              height: _cellSize,
+              decoration: BoxDecoration(
+                color: stepIndex <= currentStepIndex ? colorScheme.primary : komitColors.emptyCell,
+                borderRadius: BorderRadius.circular(AppRadii.gridCell),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 /// A section heading with an optional trailing action, which moves under the heading when
 /// both do not fit on one line (long translations, large fonts).
 class SectionTitle extends StatelessWidget {

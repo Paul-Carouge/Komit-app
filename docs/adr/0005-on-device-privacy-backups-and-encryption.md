@@ -37,6 +37,11 @@ comes up for any privacy-focused app.
   govern `dart:io`, which the updater uses. `dart:io` trusts only the system certificate
   store, not user-installed authorities; `app_update_service.dart` follows redirects itself
   and refuses any that leave HTTPS.
+- **The year in review image leaves only when shared.** It is rendered on the phone without
+  habit names unless the user shows them, written to `cache/shared_images/` under a new name
+  for each share (so an earlier grant cannot read a later image), handed to the chosen app
+  through a non-exported `FileProvider` with a read-only grant, and deleted at the next share
+  or launch.
 - **Encrypted exports are optional.** The user may protect an export with a passphrase.
   The file is a JSON envelope `{format: "komit-encrypted", version, kdf, salt, nonce,
   ciphertext}` around the usual v2 backup JSON. The key is derived with

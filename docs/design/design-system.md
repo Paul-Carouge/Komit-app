@@ -58,6 +58,10 @@ One expressive moment per surface:
   static, without the burst. Each celebration id is stored, so it plays once ever.
 - **Komo in headers** moves only on a mood change or a tap, for
   `mascotHeaderAnimationBudget` (2.5 s): it sits next to text and must not pull the eye.
+- **Story cards** (year in review, see [year-in-review.md](year-in-review.md)): Komo stays fixed
+  while full-screen cards slide under it over `storyCard` (360 ms); its line sits in a warm
+  speech bubble. Short sequences (onboarding, year in review) show progress with
+  `StepProgressCells`, drawn as day cells.
 
 Achievements each have their own Lucide icon in a `HabitIconBadge`, tinted by family
 (`AchievementFamilyColors`: beginnings green, streaks orange, perfection yellow, totals

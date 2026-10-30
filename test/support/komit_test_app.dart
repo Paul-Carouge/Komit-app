@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:drift/drift.dart' show driftRuntimeOptions;
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:komit/core/app_logger.dart';
@@ -20,6 +22,7 @@ import 'package:komit/l10n/app_localizations.dart';
 import 'package:komit/providers.dart';
 import 'package:komit/router.dart';
 import 'package:komit/services/app_lock_service.dart';
+import 'package:komit/services/image_share_service.dart';
 import 'package:komit/services/notification_permission_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -158,6 +161,23 @@ class FakeNotificationPermissionService implements NotificationPermissionService
   Future<void> openNotificationSettings() async => settingsOpenCount++;
 }
 
+/// A share sheet that records the images it receives, or fails with [error].
+class FakeImageShareService implements ImageShareService {
+  FakeImageShareService({this.error});
+
+  final Object? error;
+  final List<Uint8List> sharedPngs = [];
+
+  @override
+  bool get isSupported => true;
+
+  @override
+  Future<void> sharePng(Uint8List pngBytes, {required String chooserTitle}) async {
+    if (error case final error?) throw error;
+    sharedPngs.add(pngBytes);
+  }
+}
+
 /// Renders the real router and screens at [location], on a compact phone by default.
 Future<GoRouter> pumpKomitApp(
   WidgetTester tester,
@@ -170,6 +190,7 @@ Future<GoRouter> pumpKomitApp(
   Locale locale = const Locale('en'),
   Size logicalSize = compactPhoneLogicalSize,
   DateTime? now,
+  List<Override> overrides = const [],
 }) async {
   tester.view.devicePixelRatio = _compactPhoneDevicePixelRatio;
   tester.view.physicalSize = logicalSize * _compactPhoneDevicePixelRatio;
@@ -188,6 +209,7 @@ Future<GoRouter> pumpKomitApp(
           notificationPermissionService ?? FakeNotificationPermissionService(),
         ),
         if (appLockService != null) appLockServiceProvider.overrideWithValue(appLockService),
+        ...overrides,
       ],
       child: _KomitTestApp(theme: theme, locale: locale, onRouterCreated: (createdRouter) => router = createdRouter),
     ),

@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/theme/komit_icons.dart';
@@ -14,6 +15,7 @@ import '../../data/repositories/habit_repository.dart';
 import '../../domain/habit_statistics.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
+import '../../router.dart';
 import '../habit_details/streak_cards.dart';
 import '../shared/shared_widgets.dart';
 
@@ -155,7 +157,43 @@ class _StatisticsContent extends StatelessWidget {
               currentMonth: today.year == year ? today.asUtcDate.month : null,
             ),
           ],
+          const _YearInReviewRow(),
         ],
+      ),
+    );
+  }
+}
+
+/// From December 1 to January 15, a way back into the year in review, even once its dashboard
+/// card is dismissed.
+class _YearInReviewRow extends ConsumerWidget {
+  const _YearInReviewRow();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final year = ref.watch(yearInReviewYearProvider);
+    if (year == null) return const SizedBox.shrink();
+    final komitColors = KomitColors.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.extraLarge),
+      child: PressableCard(
+        onTap: () => context.push(AppRoutes.yearInReview),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.large),
+          child: Row(
+            children: [
+              HabitIconBadge(icon: KomitIcons.sparkles, color: komitColors.accentText),
+              const SizedBox(width: AppSpacing.medium),
+              Expanded(
+                child: Text(
+                  AppLocalizations.of(context).yearInReviewStatisticsRow(year),
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              Icon(KomitIcons.chevronRight, color: komitColors.mutedText),
+            ],
+          ),
+        ),
       ),
     );
   }

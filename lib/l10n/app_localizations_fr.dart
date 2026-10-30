@@ -1297,6 +1297,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Chiffrés en AES-256 sur ce téléphone. Seule ta phrase secrète ouvre le fichier, et personne ne peut en retrouver une oubliée.';
 
   @override
+  String get privacyYearInReviewImageTitle => 'Image du bilan de l\'année';
+
+  @override
+  String get privacyYearInReviewImageBody =>
+      'Elle n\'est envoyée que si tu la partages, vers l\'app que tu choisis. Sans le nom de tes habitudes, sauf si tu les affiches. Komit l\'efface au lancement suivant.';
+
+  @override
   String get privacyErrorLogTitle => 'Journal d\'erreurs';
 
   @override
@@ -1392,4 +1399,218 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get habitEditorKeepEditing => 'Continuer à modifier';
+
+  @override
+  String yearInReviewDashboardTitle(int year) {
+    return 'Ton année $year en bref';
+  }
+
+  @override
+  String get yearInReviewDashboardMessage => 'Komo a rassemblé les beaux moments de ton année.';
+
+  @override
+  String get dismissYearInReview => 'Masquer le bilan de l’année';
+
+  @override
+  String yearInReviewStatisticsRow(int year) {
+    return 'Voir ton année $year en bref';
+  }
+
+  @override
+  String get yearInReviewNotYet => 'Ton bilan de l’année arrive le 1er décembre.';
+
+  @override
+  String yearInReviewProgress(int currentCard, int cardCount) {
+    return 'Carte $currentCard sur $cardCount';
+  }
+
+  @override
+  String get yearInReviewPreviousCard => 'Carte précédente';
+
+  @override
+  String get yearInReviewNextCard => 'Suivant';
+
+  @override
+  String get yearInReviewStart => 'C’est parti';
+
+  @override
+  String get yearInReviewDone => 'Terminer';
+
+  @override
+  String get yearInReviewIntroNarration => 'J’ai gardé la trace de tes jours. On regarde ça ensemble ?';
+
+  @override
+  String get yearInReviewIntroLabel => 'Ton année avec Komit';
+
+  @override
+  String yearInReviewPeriod(String lastDay) {
+    return 'Du 1er janvier au $lastDay';
+  }
+
+  @override
+  String get yearInReviewSuccessDaysNarration => 'Les jours où tu as tenu parole :';
+
+  @override
+  String yearInReviewSuccessDaysLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'jours réussis',
+      one: 'jour réussi',
+      zero: 'jour réussi',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get yearInReviewSuccessDaysCaption => 'Au moins une habitude réussie chacun de ces jours.';
+
+  @override
+  String get yearInReviewStreakNarration => 'Ta plus longue série :';
+
+  @override
+  String yearInReviewStreakDaysLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'jours d’affilée',
+      one: 'jour d’affilée',
+      zero: 'jour d’affilée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String yearInReviewStreakWeeksLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'semaines d’affilée',
+      one: 'semaine d’affilée',
+      zero: 'semaine d’affilée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get yearInReviewWeekdayNarration => 'Ton jour le plus régulier :';
+
+  @override
+  String get yearInReviewWeekdayCaption => 'Le jour où tu as le plus souvent réussi.';
+
+  @override
+  String get yearInReviewMonthNarration => 'Ton meilleur mois :';
+
+  @override
+  String get yearInReviewMonthCaption => 'Le mois où tu as été le plus régulier.';
+
+  @override
+  String get yearInReviewHabitNarration => 'L’habitude que tu as le mieux tenue :';
+
+  @override
+  String yearInReviewHabitCaption(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count jours réussis cette année',
+      one: '1 jour réussi cette année',
+      zero: '0 jour réussi cette année',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get yearInReviewAchievementsNarration => 'Débloqués cette année :';
+
+  @override
+  String yearInReviewAchievementsLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: 'succès');
+    return '$_temp0';
+  }
+
+  @override
+  String get yearInReviewQuietNarration => 'Une année calme, et c’est très bien.';
+
+  @override
+  String yearInReviewQuietMessage(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Tu as réussi $count jours cette année. Chacun compte.',
+      one: 'Tu as réussi 1 jour cette année. Il compte.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get yearInReviewEmptyNarration => 'Ton histoire commence ici.';
+
+  @override
+  String get yearInReviewEmptyMessage => 'Pas encore de jour réussi cette année. Un seul suffit pour commencer.';
+
+  @override
+  String yearInReviewOutroNarration(int nextYear) {
+    return 'Merci pour cette année. On continue en $nextYear ?';
+  }
+
+  @override
+  String yearInReviewQuietOutroNarration(int nextYear) {
+    return '$nextYear, c’est une page blanche. Je serai là.';
+  }
+
+  @override
+  String get yearInReviewShareTitle => 'Partage ton année';
+
+  @override
+  String get yearInReviewShowHabitNames => 'Afficher les noms des habitudes';
+
+  @override
+  String get yearInReviewHabitNamesHidden => 'L’image ne dit pas ce que tu suis.';
+
+  @override
+  String get yearInReviewHabitNamesShown => 'Toute personne qui verra l’image les lira.';
+
+  @override
+  String get yearInReviewShareImage => 'Partager l’image';
+
+  @override
+  String get yearInReviewShareFailed => 'L’image n’a pas pu être partagée. Réessaie.';
+
+  @override
+  String get yearInReviewSharePreviewWithoutNames => 'Aperçu de l’image à partager, sans les noms des habitudes';
+
+  @override
+  String get yearInReviewSharePreviewWithNames => 'Aperçu de l’image à partager, avec les noms des habitudes';
+
+  @override
+  String yearInReviewShareHeading(int year) {
+    return 'Mon année $year';
+  }
+
+  @override
+  String get yearInReviewShareSubheading => 'avec Komit';
+
+  @override
+  String get yearInReviewShareStreakLabel => 'plus longue série';
+
+  @override
+  String get yearInReviewShareWeekdayLabel => 'jour le plus régulier';
+
+  @override
+  String get yearInReviewShareMonthLabel => 'meilleur mois';
+
+  @override
+  String get yearInReviewShareHabitLabel => 'habitude la mieux tenue';
+
+  @override
+  String yearInReviewShareAchievementsLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'succès débloqués',
+      one: 'succès débloqué',
+      zero: 'succès débloqué',
+    );
+    return '$_temp0';
+  }
 }

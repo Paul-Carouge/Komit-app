@@ -823,6 +823,8 @@
   "privacyPlainExportBody": "A plain export is a readable file: anyone who opens it can read your habits and notes. Keep it somewhere private.",
   "privacyEncryptedExportTitle": "Exports with a passphrase",
   "privacyEncryptedExportBody": "Encrypted with AES-256 on this phone. Only your passphrase opens the file, and nobody can recover a forgotten one.",
+  "privacyYearInReviewImageTitle": "Year in review image",
+  "privacyYearInReviewImageBody": "It only leaves your phone if you share it, to the app you pick. Without your habit names, unless you show them. Komit deletes it at the next launch.",
   "privacyErrorLogTitle": "Error log",
   "privacyErrorLogBody": "Komit notes its own errors on this phone, without your habit names, notes or first name. It is never sent.",
   "privacyPermissionsTitle": "Permissions",
@@ -868,5 +870,154 @@
   "habitEditorDiscardTitle": "Discard your changes?",
   "habitEditorDiscardMessage": "What you changed on this habit will be lost.",
   "habitEditorDiscardConfirm": "Discard",
-  "habitEditorKeepEditing": "Keep editing"
+  "habitEditorKeepEditing": "Keep editing",
+  "yearInReviewDashboardTitle": "Your {year} in review",
+  "@yearInReviewDashboardTitle": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "yearInReviewDashboardMessage": "Komo gathered the best moments of your year.",
+  "dismissYearInReview": "Dismiss the year in review",
+  "yearInReviewStatisticsRow": "See your {year} in review",
+  "@yearInReviewStatisticsRow": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "yearInReviewNotYet": "Your year in review opens on December 1.",
+  "yearInReviewProgress": "Card {currentCard} of {cardCount}",
+  "@yearInReviewProgress": {
+    "placeholders": {
+      "currentCard": {
+        "type": "int"
+      },
+      "cardCount": {
+        "type": "int"
+      }
+    }
+  },
+  "yearInReviewPreviousCard": "Previous card",
+  "yearInReviewNextCard": "Next",
+  "yearInReviewStart": "Start",
+  "yearInReviewDone": "Done",
+  "yearInReviewIntroNarration": "I kept track of your days. Shall we look back together?",
+  "yearInReviewIntroLabel": "Your year with Komit",
+  "yearInReviewPeriod": "January 1 to {lastDay}",
+  "@yearInReviewPeriod": {
+    "placeholders": {
+      "lastDay": {
+        "type": "String"
+      }
+    }
+  },
+  "yearInReviewSuccessDaysNarration": "The days you kept your word:",
+  "yearInReviewSuccessDaysLabel": "{count, plural, =1{success day} other{success days}}",
+  "@yearInReviewSuccessDaysLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "yearInReviewSuccessDaysCaption": "At least one habit done on each of them.",
+  "yearInReviewStreakNarration": "Your longest streak:",
+  "yearInReviewStreakDaysLabel": "{count, plural, =1{day in a row} other{days in a row}}",
+  "@yearInReviewStreakDaysLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "yearInReviewStreakWeeksLabel": "{count, plural, =1{week in a row} other{weeks in a row}}",
+  "@yearInReviewStreakWeeksLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "yearInReviewWeekdayNarration": "Your most regular day:",
+  "yearInReviewWeekdayCaption": "The day you succeeded most often.",
+  "yearInReviewMonthNarration": "Your best month:",
+  "yearInReviewMonthCaption": "The month you were most regular.",
+  "yearInReviewHabitNarration": "The habit you kept best:",
+  "yearInReviewHabitCaption": "{count, plural, =1{1 success day this year} other{{count} success days this year}}",
+  "@yearInReviewHabitCaption": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "yearInReviewAchievementsNarration": "Unlocked this year:",
+  "yearInReviewAchievementsLabel": "{count, plural, =1{achievement} other{achievements}}",
+  "@yearInReviewAchievementsLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "yearInReviewQuietNarration": "A calm year, and that's fine.",
+  "yearInReviewQuietMessage": "{count, plural, =1{You succeeded on 1 day this year. It counts.} other{You succeeded on {count} days this year. Each one counts.}}",
+  "@yearInReviewQuietMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "yearInReviewEmptyNarration": "Your story starts here.",
+  "yearInReviewEmptyMessage": "No success day yet this year. One is all it takes to begin.",
+  "yearInReviewOutroNarration": "Thank you for this year. Shall we keep going in {nextYear}?",
+  "@yearInReviewOutroNarration": {
+    "placeholders": {
+      "nextYear": {
+        "type": "int"
+      }
+    }
+  },
+  "yearInReviewQuietOutroNarration": "{nextYear} is a blank page. I'll be right here.",
+  "@yearInReviewQuietOutroNarration": {
+    "placeholders": {
+      "nextYear": {
+        "type": "int"
+      }
+    }
+  },
+  "yearInReviewShareTitle": "Share your year",
+  "yearInReviewShowHabitNames": "Show habit names",
+  "yearInReviewHabitNamesHidden": "The image doesn't say what you track.",
+  "yearInReviewHabitNamesShown": "Anyone who sees the image will read them.",
+  "yearInReviewShareImage": "Share the image",
+  "yearInReviewShareFailed": "The image couldn't be shared. Try again.",
+  "yearInReviewSharePreviewWithoutNames": "Preview of the image to share, without habit names",
+  "yearInReviewSharePreviewWithNames": "Preview of the image to share, with habit names",
+  "yearInReviewShareHeading": "My {year}",
+  "@yearInReviewShareHeading": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "yearInReviewShareSubheading": "with Komit",
+  "yearInReviewShareStreakLabel": "longest streak",
+  "yearInReviewShareWeekdayLabel": "most regular day",
+  "yearInReviewShareMonthLabel": "best month",
+  "yearInReviewShareHabitLabel": "habit kept best",
+  "yearInReviewShareAchievementsLabel": "{count, plural, =1{achievement unlocked} other{achievements unlocked}}",
+  "@yearInReviewShareAchievementsLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -14,8 +14,10 @@ import 'domain/habit_history.dart';
 import 'domain/habit_statistics.dart';
 import 'domain/seasons.dart';
 import 'domain/weekly_recap.dart';
+import 'domain/year_in_review.dart';
 import 'services/app_lock_service.dart';
 import 'services/app_update_service.dart';
+import 'services/image_share_service.dart';
 import 'services/automatic_backup_service.dart';
 import 'services/backup_encryption_service.dart';
 import 'services/notification_permission_service.dart';
@@ -51,6 +53,8 @@ final appLockServiceProvider = Provider((ref) => AppLockService());
 /// have just set one up in the system settings.
 final canUseAppLockProvider = FutureProvider((ref) => ref.watch(appLockServiceProvider).canAuthenticate());
 final appUpdateServiceProvider = Provider((ref) => AppUpdateService());
+
+final imageShareServiceProvider = Provider((ref) => ImageShareService());
 final notificationPermissionServiceProvider = Provider(
   (ref) => NotificationPermissionService(ref.watch(reminderSchedulerProvider)),
 );
@@ -217,6 +221,28 @@ final unlockedAchievementsProvider = Provider<Set<Achievement>?>((ref) {
   return computeUnlockedAchievements(histories, today: ref.watch(currentCalendarDayProvider));
 });
 
+/// The year the review is about today, or null outside December 1 to January 15. Cheap, unlike
+/// [yearInReviewProvider], so entry points can watch it without recomputing a year of logs.
+final yearInReviewYearProvider = Provider<int?>((ref) => yearInReviewYearOn(ref.watch(currentCalendarDayProvider)));
+
+/// Whether the review's year holds at least one log, so the dashboard does not invite someone
+/// who just started to read an empty year. A scan of the log days, not the full review.
+final hasLogsInYearInReviewYearProvider = Provider<bool>((ref) {
+  final year = ref.watch(yearInReviewYearProvider);
+  final logsByHabitId = ref.watch(allObjectiveIdByDayByHabitIdProvider).value;
+  if (year == null || logsByHabitId == null) return false;
+  return logsByHabitId.values.any((objectiveIdByDay) => objectiveIdByDay.keys.any((day) => day.year == year));
+});
+
+/// Null outside December 1 to January 15, and while habits or logs load.
+final yearInReviewProvider = Provider<YearInReview?>((ref) {
+  final today = ref.watch(currentCalendarDayProvider);
+  final year = ref.watch(yearInReviewYearProvider);
+  final histories = ref.watch(habitHistoriesProvider);
+  if (year == null || histories == null) return null;
+  return computeYearInReview(histories, year: year, today: today);
+});
+
 final weeklyRecapProvider = Provider<WeeklyRecap?>((ref) {
   final histories = ref.watch(habitHistoriesProvider);
   if (histories == null) return null;
@@ -235,4 +261,18 @@ class DismissedWeeklyRecapWeekController extends Notifier<CalendarDay?> {
 
 final dismissedWeeklyRecapWeekProvider = NotifierProvider<DismissedWeeklyRecapWeekController, CalendarDay?>(
   DismissedWeeklyRecapWeekController.new,
+);
+
+class DismissedYearInReviewYearController extends Notifier<int?> {
+  @override
+  int? build() => ref.watch(settingsRepositoryProvider).readDismissedYearInReviewYear();
+
+  Future<void> dismiss(int year) async {
+    state = year;
+    await ref.read(settingsRepositoryProvider).saveDismissedYearInReviewYear(year);
+  }
+}
+
+final dismissedYearInReviewYearProvider = NotifierProvider<DismissedYearInReviewYearController, int?>(
+  DismissedYearInReviewYearController.new,
 );
