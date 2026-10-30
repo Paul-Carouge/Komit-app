@@ -4,6 +4,15 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
 
 ## [Unreleased]
 
+## [2.5.0] - 2026-10-30
+
+### Added
+- Your year in review, from December 1 to January 15: Komo tells your year in a few cards
+  (success days, longest streak, most regular day, best month, the habit you kept best and
+  the achievements you unlocked). A quiet year gets a short, kind version.
+- Share your year as an image, without your habit names unless you choose to show them.
+- Open it from a card on the home screen, which you can dismiss, or from the statistics.
+
 ## [2.4.0] - 2026-10-30
 
 ### Added

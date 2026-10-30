@@ -11,8 +11,8 @@ Status: `todo`, `in progress`, `done (vX.Y.Z)`.
 |---|------|--------|----------------|
 | 1 | [CI and scripted release](#1-ci-and-scripted-release) | done (tooling) | none (tooling) |
 | 2 | [Audit fixes and on-device update check](#2-audit-fixes-and-on-device-update-check) | done (v2.3.1) | 2.3.1 |
-| 2b | [Update freshness and release notes](#2b-update-freshness-and-release-notes) | in progress | 2.4.0 |
-| 3 | [Year in review](#3-year-in-review) | todo | 2.5.0, before December 1 |
+| 2b | [Update freshness and release notes](#2b-update-freshness-and-release-notes) | done (v2.4.0) | 2.4.0 |
+| 3 | [Year in review](#3-year-in-review) | done (v2.5.0) | 2.5.0, before December 1 |
 | 4 | [Pause and rest days](#4-pause-and-rest-days) | todo | 2.6.0 |
 | 5 | [Quantity habits](#5-quantity-habits) | todo | 3.0.0 if the backup format breaks, else 2.7.0 |
 | 6 | [A note on a logged day](#6-a-note-on-a-logged-day) | todo | minor |
@@ -98,6 +98,18 @@ dependency.
   statistics. Design through the `ux-ui-designer` agent; screen notes in `docs/design/`.
 - States: a year with almost no data gets a short, kind version, not empty numbers.
 
+**Decisions:** "the habit kept longest" is the habit with the most success days in the year
+(the longest streak already has its own card). The review covers January 1 to today in December
+and the whole year in January. The best month and the most regular weekday compare shares of
+successful days, not raw counts, so long months and the weekday that occurs 53 times do not win
+by length; ties go to the earliest. Streaks stop at January 1, except a weekly target, which
+keeps whole ISO weeks. Below seven success days the review is the short version. The dashboard
+card needs at least one log in the year; entry points watch only the year, the full review is
+computed when the screen opens (122 ms for 50 habits over ten years). The share image is a new
+file per share in `cache/shared_images/` behind a non-exported `FileProvider`, deleted at the
+next share or launch; habit names are off by default. Screen notes:
+`docs/design/year-in-review.md`.
+
 ## 4. Pause and rest days
 
 **Why before quantity habits:** both change how a day counts; streaks must handle a paused day
@@ -158,3 +170,8 @@ Record each finished item here: date, version, pull request or commit, and anyth
   HTTPS-only update redirects, PR #3, released with `tool/release.sh`. In-app update from 2.3.0
   confirmed on the owner's phone; the blank recents card on Android 12 or older was not checked
   on a device.
+- 2026-10-30, item 2b, v2.4.0: hourly launch check, rendered release notes, "Welcome to X.Y.Z"
+  after an update, up-to-date status in Settings, release notes template, PR #4.
+- 2026-10-30, item 3, v2.5.0: year in review (story cards, quiet-year version, share image
+  without habit names by default, dashboard card and statistics row), branch
+  `feat/year-in-review`. Not checked on a device: TalkBack on the cards, the real share sheet.

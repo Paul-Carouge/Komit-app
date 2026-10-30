@@ -4,7 +4,8 @@ Private, offline habit tracker in Flutter (Android first). Before any UI work, r
 `docs/design/design-system.md` and follow it: Material 3 Expressive with premium iOS-like
 touches, tokens from `lib/core/theme/` only, shared widgets from
 `lib/features/shared/shared_widgets.dart`, Lucide icons through `KomitIcons`, Komo kept
-minimal. Screen-specific notes: `docs/design/daily-loop.md`, `docs/design/habit-editor.md`.
+minimal. Screen-specific notes: `docs/design/daily-loop.md`, `docs/design/habit-editor.md`,
+`docs/design/year-in-review.md`.
 Architecture decisions: `docs/adr/`.
 
 Roadmap: `docs/ROADMAP.md` lists approved work in delivery order. An iteration takes the first
