@@ -28,9 +28,14 @@ dart run build_runner build
 ## Test
 
 ```sh
+dart format --set-exit-if-changed .
 flutter analyze
 flutter test
+(cd android && ./gradlew :app:testDebugUnitTest)
 ```
+
+GitHub Actions (`.github/workflows/ci.yml`) runs these checks and an unsigned release build on
+every pull request and on `main`; merge only when they are green.
 
 To check the import of a real backup from the original app without committing it
 (it holds personal data):

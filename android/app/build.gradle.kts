@@ -59,7 +59,9 @@ android {
     buildTypes {
         release {
             // In-app updates only install over an APK signed with the same key, so never fall back to debug keys.
-            signingConfig = signingConfigs.getByName("release")
+            // Without key.properties (CI) the APK stays unsigned: it cannot be installed, and tool/release.sh
+            // refuses any APK whose certificate is not the published one.
+            signingConfig = if (releaseSigningProperties.isEmpty) null else signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
         }
