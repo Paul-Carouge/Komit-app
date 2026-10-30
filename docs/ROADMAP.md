@@ -10,7 +10,7 @@ Status: `todo`, `in progress`, `done (vX.Y.Z)`.
 | # | Item | Status | Target version |
 |---|------|--------|----------------|
 | 1 | [CI and scripted release](#1-ci-and-scripted-release) | done (tooling) | none (tooling) |
-| 2 | [Audit fixes and on-device update check](#2-audit-fixes-and-on-device-update-check) | todo | 2.3.1 |
+| 2 | [Audit fixes and on-device update check](#2-audit-fixes-and-on-device-update-check) | in progress | 2.3.1 |
 | 3 | [Year in review](#3-year-in-review) | todo | 2.4.0, before December 1 |
 | 4 | [Pause and rest days](#4-pause-and-rest-days) | todo | 2.5.0 |
 | 5 | [Quantity habits](#5-quantity-habits) | todo | 3.0.0 if the backup format breaks, else 2.6.0 |
@@ -55,6 +55,12 @@ From the 2.3.0 security audit.
   `dart:io` traffic; optionally refuse non-https redirects in `app_update_service.dart`.
 - Release 2.3.1 with the script from item 1, and check on a real phone that 2.3.0 finds,
   downloads, verifies and installs it. Note the result here.
+
+**Decisions:** Dart sends both window settings in one `applyWindowProtections` call and
+`windowProtectionsFor` in `AppLock.kt` picks the flags, so "Hide from screenshots" turned off
+can no longer clear the `FLAG_SECURE` the lock needs below Android 13. The updater follows
+redirects itself (`httpsRedirectTarget`) and refuses any that leave HTTPS, for the release
+check and the APK download. ADR 0005 got a correction note instead of a new ADR.
 
 ## 3. Year in review
 

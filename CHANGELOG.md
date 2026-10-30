@@ -4,6 +4,14 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
 
 ## [Unreleased]
 
+## [2.3.1] - 2026-10-30
+
+### Fixed
+- With the app lock on, Android 12 and older no longer show your habits in the recent
+  apps preview. On those versions the lock also blocks screenshots while it is on.
+- Updates are only downloaded over secure connections, even if a server redirects
+  elsewhere.
+
 ## [2.3.0] - 2026-10-30
 
 ### Added
