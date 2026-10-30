@@ -50,6 +50,16 @@
                 android:name="android.app.shortcuts"
                 android:resource="@xml/shortcuts" />
         </activity>
+        <!-- Serves only the image the user chose to share (res/xml/file_paths.xml). -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.files"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
         <!-- The "Today" home-screen widget. Not exported: the system delivers widget updates
              anyway, and only Komit's own pending intents may ask it to log a habit. -->
         <receiver

@@ -28,6 +28,7 @@ class MainActivity : FlutterActivity() {
     private val backgroundExecutor = Executors.newSingleThreadExecutor()
     private var launchDestinationChannel: MethodChannel? = null
     private val appLock = AppLock(this)
+    private val imageShare = ImageShare(this)
 
     /** Taken once by Dart, so a configuration change never opens the same screen again. */
     private var initialLaunchDestination: LaunchDestination? = null
@@ -98,6 +99,9 @@ class MainActivity : FlutterActivity() {
                 }
             }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, APP_LOCK_CHANNEL).setMethodCallHandler(appLock::handle)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, IMAGE_SHARE_CHANNEL).setMethodCallHandler(imageShare::handle)
+        // A shared image may show habit names: never keep it past the next launch.
+        backgroundExecutor.execute { deleteSharedImages(cacheDir) }
         initialLaunchDestination = intent.launchDestination()
         launchDestinationChannel =
             MethodChannel(flutterEngine.dartExecutor.binaryMessenger, LAUNCH_DESTINATION_CHANNEL).apply {
