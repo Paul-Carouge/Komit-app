@@ -4,6 +4,18 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-10-30
+
+### Added
+- After an update, Komit shows once what the new version brings.
+- Settings show when Komit last confirmed it is up to date.
+
+### Changed
+- Komit looks for a new version each time you open it, at most once an hour, instead of
+  once a day.
+- The update window shows the release notes with titles, lists and bold text instead of
+  raw symbols.
+
 ## [2.3.1] - 2026-10-30
 
 ### Fixed

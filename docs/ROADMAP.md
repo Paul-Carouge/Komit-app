@@ -10,10 +10,11 @@ Status: `todo`, `in progress`, `done (vX.Y.Z)`.
 | # | Item | Status | Target version |
 |---|------|--------|----------------|
 | 1 | [CI and scripted release](#1-ci-and-scripted-release) | done (tooling) | none (tooling) |
-| 2 | [Audit fixes and on-device update check](#2-audit-fixes-and-on-device-update-check) | in progress | 2.3.1 |
-| 3 | [Year in review](#3-year-in-review) | todo | 2.4.0, before December 1 |
-| 4 | [Pause and rest days](#4-pause-and-rest-days) | todo | 2.5.0 |
-| 5 | [Quantity habits](#5-quantity-habits) | todo | 3.0.0 if the backup format breaks, else 2.6.0 |
+| 2 | [Audit fixes and on-device update check](#2-audit-fixes-and-on-device-update-check) | in progress (released, phone check pending) | 2.3.1 |
+| 2b | [Update freshness and release notes](#2b-update-freshness-and-release-notes) | in progress | 2.4.0 |
+| 3 | [Year in review](#3-year-in-review) | todo | 2.5.0, before December 1 |
+| 4 | [Pause and rest days](#4-pause-and-rest-days) | todo | 2.6.0 |
+| 5 | [Quantity habits](#5-quantity-habits) | todo | 3.0.0 if the backup format breaks, else 2.7.0 |
 | 6 | [A note on a logged day](#6-a-note-on-a-logged-day) | todo | minor |
 | 7 | [Finer reminders](#7-finer-reminders) | todo | minor |
 | 8 | [Per-habit widget](#8-per-habit-widget) | todo | minor |
@@ -61,6 +62,24 @@ From the 2.3.0 security audit.
 can no longer clear the `FLAG_SECURE` the lock needs below Android 13. The updater follows
 redirects itself (`httpsRedirectTarget`) and refuses any that leave HTTPS, for the release
 check and the APK download. ADR 0005 got a correction note instead of a new ADR.
+
+## 2b. Update freshness and release notes
+
+Approved on 2026-10-30, before the year in review, so users always know their app is up to date.
+
+- Check for a new version at each launch, at most once an hour (was once a day), still only
+  while the automatic check is on. Privacy screen, setting, README and ADR 0005 say so.
+- Render the release notes (headings, bullets, **bold**) in the update dialog; links and
+  HTML stay literal text.
+- After an update installed from Komit, show once what the version brings ("Welcome to X.Y.Z").
+- Settings show "Up to date · checked today at 14:32" after a check found nothing newer.
+- A release notes template (`tool/release-notes-template.md`) that `tool/release.sh` checks.
+
+**Decisions:** one hour rather than every launch, so opening and closing Komit in a row does
+not hit GitHub each time. The notes shown after an update are the ones saved when the user
+accepted it, so the first launch needs no network; they are dropped when another version was
+installed meanwhile. The rendering is a small parser in `release_notes.dart`, not a Markdown
+dependency.
 
 ## 3. Year in review
 
