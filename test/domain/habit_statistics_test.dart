@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:komit/core/calendar_day.dart';
+import 'package:komit/domain/habit_pause.dart';
 import 'package:komit/domain/habit_schedule.dart';
 import 'package:komit/domain/habit_statistics.dart';
 
@@ -149,6 +150,119 @@ void main() {
         monday.addDays(-5): skippedObjectiveId,
       };
       expect(scheduledStreakOf(logs, targetDaysPerWeek: 3).bestStreakLength, 0);
+    });
+  });
+
+  group('pauses and rest days (docs/adr/0007)', () {
+    // 2026-03-10 is a Tuesday; 2026-03-02 and 2026-03-09 are Mondays.
+    final lastMonday = CalendarDay.fromDate(2026, 3, 2);
+    Map<CalendarDay, int> successOn(Iterable<CalendarDay> days) => {for (final day in days) day: successObjectiveId};
+
+    StreakSummary streakWith(
+      Map<CalendarDay, int> objectiveIdByDay, {
+      List<HabitPause> pauses = const [],
+      int restDaysPerWeek = 0,
+      int? targetDaysPerWeek,
+      int scheduledWeekdayMask = everyWeekdayMask,
+      CalendarDay? onDay,
+    }) => computeScheduledStreakSummary(
+      objectiveIdByDay,
+      successObjectiveIds: successObjectiveIds,
+      scheduledWeekdayMask: scheduledWeekdayMask,
+      targetDaysPerWeek: targetDaysPerWeek,
+      today: onDay ?? today,
+      pauses: pauses,
+      restDaysPerWeek: restDaysPerWeek,
+    );
+
+    test('paused days neither break nor extend a daily streak, even when logged', () {
+      // Successes 9 to 7 days ago and 2 to 0 days ago; paused from 6 to 3 days ago, one of them logged.
+      final logs = successBeforeToday([9, 8, 7, 4, 2, 1, 0]);
+      final pause = HabitPause(startDay: today.addDays(-6), endDay: today.addDays(-3));
+
+      final withoutPause = streakWith(logs);
+      expect((withoutPause.currentStreakLength, withoutPause.bestStreakLength), (3, 3));
+
+      final withPause = streakWith(logs, pauses: [pause]);
+      expect((withPause.currentStreakLength, withPause.bestStreakLength), (6, 6));
+    });
+
+    test('an open pause keeps the streak as it was when the pause started', () {
+      final logs = successBeforeToday([5, 4, 3]);
+      final streak = streakWith(logs, pauses: [HabitPause(startDay: today.addDays(-2))]);
+      expect((streak.currentStreakLength, streak.bestStreakLength), (3, 3));
+    });
+
+    test('rest days forgive missed days up to the allowance in each ISO week', () {
+      // Last week: Monday to Sunday with Wednesday and Friday missed. This week: Monday, today.
+      final missed = {lastMonday.addDays(2), lastMonday.addDays(4)};
+      final logs = successOn([
+        for (var offset = 0; offset < 9; offset++)
+          if (!missed.contains(lastMonday.addDays(offset))) lastMonday.addDays(offset),
+      ]);
+
+      final oneRestDay = streakWith(logs, restDaysPerWeek: 1);
+      expect(oneRestDay.currentStreakLength, 4, reason: 'the second miss of the week breaks it');
+
+      final twoRestDays = streakWith(logs, restDaysPerWeek: 2);
+      expect(twoRestDays.currentStreakLength, 7, reason: 'rest days neither break nor count');
+      expect(twoRestDays.bestStreakLength, 7);
+    });
+
+    test('the allowance starts again each week', () {
+      // One miss on Sunday of last week and one on Monday of this week: one rest day per week covers both.
+      final logs = successOn([
+        for (var offset = 0; offset < 9; offset++)
+          if (offset != 6 && offset != 7) lastMonday.addDays(offset),
+      ]);
+      expect(streakWith(logs, restDaysPerWeek: 1).currentStreakLength, 7);
+    });
+
+    test('an unmet week holding a paused day is neutral for a weekly target', () {
+      final weekBefore = lastMonday.addDays(-7);
+      // Three successes the week before, one last week (paused from Thursday), three this week so far.
+      final logs = successOn([
+        weekBefore,
+        weekBefore.addDays(1),
+        weekBefore.addDays(2),
+        lastMonday,
+        today.addDays(-1),
+        today,
+      ]);
+
+      final unpaused = streakWith(logs, targetDaysPerWeek: 2);
+      expect((unpaused.currentStreakLength, unpaused.bestStreakLength), (1, 1));
+
+      final paused = streakWith(
+        logs,
+        targetDaysPerWeek: 2,
+        pauses: [HabitPause(startDay: lastMonday.addDays(3), endDay: lastMonday.addDays(6))],
+      );
+      expect((paused.currentStreakLength, paused.bestStreakLength, paused.unit), (2, 2, StreakUnit.weeks));
+    });
+
+    test('successes on paused days do not count toward a weekly target', () {
+      final logs = successOn([lastMonday, lastMonday.addDays(1)]);
+      final streak = streakWith(
+        logs,
+        targetDaysPerWeek: 2,
+        pauses: [HabitPause(startDay: lastMonday.addDays(1), endDay: lastMonday.addDays(1))],
+        onDay: lastMonday.addDays(6),
+      );
+      expect(streak.bestStreakLength, 0);
+    });
+
+    test('the success rate leaves paused days out', () {
+      final logs = successBeforeToday([0, 1]);
+      final rate = computeSuccessRate(
+        logs,
+        successObjectiveIds: successObjectiveIds,
+        scheduledWeekdayMask: everyWeekdayMask,
+        firstDay: today.addDays(-3),
+        today: today,
+        pauses: [HabitPause(startDay: today.addDays(-3), endDay: today.addDays(-2))],
+      );
+      expect(rate, 1);
     });
   });
 

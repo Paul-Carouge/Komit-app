@@ -117,6 +117,8 @@ YearInReview computeYearInReview(List<HabitHistory> histories, {required int yea
       scheduledWeekdayMask: history.scheduledWeekdayMask,
       targetDaysPerWeek: history.targetDaysPerWeek,
       today: history.targetDaysPerWeek == null ? lastDay : weeklyLastDay,
+      pauses: history.pauses,
+      restDaysPerWeek: history.restDaysPerWeek,
     );
     if (streak.bestStreakLength > 0 && _lengthInDays(streak) > _yearStreakLengthInDays(longestStreak)) {
       longestStreak = YearStreak(habitId: history.habitId, length: streak.bestStreakLength, unit: streak.unit);

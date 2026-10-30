@@ -1,4 +1,5 @@
 import '../core/calendar_day.dart';
+import 'habit_pause.dart';
 import 'habit_schedule.dart';
 import 'habit_statistics.dart';
 
@@ -13,6 +14,8 @@ class HabitHistory {
     this.scheduledWeekdayMask = everyWeekdayMask,
     this.targetDaysPerWeek,
     this.archivedDay,
+    this.pauses = const [],
+    this.restDaysPerWeek = 0,
   });
 
   final int habitId;
@@ -28,9 +31,17 @@ class HabitHistory {
   /// Null while the habit is active.
   final CalendarDay? archivedDay;
 
+  /// Paused days count like days off the schedule (docs/adr/0007).
+  final List<HabitPause> pauses;
+
+  /// Missed scheduled days per ISO week that do not break the streak.
+  final int restDaysPerWeek;
+
   bool isSuccessOn(CalendarDay day) => successObjectiveIds.contains(objectiveIdByDay[day]);
 
-  bool isScheduledOn(CalendarDay day) => isWeekdayScheduled(scheduledWeekdayMask, day.weekday);
+  /// Whether the habit asks for a log on [day]: on its schedule and not paused.
+  bool isScheduledOn(CalendarDay day) =>
+      isWeekdayScheduled(scheduledWeekdayMask, day.weekday) && !isPausedOn(pauses, day);
 
   /// The streak as it stood at the end of [day].
   StreakSummary streakSummaryOn(CalendarDay day) => computeScheduledStreakSummary(
@@ -39,6 +50,8 @@ class HabitHistory {
     scheduledWeekdayMask: scheduledWeekdayMask,
     targetDaysPerWeek: targetDaysPerWeek,
     today: day,
+    pauses: pauses,
+    restDaysPerWeek: restDaysPerWeek,
   );
 
   /// Success days the habit asks for in the week starting on [monday]: its weekly target, or
@@ -70,5 +83,7 @@ class HabitHistory {
     scheduledWeekdayMask: scheduledWeekdayMask,
     targetDaysPerWeek: targetDaysPerWeek,
     archivedDay: archivedDay,
+    pauses: pauses,
+    restDaysPerWeek: restDaysPerWeek,
   );
 }
