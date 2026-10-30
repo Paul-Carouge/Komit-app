@@ -10,7 +10,7 @@ Status: `todo`, `in progress`, `done (vX.Y.Z)`.
 | # | Item | Status | Target version |
 |---|------|--------|----------------|
 | 1 | [CI and scripted release](#1-ci-and-scripted-release) | done (tooling) | none (tooling) |
-| 2 | [Audit fixes and on-device update check](#2-audit-fixes-and-on-device-update-check) | in progress (released, phone check pending) | 2.3.1 |
+| 2 | [Audit fixes and on-device update check](#2-audit-fixes-and-on-device-update-check) | done (v2.3.1) | 2.3.1 |
 | 2b | [Update freshness and release notes](#2b-update-freshness-and-release-notes) | in progress | 2.4.0 |
 | 3 | [Year in review](#3-year-in-review) | todo | 2.5.0, before December 1 |
 | 4 | [Pause and rest days](#4-pause-and-rest-days) | todo | 2.6.0 |
@@ -57,6 +57,9 @@ From the 2.3.0 security audit.
 - Release 2.3.1 with the script from item 1, and check on a real phone that 2.3.0 finds,
   downloads, verifies and installs it. Note the result here.
 
+**Result (2026-10-30):** the owner's phone found, downloaded, verified and installed 2.3.1 from
+2.3.0 through the in-app updater.
+
 **Decisions:** Dart sends both window settings in one `applyWindowProtections` call and
 `windowProtectionsFor` in `AppLock.kt` picks the flags, so "Hide from screenshots" turned off
 can no longer clear the `FLAG_SECURE` the lock needs below Android 13. The updater follows
@@ -68,7 +71,7 @@ check and the APK download. ADR 0005 got a correction note instead of a new ADR.
 Approved on 2026-10-30, before the year in review, so users always know their app is up to date.
 
 - Check for a new version at each launch, at most once an hour (was once a day), still only
-  while the automatic check is on. Privacy screen, setting, README and ADR 0005 say so.
+  while the automatic check is on. Privacy screen, setting, README and ADR 0002 say so.
 - Render the release notes (headings, bullets, **bold**) in the update dialog; links and
   HTML stay literal text.
 - After an update installed from Komit, show once what the version brings ("Welcome to X.Y.Z").
@@ -151,3 +154,7 @@ Record each finished item here: date, version, pull request or commit, and anyth
 
 - 2026-10-30, item 1, no app version: CI workflow and `tool/release.sh`, branch
   `chore/ci-and-scripted-release`. The script's first real run is the 2.3.1 release (item 2).
+- 2026-10-30, item 2, v2.3.1: `FLAG_SECURE` for the locked recents card below Android 13 and
+  HTTPS-only update redirects, PR #3, released with `tool/release.sh`. In-app update from 2.3.0
+  confirmed on the owner's phone; the blank recents card on Android 12 or older was not checked
+  on a device.
