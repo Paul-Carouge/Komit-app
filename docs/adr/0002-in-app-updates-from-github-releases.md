@@ -14,7 +14,9 @@ GitHub token inside the APK, where anyone could extract it.
   with one arm64 APK asset. The release body is the changelog shown in the app.
 - At launch (once per process) and on demand, the app reads
   `/repos/Paul-Carouge/Komit-app/releases/latest`, compares the tag to the installed
-  `versionName`, and offers the update.
+  `versionName`, and offers the update. Since 2.4.0 the automatic check runs at most once an
+  hour (it was once a day), and the release body is rendered as headings, bullets and bold
+  text only; it is shown again once after the update installs.
 - The APK is downloaded to the app cache, its SHA-256 is checked natively against the
   asset digest published by GitHub, then installed with a `PackageInstaller` session.
 - Android itself refuses an update signed with a different key, which is the real

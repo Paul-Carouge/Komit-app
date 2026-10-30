@@ -92,6 +92,12 @@ class SettingsController extends Notifier<AppSettings> {
     state = _repository.readSettings();
   }
 
+  /// [upToDateAt] is null when the check found a newer version.
+  Future<void> recordUpdateCheckResult({required DateTime? upToDateAt}) async {
+    await _repository.saveLastUpToDateCheckAt(upToDateAt);
+    state = _repository.readSettings();
+  }
+
   Future<void> updateAppLockEnabled({required bool isEnabled}) async {
     await _repository.saveAppLockEnabled(isEnabled: isEnabled);
     state = _repository.readSettings();

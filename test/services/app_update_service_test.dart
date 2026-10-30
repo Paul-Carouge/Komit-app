@@ -30,17 +30,14 @@ void main() {
       settingsRepository = SettingsRepository(await SharedPreferences.getInstance());
     });
 
-    test('runs once, then not again until 24 hours have passed', () async {
+    test('runs once, then not again until an hour has passed', () async {
       expect(await claimAutomaticUpdateCheck(settingsRepository, now: firstLaunch), isTrue);
       expect(
-        await claimAutomaticUpdateCheck(
-          settingsRepository,
-          now: firstLaunch.add(const Duration(hours: 23, minutes: 59)),
-        ),
+        await claimAutomaticUpdateCheck(settingsRepository, now: firstLaunch.add(const Duration(minutes: 59))),
         isFalse,
       );
       expect(
-        await claimAutomaticUpdateCheck(settingsRepository, now: firstLaunch.add(const Duration(hours: 24))),
+        await claimAutomaticUpdateCheck(settingsRepository, now: firstLaunch.add(const Duration(hours: 1))),
         isTrue,
       );
     });
@@ -99,6 +96,27 @@ void main() {
         () => parseLatestRelease(jsonEncode({'tag_name': 'v1.1.0', 'assets': <Object?>[]})),
         throwsA(isA<AppUpdateException>()),
       );
+    });
+  });
+
+  group('pendingUpdateOutcome', () {
+    test('shows what is new once the pending version runs, ignoring build suffixes', () {
+      expect(
+        pendingUpdateOutcome(pendingVersion: '2.4.0', installedVersion: '2.4.0'),
+        PendingUpdateOutcome.showWhatsNew,
+      );
+      expect(
+        pendingUpdateOutcome(pendingVersion: '2.4.0', installedVersion: '2.4.0+6'),
+        PendingUpdateOutcome.showWhatsNew,
+      );
+    });
+
+    test('keeps waiting while an older version still runs, and drops notes a newer one replaced', () {
+      expect(
+        pendingUpdateOutcome(pendingVersion: '2.4.0', installedVersion: '2.3.1'),
+        PendingUpdateOutcome.keepWaiting,
+      );
+      expect(pendingUpdateOutcome(pendingVersion: '2.4.0', installedVersion: '2.5.0'), PendingUpdateOutcome.discard);
     });
   });
 

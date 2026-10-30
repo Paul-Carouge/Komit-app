@@ -11,6 +11,7 @@ class AppSettings {
     required this.languageCode,
     required this.isAutomaticUpdateCheckEnabled,
     required this.lastExportAt,
+    required this.lastUpToDateCheckAt,
     required this.isAppLockEnabled,
     required this.isScreenContentHidden,
   });
@@ -22,11 +23,14 @@ class AppSettings {
   /// Null follows the device language.
   final String? languageCode;
 
-  /// Whether Komit asks GitHub for a new version on its own, at most once a day.
+  /// Whether Komit asks GitHub for a new version on its own at launch, at most once an hour.
   final bool isAutomaticUpdateCheckEnabled;
 
   /// When the user last saved an export file; null if never.
   final DateTime? lastExportAt;
+
+  /// When a check last found no newer version; null if never, or once a check found one.
+  final DateTime? lastUpToDateCheckAt;
 
   /// Komit asks for a fingerprint, face or the screen lock at launch and after a while away.
   final bool isAppLockEnabled;
@@ -49,6 +53,9 @@ class SettingsRepository {
   static const String _isAutomaticUpdateCheckEnabledKey = 'automatic_update_check_enabled';
   static const String _lastAutomaticUpdateCheckAtKey = 'last_automatic_update_check_at';
   static const String _lastExportAtKey = 'last_export_at';
+  static const String _lastUpToDateCheckAtKey = 'last_up_to_date_check_at';
+  static const String _pendingUpdateVersionKey = 'pending_update_version';
+  static const String _pendingUpdateReleaseNotesKey = 'pending_update_release_notes';
   static const String _isAppLockEnabledKey = 'app_lock_enabled';
   static const String _isScreenContentHiddenKey = 'screen_content_hidden';
 
@@ -59,6 +66,7 @@ class SettingsRepository {
     languageCode: _preferences.getString(_languageCodeKey),
     isAutomaticUpdateCheckEnabled: _preferences.getBool(_isAutomaticUpdateCheckEnabledKey) ?? true,
     lastExportAt: _readDateTime(_lastExportAtKey),
+    lastUpToDateCheckAt: _readDateTime(_lastUpToDateCheckAtKey),
     isAppLockEnabled: _preferences.getBool(_isAppLockEnabledKey) ?? false,
     isScreenContentHidden: _preferences.getBool(_isScreenContentHiddenKey) ?? false,
   );
@@ -102,6 +110,28 @@ class SettingsRepository {
 
   Future<void> saveLastAutomaticUpdateCheckAt(DateTime checkedAt) =>
       _preferences.setInt(_lastAutomaticUpdateCheckAtKey, checkedAt.millisecondsSinceEpoch);
+
+  /// Null clears it: a newer version exists, so Komit is no longer up to date.
+  Future<void> saveLastUpToDateCheckAt(DateTime? checkedAt) => checkedAt == null
+      ? _preferences.remove(_lastUpToDateCheckAtKey)
+      : _preferences.setInt(_lastUpToDateCheckAtKey, checkedAt.millisecondsSinceEpoch);
+
+  /// The update being installed, kept so the next launch can show what it brings.
+  ({String version, String releaseNotes})? readPendingUpdate() {
+    final version = _preferences.getString(_pendingUpdateVersionKey);
+    final releaseNotes = _preferences.getString(_pendingUpdateReleaseNotesKey);
+    return version == null || releaseNotes == null ? null : (version: version, releaseNotes: releaseNotes);
+  }
+
+  Future<void> savePendingUpdate({required String version, required String releaseNotes}) async {
+    await _preferences.setString(_pendingUpdateVersionKey, version);
+    await _preferences.setString(_pendingUpdateReleaseNotesKey, releaseNotes);
+  }
+
+  Future<void> clearPendingUpdate() async {
+    await _preferences.remove(_pendingUpdateVersionKey);
+    await _preferences.remove(_pendingUpdateReleaseNotesKey);
+  }
 
   Future<void> saveLastExportAt(DateTime exportedAt) =>
       _preferences.setInt(_lastExportAtKey, exportedAt.millisecondsSinceEpoch);

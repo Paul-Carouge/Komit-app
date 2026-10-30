@@ -13,9 +13,9 @@ const String _latestReleaseApiUrl = 'https://api.github.com/repos/Paul-Carouge/K
 const MethodChannel _appUpdateChannel = MethodChannel('com.paulcarouge.komit/app_update');
 const Duration _networkTimeout = Duration(seconds: 20);
 
-/// The automatic check runs at most this often, so GitHub sees the device's IP address at
-/// most once a day however often Komit is opened.
-const Duration minimumIntervalBetweenAutomaticUpdateChecks = Duration(hours: 24);
+/// The automatic check runs at each launch but at most this often, so reopening Komit several
+/// times in a row does not ask GitHub (which sees the device's IP address) each time.
+const Duration minimumIntervalBetweenAutomaticUpdateChecks = Duration(hours: 1);
 
 /// dart:io's own default; GitHub's APK download takes one redirect to its file host.
 const int _maximumRedirectCount = 5;
@@ -271,6 +271,24 @@ AvailableUpdate parseLatestRelease(String jsonText) {
     }
   }
   throw const AppUpdateException(AppUpdateFailureReason.invalidRelease, 'No APK in the latest release');
+}
+
+enum PendingUpdateOutcome {
+  /// The pending update is the version now running: show what it brings, once.
+  showWhatsNew,
+
+  /// The install was cancelled or is still running; the user may accept it later.
+  keepWaiting,
+
+  /// A newer version was installed some other way: the pending notes are stale.
+  discard,
+}
+
+PendingUpdateOutcome pendingUpdateOutcome({required String pendingVersion, required String installedVersion}) {
+  if (isVersionNewer(pendingVersion, than: installedVersion)) return PendingUpdateOutcome.keepWaiting;
+  return isVersionNewer(installedVersion, than: pendingVersion)
+      ? PendingUpdateOutcome.discard
+      : PendingUpdateOutcome.showWhatsNew;
 }
 
 /// Compares `major.minor.patch` versions; any build suffix (`+3`, `-beta`) is ignored.

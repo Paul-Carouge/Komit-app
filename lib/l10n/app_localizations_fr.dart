@@ -327,6 +327,27 @@ class AppLocalizationsFr extends AppLocalizations {
   String get whatsNew => 'Nouveautés';
 
   @override
+  String whatsNewTitle(String version) {
+    return 'Bienvenue dans la $version';
+  }
+
+  @override
+  String get whatsNewMessage => 'Komit est à jour. Voici ce qui change :';
+
+  @override
+  String get whatsNewDismiss => 'C\'est parti';
+
+  @override
+  String upToDateCheckedToday(String time) {
+    return 'À jour · vérifié aujourd\'hui à $time';
+  }
+
+  @override
+  String upToDateCheckedOn(String date) {
+    return 'À jour · vérifié le $date';
+  }
+
+  @override
   String get later => 'Plus tard';
 
   @override
@@ -1080,7 +1101,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get checkForUpdatesAutomaticallyDescription =>
-      'Une fois par jour au plus, en demandant la dernière version à GitHub.';
+      'À chaque ouverture, une fois par heure au plus, en demandant la dernière version à GitHub.';
 
   @override
   String get restoreAutomaticBackup => 'Restaurer une sauvegarde automatique';
@@ -1237,7 +1258,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get privacyUpdateCheckBody =>
-      'Une fois par jour au plus, Komit demande sa dernière version à GitHub, qui voit alors ton adresse IP. Une mise à jour acceptée est aussi téléchargée depuis GitHub. Désactive la recherche automatique dans les Réglages, rubrique Mises à jour.';
+      'Quand tu ouvres Komit, une fois par heure au plus, il demande sa dernière version à GitHub, qui voit alors ton adresse IP. Une mise à jour acceptée est aussi téléchargée depuis GitHub. Désactive la recherche automatique dans les Réglages, rubrique Mises à jour.';
 
   @override
   String get privacyNoTrackingTitle => 'Aucun pistage';

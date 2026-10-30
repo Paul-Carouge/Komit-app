@@ -12,15 +12,18 @@ import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
 import '../../services/app_update_service.dart';
 import '../../services/automatic_backup_service.dart';
+import '../mascot/komo_mascot.dart';
 import '../shared/shared_widgets.dart';
+import 'release_notes.dart';
 
 final installedVersionProvider = FutureProvider<String?>((ref) async {
   final updateService = ref.watch(appUpdateServiceProvider);
   return updateService.isSupported ? updateService.readInstalledVersion() : null;
 });
 
-/// Checks at launch, at most once a day and only when the user allows it (see
-/// [claimAutomaticUpdateCheck]), silently: a failed check must never bother the user.
+/// At launch: first shows what a just-installed update brings, then checks for a newer version,
+/// at most once an hour and only when the user allows it (see [claimAutomaticUpdateCheck]),
+/// silently: a failed check must never bother the user.
 class StartupUpdateCheck extends ConsumerStatefulWidget {
   const StartupUpdateCheck({required this.child, super.key});
 
@@ -35,12 +38,30 @@ class _StartupUpdateCheckState extends ConsumerState<StartupUpdateCheck> {
   void initState() {
     super.initState();
     if (!ref.read(appUpdateServiceProvider).isSupported) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_checkIfDue()));
+    WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_showWhatsNewThenCheckIfDue()));
   }
 
-  Future<void> _checkIfDue() async {
+  Future<void> _showWhatsNewThenCheckIfDue() async {
+    try {
+      await _showWhatsNewIfJustUpdated();
+    } on Object catch (error) {
+      developer.log("What's new not shown", name: 'komit.update', error: error);
+    }
+    if (!mounted) return;
     final isDue = await claimAutomaticUpdateCheck(ref.read(settingsRepositoryProvider), now: ref.read(clockProvider)());
     if (isDue && mounted) await checkForUpdate(context, ref, isUserInitiated: false);
+  }
+
+  Future<void> _showWhatsNewIfJustUpdated() async {
+    final settingsRepository = ref.read(settingsRepositoryProvider);
+    final pendingUpdate = settingsRepository.readPendingUpdate();
+    if (pendingUpdate == null) return;
+    final installedVersion = await ref.read(appUpdateServiceProvider).readInstalledVersion();
+    final outcome = pendingUpdateOutcome(pendingVersion: pendingUpdate.version, installedVersion: installedVersion);
+    if (outcome == PendingUpdateOutcome.keepWaiting) return;
+    await settingsRepository.clearPendingUpdate();
+    if (outcome != PendingUpdateOutcome.showWhatsNew || !mounted) return;
+    await showWhatsNewSheet(context, version: pendingUpdate.version, releaseNotes: pendingUpdate.releaseNotes);
   }
 
   @override
@@ -59,6 +80,9 @@ Future<void> checkForUpdate(BuildContext context, WidgetRef ref, {required bool 
     if (isUserInitiated && context.mounted) showMessageSnackBar(context, localizations.updateCheckFailed);
     return;
   }
+  await ref
+      .read(settingsControllerProvider.notifier)
+      .recordUpdateCheckResult(upToDateAt: update == null ? ref.read(clockProvider)() : null);
   if (!context.mounted) return;
   if (update == null) {
     if (isUserInitiated) showMessageSnackBar(context, localizations.upToDate);
@@ -78,6 +102,10 @@ Future<void> checkForUpdate(BuildContext context, WidgetRef ref, {required bool 
       ref.read(appLoggerProvider).logError(event: 'pre_update_backup_failed', error: error, stackTrace: stackTrace),
     );
   }
+  // Read again at the next launch, once the new version runs, to show what it brings.
+  await ref
+      .read(settingsRepositoryProvider)
+      .savePendingUpdate(version: update.version, releaseNotes: update.releaseNotes);
   if (!context.mounted) return;
   await showDialog<void>(
     context: context,
@@ -124,6 +152,55 @@ Future<bool> _ensureInstallPermission(BuildContext context, AppUpdateService upd
   }
 }
 
+/// Once, at the first launch of a version installed from Komit: what it brings.
+Future<void> showWhatsNewSheet(BuildContext context, {required String version, required String releaseNotes}) =>
+    showModalBottomSheet<void>(
+      context: context,
+      // Root navigator, like every Komit sheet: it covers the frosted navigation bar instead of sliding under it.
+      useRootNavigator: true,
+      isScrollControlled: true,
+      builder: (context) {
+        final localizations = AppLocalizations.of(context);
+        final textTheme = Theme.of(context).textTheme;
+        return SafeArea(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.85),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(AppSpacing.screenGutter, 0, AppSpacing.screenGutter, AppSpacing.large),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: KomoMascot(mood: KomoMood.happy, size: AppSizes.mascotSmall),
+                  ),
+                  const SizedBox(height: AppSpacing.large),
+                  Semantics(
+                    header: true,
+                    child: Text(localizations.whatsNewTitle(version), style: textTheme.headlineSmall),
+                  ),
+                  const SizedBox(height: AppSpacing.small),
+                  Text(
+                    localizations.whatsNewMessage,
+                    style: textTheme.bodyLarge?.copyWith(color: KomitColors.of(context).mutedText),
+                  ),
+                  const SizedBox(height: AppSpacing.large),
+                  ReleaseNotesView(releaseNotes: releaseNotes),
+                  const SizedBox(height: AppSpacing.extraLarge),
+                  FilledButton(
+                    style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(AppSizes.primaryButtonHeight)),
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(localizations.whatsNewDismiss),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
 class _UpdateAvailableDialog extends StatelessWidget {
   const _UpdateAvailableDialog({required this.update});
 
@@ -143,8 +220,7 @@ class _UpdateAvailableDialog extends StatelessWidget {
             children: [
               Text(localizations.whatsNew, style: Theme.of(context).textTheme.titleSmall),
               const SizedBox(height: AppSpacing.small),
-              // Release notes are shown as plain text: never interpret remote content.
-              SelectableText(update.releaseNotes),
+              ReleaseNotesView(releaseNotes: update.releaseNotes),
             ],
           ),
         ),

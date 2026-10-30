@@ -315,6 +315,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get whatsNew => 'What\'s new';
 
   @override
+  String whatsNewTitle(String version) {
+    return 'Welcome to $version';
+  }
+
+  @override
+  String get whatsNewMessage => 'Komit is up to date. Here\'s what changed:';
+
+  @override
+  String get whatsNewDismiss => 'Let\'s go';
+
+  @override
+  String upToDateCheckedToday(String time) {
+    return 'Up to date · checked today at $time';
+  }
+
+  @override
+  String upToDateCheckedOn(String date) {
+    return 'Up to date · checked on $date';
+  }
+
+  @override
   String get later => 'Later';
 
   @override
@@ -1063,7 +1084,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checkForUpdatesAutomatically => 'Check for updates automatically';
 
   @override
-  String get checkForUpdatesAutomaticallyDescription => 'At most once a day, by asking GitHub for the latest version.';
+  String get checkForUpdatesAutomaticallyDescription =>
+      'Each time you open Komit, at most once an hour, by asking GitHub for the latest version.';
 
   @override
   String get restoreAutomaticBackup => 'Restore an automatic backup';
@@ -1218,7 +1240,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacyUpdateCheckBody =>
-      'At most once a day, Komit asks GitHub for its latest version, which shows GitHub your IP address. An update you accept is downloaded from GitHub too. Turn the automatic check off in Settings, under Updates.';
+      'When you open Komit, at most once an hour, it asks GitHub for its latest version, which shows GitHub your IP address. An update you accept is downloaded from GitHub too. Turn the automatic check off in Settings, under Updates.';
 
   @override
   String get privacyNoTrackingTitle => 'No tracking';

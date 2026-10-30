@@ -174,6 +174,32 @@
     }
   },
   "whatsNew": "What's new",
+  "whatsNewTitle": "Welcome to {version}",
+  "@whatsNewTitle": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "whatsNewMessage": "Komit is up to date. Here's what changed:",
+  "whatsNewDismiss": "Let's go",
+  "upToDateCheckedToday": "Up to date · checked today at {time}",
+  "@upToDateCheckedToday": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "upToDateCheckedOn": "Up to date · checked on {date}",
+  "@upToDateCheckedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "later": "Later",
   "installUpdate": "Install",
   "downloadingUpdate": "Downloading update… {percent}%",
@@ -704,7 +730,7 @@
   },
   "dismissWeeklyRecap": "Dismiss the recap",
   "checkForUpdatesAutomatically": "Check for updates automatically",
-  "checkForUpdatesAutomaticallyDescription": "At most once a day, by asking GitHub for the latest version.",
+  "checkForUpdatesAutomaticallyDescription": "Each time you open Komit, at most once an hour, by asking GitHub for the latest version.",
   "restoreAutomaticBackup": "Restore an automatic backup",
   "automaticBackups": "Automatic backups",
   "automaticBackupsExplanation": "Komit keeps a copy of your data on this phone before each import or update, and once a day when something changed. The {count} most recent are kept.",
@@ -779,7 +805,7 @@
   "privacyIntroduction": "Komit has no account, no ads and no analytics. Your habits, notes and first name are stored only in Komit's private space on this phone.",
   "privacyWhatLeavesTitle": "What leaves your phone",
   "privacyUpdateCheckTitle": "The update check, and nothing else",
-  "privacyUpdateCheckBody": "At most once a day, Komit asks GitHub for its latest version, which shows GitHub your IP address. An update you accept is downloaded from GitHub too. Turn the automatic check off in Settings, under Updates.",
+  "privacyUpdateCheckBody": "When you open Komit, at most once an hour, it asks GitHub for its latest version, which shows GitHub your IP address. An update you accept is downloaded from GitHub too. Turn the automatic check off in Settings, under Updates.",
   "privacyNoTrackingTitle": "No tracking",
   "privacyNoTrackingBody": "Nothing about your habits, notes or use of the app is ever sent anywhere.",
   "privacyBackupsTitle": "Backups and exports",

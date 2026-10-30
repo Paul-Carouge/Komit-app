@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/theme/komit_icons.dart';
 
 import '../../core/calendar_day.dart';
 import '../../core/current_calendar_day.dart';
+import '../../core/date_formatting.dart';
 import '../../core/haptics.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
@@ -36,6 +38,7 @@ class SettingsScreen extends ConsumerWidget {
     final settings = ref.watch(settingsControllerProvider);
     final settingsController = ref.read(settingsControllerProvider.notifier);
     final installedVersion = ref.watch(installedVersionProvider).value;
+    final today = ref.watch(currentCalendarDayProvider);
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -129,6 +132,10 @@ class SettingsScreen extends ConsumerWidget {
                         ListTile(
                           leading: HabitIconBadge(icon: KomitIcons.refreshCw, color: colorScheme.primary),
                           title: Text(localizations.checkForUpdates),
+                          subtitle: switch (settings.lastUpToDateCheckAt) {
+                            final checkedAt? => Text(_upToDateStatus(context, checkedAt, today: today)),
+                            null => null,
+                          },
                           trailing: const Icon(KomitIcons.chevronRight),
                           onTap: () => checkForUpdate(context, ref, isUserInitiated: true),
                         ),
@@ -183,6 +190,16 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// "Up to date · checked today at 14:32", or the day of an older check.
+String _upToDateStatus(BuildContext context, DateTime checkedAt, {required CalendarDay today}) {
+  final localizations = AppLocalizations.of(context);
+  final checkedDay = CalendarDay.fromDateTime(checkedAt);
+  if (checkedDay != today) return localizations.upToDateCheckedOn(formatShortDate(context, checkedDay));
+  return localizations.upToDateCheckedToday(
+    DateFormat.Hm(Localizations.localeOf(context).toLanguageTag()).format(checkedAt),
+  );
 }
 
 Future<void> _openReleasesPage(BuildContext context, WidgetRef ref) async {

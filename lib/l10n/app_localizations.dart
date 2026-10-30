@@ -638,6 +638,36 @@ abstract class AppLocalizations {
   /// **'What\'s new'**
   String get whatsNew;
 
+  /// No description provided for @whatsNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to {version}'**
+  String whatsNewTitle(String version);
+
+  /// No description provided for @whatsNewMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Komit is up to date. Here\'s what changed:'**
+  String get whatsNewMessage;
+
+  /// No description provided for @whatsNewDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s go'**
+  String get whatsNewDismiss;
+
+  /// No description provided for @upToDateCheckedToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to date · checked today at {time}'**
+  String upToDateCheckedToday(String time);
+
+  /// No description provided for @upToDateCheckedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to date · checked on {date}'**
+  String upToDateCheckedOn(String date);
+
   /// No description provided for @later.
   ///
   /// In en, this message translates to:
@@ -1883,7 +1913,7 @@ abstract class AppLocalizations {
   /// No description provided for @checkForUpdatesAutomaticallyDescription.
   ///
   /// In en, this message translates to:
-  /// **'At most once a day, by asking GitHub for the latest version.'**
+  /// **'Each time you open Komit, at most once an hour, by asking GitHub for the latest version.'**
   String get checkForUpdatesAutomaticallyDescription;
 
   /// No description provided for @restoreAutomaticBackup.
@@ -2165,7 +2195,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyUpdateCheckBody.
   ///
   /// In en, this message translates to:
-  /// **'At most once a day, Komit asks GitHub for its latest version, which shows GitHub your IP address. An update you accept is downloaded from GitHub too. Turn the automatic check off in Settings, under Updates.'**
+  /// **'When you open Komit, at most once an hour, it asks GitHub for its latest version, which shows GitHub your IP address. An update you accept is downloaded from GitHub too. Turn the automatic check off in Settings, under Updates.'**
   String get privacyUpdateCheckBody;
 
   /// No description provided for @privacyNoTrackingTitle.
