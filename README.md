@@ -86,7 +86,7 @@ Komit has no account, no ads and no analytics; the in-app screen Settings → Pr
 → "What stays on your phone" explains the points below to users. See
 [ADR 0005](docs/adr/0005-on-device-privacy-backups-and-encryption.md) for the reasons.
 
-- **Network:** only the update check, at most once a day and only while "Check for updates
+- **Network:** only the update check, at launch but at most once an hour, and only while "Check for updates
   automatically" is on, asks `api.github.com` for the latest release (GitHub sees the
   device IP address); an accepted update is downloaded from `github.com`. Both requests use
   `dart:io`, which ignores Android's network security config but trusts only the system
@@ -130,7 +130,9 @@ Back up both files somewhere safe: losing them means users must uninstall and re
 
 1. Bump `version:` in `pubspec.yaml` (SemVer, then `+` build number, incremented every release).
 2. Add the version to `CHANGELOG.md`, merge to `main` and push.
-3. Write the release notes to a file outside the repository, then from an up-to-date `main`:
+3. Copy `tool/release-notes-template.md` outside the repository and fill it (the script
+   refuses notes that do not start with `## Komit X.Y.Z` or still hold template text), then
+   from an up-to-date `main`:
 
 ```sh
 tool/release.sh <notes.md>
@@ -143,7 +145,9 @@ published certificate only and with `aapt2` that its versionCode is above the la
 then asks before creating the tag and the GitHub release with `build/release/komit-vX.Y.Z.apk`.
 GitHub publishes the asset's SHA-256 digest that the in-app updater checks.
 
-The release notes are what users see in the in-app update dialog.
+The release notes are what users see in the in-app update dialog, and again in "Welcome to
+X.Y.Z" at the first launch after an update installed from Komit. Komit renders headings,
+bullets and **bold** only.
 
 `--split-debug-info` moves the Dart debug symbols out of the APK (1.4 MB smaller). Keep
 `build/symbols/vX.Y.Z/app.android-arm64.symbols` with the keystore backup: without it, the stack
