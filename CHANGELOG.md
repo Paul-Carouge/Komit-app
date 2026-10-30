@@ -4,6 +4,17 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
 
 ## [Unreleased]
 
+## [2.6.0] - 2026-10-30
+
+### Added
+- Pause a habit for a holiday or an illness, from today or a later day, until a date or
+  until you resume it. Paused days neither break nor extend your streak, send no reminder
+  and leave the "Today" widget; they show as hatched days on your grids.
+- Rest days: let a daily habit skip one or two days a week without losing its streak.
+
+### Changed
+- Backups now include pauses and rest days. Older backups still import.
+
 ## [2.5.0] - 2026-10-30
 
 ### Added

@@ -13,7 +13,7 @@ Status: `todo`, `in progress`, `done (vX.Y.Z)`.
 | 2 | [Audit fixes and on-device update check](#2-audit-fixes-and-on-device-update-check) | done (v2.3.1) | 2.3.1 |
 | 2b | [Update freshness and release notes](#2b-update-freshness-and-release-notes) | done (v2.4.0) | 2.4.0 |
 | 3 | [Year in review](#3-year-in-review) | done (v2.5.0) | 2.5.0, before December 1 |
-| 4 | [Pause and rest days](#4-pause-and-rest-days) | todo | 2.6.0 |
+| 4 | [Pause and rest days](#4-pause-and-rest-days) | done (v2.6.0) | 2.6.0 |
 | 5 | [Quantity habits](#5-quantity-habits) | todo | 3.0.0 if the backup format breaks, else 2.7.0 |
 | 6 | [A note on a logged day](#6-a-note-on-a-logged-day) | todo | minor |
 | 7 | [Finer reminders](#7-finer-reminders) | todo | minor |
@@ -122,6 +122,15 @@ before a day can also be "half done".
   (ADR 0001), streak and statistics updates with tests, reminders skip paused days.
 - ADR for the counting rules.
 
+**Decisions:** counting rules in `docs/adr/0007-pauses-and-rest-days.md`: a paused day counts
+like a day off the schedule (even if logged), an unmet week holding a paused day is neutral,
+rest days are 0 to 2 per ISO week capped at the scheduled days minus one and derived from the
+logs, not stored. Pauses can be planned ahead; "Resume" ends the pause holding today or cancels
+the next planned one; past pauses stay so the history reads the same. A paused day stays
+loggable but the log does not count. Paused days are hatched on the strip, the yearly grid and
+the day sheet (`docs/design/pauses.md`). Schema v3 and backup format v3; v1 and v2 backups
+still import.
+
 ## 5. Quantity habits
 
 - A habit can track an amount with a unit and a daily target ("8 glasses", "20 min"): log by
@@ -175,3 +184,7 @@ Record each finished item here: date, version, pull request or commit, and anyth
 - 2026-10-30, item 3, v2.5.0: year in review (story cards, quiet-year version, share image
   without habit names by default, dashboard card and statistics row), branch
   `feat/year-in-review`. Not checked on a device: TalkBack on the cards, the real share sheet.
+- 2026-10-30, item 4, v2.6.0: pauses (planned or open, resume, hatched days) and rest days
+  (0 to 2 a week) in streaks, recaps, achievements, reminders, widget, schema v3 and backups
+  v3, branch `feat/pause-and-rest-days`. Not checked on a device: TalkBack on hatched cells,
+  the real date picker.
