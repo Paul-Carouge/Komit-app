@@ -1,8 +1,10 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:komit/core/calendar_day.dart';
 import 'package:komit/data/database/app_database.dart';
 import 'package:komit/data/repositories/habit_repository.dart';
+import 'package:komit/domain/habit_pause.dart';
 
 void main() {
   late AppDatabase database;
@@ -216,6 +218,117 @@ void main() {
     expect(habit.habit.scheduledWeekdayMask, everyWeekdayMask);
     expect(habit.habit.targetDaysPerWeek, 3);
     expect(habit.objectives.map((objective) => objective.countsAsSuccess), [true, true]);
+  });
+
+  group('pauses', () {
+    // "Now" is May 2; [day] is May 1.
+    final today = CalendarDay.fromDateTime(now);
+
+    Future<int> createHabit() => repository.saveHabit(
+      draftWith(const [
+        ObjectiveDraft(id: null, title: 'A', colorArgb: 1),
+        ObjectiveDraft(id: null, title: 'B', colorArgb: 2),
+      ]),
+    );
+    Future<HabitWithObjectives> read(int habitId) async => (await repository.watchHabitWithObjectives(habitId).first)!;
+
+    test('a paused habit keeps one entry per objective and is not scheduled while paused', () async {
+      final habitId = await createHabit();
+      await repository.pauseHabit(habitId, startDay: today, endDay: today.addDays(6));
+      await repository.pauseHabit(habitId, startDay: today.addDays(10));
+
+      final habit = await read(habitId);
+      expect(habit.objectives.map((objective) => objective.title), ['A', 'B']);
+      expect(habit.pauses, [
+        HabitPause(startDay: today, endDay: today.addDays(6)),
+        HabitPause(startDay: today.addDays(10)),
+      ]);
+      expect(isHabitScheduledOn(habit, today), isFalse);
+      expect(isHabitScheduledOn(habit, today.addDays(7)), isTrue);
+      expect(isHabitScheduledOn(habit, today.addDays(400)), isFalse);
+      expect((await repository.watchAllHabits().first).single.objectives, hasLength(2));
+    });
+
+    test('refuses a pause in the past, ending before it starts or overlapping another', () async {
+      final habitId = await createHabit();
+      await repository.pauseHabit(habitId, startDay: today.addDays(2), endDay: today.addDays(5));
+
+      for (final (startDay, endDay) in [
+        (today.addDays(-1), null),
+        (today.addDays(3), today.addDays(1)),
+        (today, today.addDays(2)),
+        (today.addDays(5), null),
+      ]) {
+        await expectLater(
+          repository.pauseHabit(habitId, startDay: startDay, endDay: endDay),
+          throwsA(isA<InvalidPauseException>()),
+        );
+      }
+    });
+
+    test('resuming ends the current pause on yesterday, cancels planned ones and keeps past ones', () async {
+      final habitId = await createHabit();
+      // Inserted directly: the repository refuses pauses that start in the past.
+      for (final (startDay, endDay) in [(today.addDays(-30), today.addDays(-20)), (today.addDays(-3), null)]) {
+        await database
+            .into(database.habitPauses)
+            .insert(
+              HabitPausesCompanion.insert(
+                habitId: habitId,
+                startDay: startDay.daysSinceEpoch,
+                endDay: Value(endDay?.daysSinceEpoch),
+              ),
+            );
+      }
+      await database
+          .into(database.habitPauses)
+          .insert(HabitPausesCompanion.insert(habitId: habitId, startDay: today.addDays(5).daysSinceEpoch));
+
+      await repository.resumeHabit(habitId);
+
+      expect((await read(habitId)).pauses, [
+        HabitPause(startDay: today.addDays(-30), endDay: today.addDays(-20)),
+        HabitPause(startDay: today.addDays(-3), endDay: today.addDays(-1)),
+      ]);
+    });
+
+    test('resuming a pause that starts today removes it', () async {
+      final habitId = await createHabit();
+      await repository.pauseHabit(habitId, startDay: today);
+      await repository.resumeHabit(habitId);
+      expect((await read(habitId)).pauses, isEmpty);
+    });
+
+    test('rest days are saved for a daily habit and dropped with a weekly target', () async {
+      final habitId = await repository.saveHabit(
+        const HabitDraft(
+          id: null,
+          title: 'Walk',
+          description: '',
+          colorArgb: 1,
+          iconName: 'footprints',
+          reminderMinuteOfDay: null,
+          objectives: [ObjectiveDraft(id: null, title: 'Done', colorArgb: 1)],
+          restDaysPerWeek: 2,
+        ),
+      );
+      expect((await read(habitId)).habit.restDaysPerWeek, 2);
+
+      await repository.saveHabit(
+        HabitDraft(
+          id: habitId,
+          title: 'Walk',
+          description: '',
+          colorArgb: 1,
+          iconName: 'footprints',
+          reminderMinuteOfDay: null,
+          objectives: [ObjectiveDraft(id: (await read(habitId)).objectives.single.id, title: 'Done', colorArgb: 1)],
+          targetDaysPerWeek: 3,
+          restDaysPerWeek: 2,
+        ),
+      );
+      expect((await read(habitId)).habit.restDaysPerWeek, 0);
+    });
   });
 
   test('watchHabitWithObjectives returns null for an unknown habit', () async {

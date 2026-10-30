@@ -9,6 +9,7 @@ import 'generated/schema.dart';
 
 import 'generated/schema_v1.dart' as v1;
 import 'generated/schema_v2.dart' as v2;
+import 'generated/schema_v3.dart' as v3;
 
 void main() {
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
@@ -179,6 +180,60 @@ void main() {
             expectedNewHabitLogsData,
           );
           expect(await newDb.select(newDb.notes).get(), expectedNewNotesData);
+        },
+      );
+    },
+  );
+
+  test(
+    'migration from v2 to v3 keeps every habit, with no rest day and no pause',
+    () async {
+      final createdAt = DateTime(2026, 1, 1);
+      final oldHabitsData = <v2.HabitsData>[
+        v2.HabitsData(
+          id: 1,
+          title: 'Morning run',
+          description: '',
+          colorArgb: 1,
+          iconName: 'run',
+          reminderMinuteOfDay: 480,
+          sortOrder: 0,
+          createdAt: createdAt,
+          scheduledWeekdayMask: 0x15,
+          targetDaysPerWeek: null,
+          archivedAt: null,
+        ),
+        v2.HabitsData(
+          id: 2,
+          title: 'Read',
+          description: 'Before bed',
+          colorArgb: 2,
+          iconName: 'book',
+          reminderMinuteOfDay: null,
+          sortOrder: 1,
+          createdAt: createdAt,
+          scheduledWeekdayMask: 0x7F,
+          targetDaysPerWeek: 3,
+          archivedAt: createdAt,
+        ),
+      ];
+
+      await verifier.testWithDataIntegrity(
+        oldVersion: 2,
+        newVersion: 3,
+        createOld: v2.DatabaseAtV2.new,
+        createNew: v3.DatabaseAtV3.new,
+        openTestedDatabase: AppDatabase.new,
+        createItems: (batch, oldDb) {
+          batch.insertAll(oldDb.habits, oldHabitsData);
+        },
+        validateItems: (newDb) async {
+          final habits = await newDb.select(newDb.habits).get();
+          expect(habits.map((habit) => habit.id), [1, 2]);
+          expect(habits.map((habit) => habit.title), ['Morning run', 'Read']);
+          expect(habits.map((habit) => habit.targetDaysPerWeek), [null, 3]);
+          expect(habits.map((habit) => habit.restDaysPerWeek), [0, 0]);
+          expect(await newDb.select(newDb.habitPauses).get(), isEmpty);
         },
       );
     },

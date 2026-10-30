@@ -25,6 +25,7 @@ HabitWithObjectives _habit(
     createdAt: DateTime(2026),
     scheduledWeekdayMask: scheduledWeekdayMask,
     archivedAt: archivedAt,
+    restDaysPerWeek: 0,
   ),
   [
     if (hasObjective)

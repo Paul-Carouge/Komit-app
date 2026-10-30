@@ -151,13 +151,7 @@ final streakSummaryForHabitProvider = Provider.autoDispose.family<StreakSummary?
   final habit = ref.watch(habitWithObjectivesProvider(habitId)).value;
   final objectiveIdByDay = ref.watch(objectiveIdByDayForHabitProvider(habitId)).value;
   if (habit == null || objectiveIdByDay == null) return null;
-  return computeScheduledStreakSummary(
-    objectiveIdByDay,
-    successObjectiveIds: habit.successObjectiveIds,
-    scheduledWeekdayMask: habit.habit.scheduledWeekdayMask,
-    targetDaysPerWeek: habit.habit.targetDaysPerWeek,
-    today: ref.watch(currentCalendarDayProvider),
-  );
+  return streakSummaryOf(habit, objectiveIdByDay, today: ref.watch(currentCalendarDayProvider));
 });
 
 /// Today's progress over the habits scheduled today; null while habits or logs load.
@@ -195,6 +189,8 @@ HabitHistory habitHistoryOf(HabitWithObjectives habit, Map<CalendarDay, int> obj
     scheduledWeekdayMask: habit.habit.scheduledWeekdayMask,
     targetDaysPerWeek: habit.habit.targetDaysPerWeek,
     archivedDay: archivedAt == null ? null : CalendarDay.fromDateTime(archivedAt),
+    pauses: habit.pauses,
+    restDaysPerWeek: habit.habit.restDaysPerWeek,
   );
 }
 

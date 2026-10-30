@@ -13,7 +13,6 @@ import '../../core/theme/app_motion.dart';
 import '../../core/habit_appearance.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/repositories/habit_repository.dart';
-import '../../domain/habit_statistics.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
 import '../../router.dart';
@@ -166,13 +165,7 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
     CalendarDay today,
   ) {
     final localizations = AppLocalizations.of(context);
-    final streaks = computeScheduledStreakSummary(
-      objectiveIdByDay,
-      successObjectiveIds: habit.successObjectiveIds,
-      scheduledWeekdayMask: habit.habit.scheduledWeekdayMask,
-      targetDaysPerWeek: habit.habit.targetDaysPerWeek,
-      today: today,
-    );
+    final streaks = streakSummaryOf(habit, objectiveIdByDay, today: today);
     final firstYear = _firstYearWithData(habit, objectiveIdByDay);
     return SliverPadding(
       padding: EdgeInsets.fromLTRB(

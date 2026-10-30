@@ -116,6 +116,17 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _restDaysPerWeekMeta = const VerificationMeta('restDaysPerWeek');
+  @override
+  late final GeneratedColumn<int> restDaysPerWeek = GeneratedColumn<int>(
+    'rest_days_per_week',
+    aliasedName,
+    false,
+    check: () => ComparableExpr(restDaysPerWeek).isBetweenValues(0, maximumRestDaysPerWeek),
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -129,6 +140,7 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
     scheduledWeekdayMask,
     targetDaysPerWeek,
     archivedAt,
+    restDaysPerWeek,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -189,6 +201,12 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
     if (data.containsKey('archived_at')) {
       context.handle(_archivedAtMeta, archivedAt.isAcceptableOrUnknown(data['archived_at']!, _archivedAtMeta));
     }
+    if (data.containsKey('rest_days_per_week')) {
+      context.handle(
+        _restDaysPerWeekMeta,
+        restDaysPerWeek.isAcceptableOrUnknown(data['rest_days_per_week']!, _restDaysPerWeekMeta),
+      );
+    }
     return context;
   }
 
@@ -218,6 +236,10 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
         data['${effectivePrefix}target_days_per_week'],
       ),
       archivedAt: attachedDatabase.typeMapping.read(DriftSqlType.dateTime, data['${effectivePrefix}archived_at']),
+      restDaysPerWeek: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}rest_days_per_week'],
+      )!,
     );
   }
 
@@ -245,6 +267,9 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
 
   /// Null while the habit is active.
   final DateTime? archivedAt;
+
+  /// Missed scheduled days per ISO week that keep a daily or weekday streak alive (docs/adr/0007).
+  final int restDaysPerWeek;
   const HabitRow({
     required this.id,
     required this.title,
@@ -257,6 +282,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     required this.scheduledWeekdayMask,
     this.targetDaysPerWeek,
     this.archivedAt,
+    required this.restDaysPerWeek,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -278,6 +304,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     if (!nullToAbsent || archivedAt != null) {
       map['archived_at'] = Variable<DateTime>(archivedAt);
     }
+    map['rest_days_per_week'] = Variable<int>(restDaysPerWeek);
     return map;
   }
 
@@ -296,6 +323,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
       scheduledWeekdayMask: Value(scheduledWeekdayMask),
       targetDaysPerWeek: targetDaysPerWeek == null && nullToAbsent ? const Value.absent() : Value(targetDaysPerWeek),
       archivedAt: archivedAt == null && nullToAbsent ? const Value.absent() : Value(archivedAt),
+      restDaysPerWeek: Value(restDaysPerWeek),
     );
   }
 
@@ -313,6 +341,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
       scheduledWeekdayMask: serializer.fromJson<int>(json['scheduledWeekdayMask']),
       targetDaysPerWeek: serializer.fromJson<int?>(json['targetDaysPerWeek']),
       archivedAt: serializer.fromJson<DateTime?>(json['archivedAt']),
+      restDaysPerWeek: serializer.fromJson<int>(json['restDaysPerWeek']),
     );
   }
   @override
@@ -330,6 +359,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
       'scheduledWeekdayMask': serializer.toJson<int>(scheduledWeekdayMask),
       'targetDaysPerWeek': serializer.toJson<int?>(targetDaysPerWeek),
       'archivedAt': serializer.toJson<DateTime?>(archivedAt),
+      'restDaysPerWeek': serializer.toJson<int>(restDaysPerWeek),
     };
   }
 
@@ -345,6 +375,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     int? scheduledWeekdayMask,
     Value<int?> targetDaysPerWeek = const Value.absent(),
     Value<DateTime?> archivedAt = const Value.absent(),
+    int? restDaysPerWeek,
   }) => HabitRow(
     id: id ?? this.id,
     title: title ?? this.title,
@@ -357,6 +388,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     scheduledWeekdayMask: scheduledWeekdayMask ?? this.scheduledWeekdayMask,
     targetDaysPerWeek: targetDaysPerWeek.present ? targetDaysPerWeek.value : this.targetDaysPerWeek,
     archivedAt: archivedAt.present ? archivedAt.value : this.archivedAt,
+    restDaysPerWeek: restDaysPerWeek ?? this.restDaysPerWeek,
   );
   HabitRow copyWithCompanion(HabitsCompanion data) {
     return HabitRow(
@@ -373,6 +405,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
           : this.scheduledWeekdayMask,
       targetDaysPerWeek: data.targetDaysPerWeek.present ? data.targetDaysPerWeek.value : this.targetDaysPerWeek,
       archivedAt: data.archivedAt.present ? data.archivedAt.value : this.archivedAt,
+      restDaysPerWeek: data.restDaysPerWeek.present ? data.restDaysPerWeek.value : this.restDaysPerWeek,
     );
   }
 
@@ -389,7 +422,8 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
           ..write('createdAt: $createdAt, ')
           ..write('scheduledWeekdayMask: $scheduledWeekdayMask, ')
           ..write('targetDaysPerWeek: $targetDaysPerWeek, ')
-          ..write('archivedAt: $archivedAt')
+          ..write('archivedAt: $archivedAt, ')
+          ..write('restDaysPerWeek: $restDaysPerWeek')
           ..write(')'))
         .toString();
   }
@@ -407,6 +441,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     scheduledWeekdayMask,
     targetDaysPerWeek,
     archivedAt,
+    restDaysPerWeek,
   );
   @override
   bool operator ==(Object other) =>
@@ -422,7 +457,8 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
           other.createdAt == this.createdAt &&
           other.scheduledWeekdayMask == this.scheduledWeekdayMask &&
           other.targetDaysPerWeek == this.targetDaysPerWeek &&
-          other.archivedAt == this.archivedAt);
+          other.archivedAt == this.archivedAt &&
+          other.restDaysPerWeek == this.restDaysPerWeek);
 }
 
 class HabitsCompanion extends UpdateCompanion<HabitRow> {
@@ -437,6 +473,7 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
   final Value<int> scheduledWeekdayMask;
   final Value<int?> targetDaysPerWeek;
   final Value<DateTime?> archivedAt;
+  final Value<int> restDaysPerWeek;
   const HabitsCompanion({
     this.id = const Value.absent(),
     this.title = const Value.absent(),
@@ -449,6 +486,7 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     this.scheduledWeekdayMask = const Value.absent(),
     this.targetDaysPerWeek = const Value.absent(),
     this.archivedAt = const Value.absent(),
+    this.restDaysPerWeek = const Value.absent(),
   });
   HabitsCompanion.insert({
     this.id = const Value.absent(),
@@ -462,6 +500,7 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     this.scheduledWeekdayMask = const Value.absent(),
     this.targetDaysPerWeek = const Value.absent(),
     this.archivedAt = const Value.absent(),
+    this.restDaysPerWeek = const Value.absent(),
   }) : title = Value(title),
        colorArgb = Value(colorArgb),
        iconName = Value(iconName),
@@ -478,6 +517,7 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     Expression<int>? scheduledWeekdayMask,
     Expression<int>? targetDaysPerWeek,
     Expression<DateTime>? archivedAt,
+    Expression<int>? restDaysPerWeek,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -491,6 +531,7 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
       if (scheduledWeekdayMask != null) 'scheduled_weekday_mask': scheduledWeekdayMask,
       if (targetDaysPerWeek != null) 'target_days_per_week': targetDaysPerWeek,
       if (archivedAt != null) 'archived_at': archivedAt,
+      if (restDaysPerWeek != null) 'rest_days_per_week': restDaysPerWeek,
     });
   }
 
@@ -506,6 +547,7 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     Value<int>? scheduledWeekdayMask,
     Value<int?>? targetDaysPerWeek,
     Value<DateTime?>? archivedAt,
+    Value<int>? restDaysPerWeek,
   }) {
     return HabitsCompanion(
       id: id ?? this.id,
@@ -519,6 +561,7 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
       scheduledWeekdayMask: scheduledWeekdayMask ?? this.scheduledWeekdayMask,
       targetDaysPerWeek: targetDaysPerWeek ?? this.targetDaysPerWeek,
       archivedAt: archivedAt ?? this.archivedAt,
+      restDaysPerWeek: restDaysPerWeek ?? this.restDaysPerWeek,
     );
   }
 
@@ -558,6 +601,9 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     if (archivedAt.present) {
       map['archived_at'] = Variable<DateTime>(archivedAt.value);
     }
+    if (restDaysPerWeek.present) {
+      map['rest_days_per_week'] = Variable<int>(restDaysPerWeek.value);
+    }
     return map;
   }
 
@@ -574,7 +620,8 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
           ..write('createdAt: $createdAt, ')
           ..write('scheduledWeekdayMask: $scheduledWeekdayMask, ')
           ..write('targetDaysPerWeek: $targetDaysPerWeek, ')
-          ..write('archivedAt: $archivedAt')
+          ..write('archivedAt: $archivedAt, ')
+          ..write('restDaysPerWeek: $restDaysPerWeek')
           ..write(')'))
         .toString();
   }
@@ -1439,6 +1486,261 @@ class NotesCompanion extends UpdateCompanion<NoteRow> {
   }
 }
 
+class $HabitPausesTable extends HabitPauses with TableInfo<$HabitPausesTable, HabitPauseRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $HabitPausesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'),
+  );
+  static const VerificationMeta _habitIdMeta = const VerificationMeta('habitId');
+  @override
+  late final GeneratedColumn<int> habitId = GeneratedColumn<int>(
+    'habit_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('REFERENCES habits (id) ON DELETE CASCADE'),
+  );
+  static const VerificationMeta _startDayMeta = const VerificationMeta('startDay');
+  @override
+  late final GeneratedColumn<int> startDay = GeneratedColumn<int>(
+    'start_day',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _endDayMeta = const VerificationMeta('endDay');
+  @override
+  late final GeneratedColumn<int> endDay = GeneratedColumn<int>(
+    'end_day',
+    aliasedName,
+    true,
+    check: () => ComparableExpr(endDay).isBiggerOrEqual(startDay),
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, habitId, startDay, endDay];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'habit_pauses';
+  @override
+  VerificationContext validateIntegrity(Insertable<HabitPauseRow> instance, {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('habit_id')) {
+      context.handle(_habitIdMeta, habitId.isAcceptableOrUnknown(data['habit_id']!, _habitIdMeta));
+    } else if (isInserting) {
+      context.missing(_habitIdMeta);
+    }
+    if (data.containsKey('start_day')) {
+      context.handle(_startDayMeta, startDay.isAcceptableOrUnknown(data['start_day']!, _startDayMeta));
+    } else if (isInserting) {
+      context.missing(_startDayMeta);
+    }
+    if (data.containsKey('end_day')) {
+      context.handle(_endDayMeta, endDay.isAcceptableOrUnknown(data['end_day']!, _endDayMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  HabitPauseRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return HabitPauseRow(
+      id: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      habitId: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}habit_id'])!,
+      startDay: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}start_day'])!,
+      endDay: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}end_day']),
+    );
+  }
+
+  @override
+  $HabitPausesTable createAlias(String alias) {
+    return $HabitPausesTable(attachedDatabase, alias);
+  }
+}
+
+class HabitPauseRow extends DataClass implements Insertable<HabitPauseRow> {
+  final int id;
+  final int habitId;
+
+  /// A [CalendarDay], included.
+  final int startDay;
+
+  /// A [CalendarDay], included; null while the pause is open.
+  final int? endDay;
+  const HabitPauseRow({required this.id, required this.habitId, required this.startDay, this.endDay});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['habit_id'] = Variable<int>(habitId);
+    map['start_day'] = Variable<int>(startDay);
+    if (!nullToAbsent || endDay != null) {
+      map['end_day'] = Variable<int>(endDay);
+    }
+    return map;
+  }
+
+  HabitPausesCompanion toCompanion(bool nullToAbsent) {
+    return HabitPausesCompanion(
+      id: Value(id),
+      habitId: Value(habitId),
+      startDay: Value(startDay),
+      endDay: endDay == null && nullToAbsent ? const Value.absent() : Value(endDay),
+    );
+  }
+
+  factory HabitPauseRow.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return HabitPauseRow(
+      id: serializer.fromJson<int>(json['id']),
+      habitId: serializer.fromJson<int>(json['habitId']),
+      startDay: serializer.fromJson<int>(json['startDay']),
+      endDay: serializer.fromJson<int?>(json['endDay']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'habitId': serializer.toJson<int>(habitId),
+      'startDay': serializer.toJson<int>(startDay),
+      'endDay': serializer.toJson<int?>(endDay),
+    };
+  }
+
+  HabitPauseRow copyWith({int? id, int? habitId, int? startDay, Value<int?> endDay = const Value.absent()}) =>
+      HabitPauseRow(
+        id: id ?? this.id,
+        habitId: habitId ?? this.habitId,
+        startDay: startDay ?? this.startDay,
+        endDay: endDay.present ? endDay.value : this.endDay,
+      );
+  HabitPauseRow copyWithCompanion(HabitPausesCompanion data) {
+    return HabitPauseRow(
+      id: data.id.present ? data.id.value : this.id,
+      habitId: data.habitId.present ? data.habitId.value : this.habitId,
+      startDay: data.startDay.present ? data.startDay.value : this.startDay,
+      endDay: data.endDay.present ? data.endDay.value : this.endDay,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HabitPauseRow(')
+          ..write('id: $id, ')
+          ..write('habitId: $habitId, ')
+          ..write('startDay: $startDay, ')
+          ..write('endDay: $endDay')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, habitId, startDay, endDay);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is HabitPauseRow &&
+          other.id == this.id &&
+          other.habitId == this.habitId &&
+          other.startDay == this.startDay &&
+          other.endDay == this.endDay);
+}
+
+class HabitPausesCompanion extends UpdateCompanion<HabitPauseRow> {
+  final Value<int> id;
+  final Value<int> habitId;
+  final Value<int> startDay;
+  final Value<int?> endDay;
+  const HabitPausesCompanion({
+    this.id = const Value.absent(),
+    this.habitId = const Value.absent(),
+    this.startDay = const Value.absent(),
+    this.endDay = const Value.absent(),
+  });
+  HabitPausesCompanion.insert({
+    this.id = const Value.absent(),
+    required int habitId,
+    required int startDay,
+    this.endDay = const Value.absent(),
+  }) : habitId = Value(habitId),
+       startDay = Value(startDay);
+  static Insertable<HabitPauseRow> custom({
+    Expression<int>? id,
+    Expression<int>? habitId,
+    Expression<int>? startDay,
+    Expression<int>? endDay,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (habitId != null) 'habit_id': habitId,
+      if (startDay != null) 'start_day': startDay,
+      if (endDay != null) 'end_day': endDay,
+    });
+  }
+
+  HabitPausesCompanion copyWith({Value<int>? id, Value<int>? habitId, Value<int>? startDay, Value<int?>? endDay}) {
+    return HabitPausesCompanion(
+      id: id ?? this.id,
+      habitId: habitId ?? this.habitId,
+      startDay: startDay ?? this.startDay,
+      endDay: endDay ?? this.endDay,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (habitId.present) {
+      map['habit_id'] = Variable<int>(habitId.value);
+    }
+    if (startDay.present) {
+      map['start_day'] = Variable<int>(startDay.value);
+    }
+    if (endDay.present) {
+      map['end_day'] = Variable<int>(endDay.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HabitPausesCompanion(')
+          ..write('id: $id, ')
+          ..write('habitId: $habitId, ')
+          ..write('startDay: $startDay, ')
+          ..write('endDay: $endDay')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1446,6 +1748,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ObjectivesTable objectives = $ObjectivesTable(this);
   late final $HabitLogsTable habitLogs = $HabitLogsTable(this);
   late final $NotesTable notes = $NotesTable(this);
+  late final $HabitPausesTable habitPauses = $HabitPausesTable(this);
   late final Index habitLogsDay = Index('habit_logs_day', 'CREATE INDEX habit_logs_day ON habit_logs (day)');
   late final Index habitLogsObjective = Index(
     'habit_logs_objective',
@@ -1459,6 +1762,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     objectives,
     habitLogs,
     notes,
+    habitPauses,
     habitLogsDay,
     habitLogsObjective,
   ];
@@ -1476,6 +1780,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       on: TableUpdateQuery.onTableName('objectives', limitUpdateKind: UpdateKind.delete),
       result: [TableUpdate('habit_logs', kind: UpdateKind.delete)],
     ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName('habits', limitUpdateKind: UpdateKind.delete),
+      result: [TableUpdate('habit_pauses', kind: UpdateKind.delete)],
+    ),
   ]);
 }
 
@@ -1491,6 +1799,7 @@ typedef $$HabitsTableCreateCompanionBuilder = HabitsCompanion Function({
   Value<int> scheduledWeekdayMask,
   Value<int?> targetDaysPerWeek,
   Value<DateTime?> archivedAt,
+  Value<int> restDaysPerWeek,
 });
 typedef $$HabitsTableUpdateCompanionBuilder = HabitsCompanion Function({
   Value<int> id,
@@ -1504,6 +1813,7 @@ typedef $$HabitsTableUpdateCompanionBuilder = HabitsCompanion Function({
   Value<int> scheduledWeekdayMask,
   Value<int?> targetDaysPerWeek,
   Value<DateTime?> archivedAt,
+  Value<int> restDaysPerWeek,
 });
 
 final class $$HabitsTableReferences extends BaseReferences<_$AppDatabase, $HabitsTable, HabitRow> {
@@ -1532,6 +1842,19 @@ final class $$HabitsTableReferences extends BaseReferences<_$AppDatabase, $Habit
     ).filter((f) => f.habitId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_habitLogsRefsTable($_db));
+    return ProcessedTableManager(manager.$state.copyWith(prefetchedData: cache));
+  }
+
+  static MultiTypedResultKey<$HabitPausesTable, List<HabitPauseRow>> _habitPausesRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.habitPauses, aliasName: 'habits__id__habit_pauses__habit_id');
+
+  $$HabitPausesTableProcessedTableManager get habitPausesRefs {
+    final manager = $$HabitPausesTableTableManager(
+      $_db,
+      $_db.habitPauses,
+    ).filter((f) => f.habitId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_habitPausesRefsTable($_db));
     return ProcessedTableManager(manager.$state.copyWith(prefetchedData: cache));
   }
 }
@@ -1576,6 +1899,9 @@ class $$HabitsTableFilterComposer extends Composer<_$AppDatabase, $HabitsTable> 
   ColumnFilters<DateTime> get archivedAt =>
       $composableBuilder(column: $table.archivedAt, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<int> get restDaysPerWeek =>
+      $composableBuilder(column: $table.restDaysPerWeek, builder: (column) => ColumnFilters(column));
+
   Expression<bool> objectivesRefs(Expression<bool> Function($$ObjectivesTableFilterComposer f) f) {
     final $$ObjectivesTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -1604,6 +1930,24 @@ class $$HabitsTableFilterComposer extends Composer<_$AppDatabase, $HabitsTable> 
           $$HabitLogsTableFilterComposer(
             $db: $db,
             $table: $db.habitLogs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> habitPausesRefs(Expression<bool> Function($$HabitPausesTableFilterComposer f) f) {
+    final $$HabitPausesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.habitPauses,
+      getReferencedColumn: (t) => t.habitId,
+      builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+          $$HabitPausesTableFilterComposer(
+            $db: $db,
+            $table: $db.habitPauses,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
@@ -1652,6 +1996,9 @@ class $$HabitsTableOrderingComposer extends Composer<_$AppDatabase, $HabitsTable
 
   ColumnOrderings<DateTime> get archivedAt =>
       $composableBuilder(column: $table.archivedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get restDaysPerWeek =>
+      $composableBuilder(column: $table.restDaysPerWeek, builder: (column) => ColumnOrderings(column));
 }
 
 class $$HabitsTableAnnotationComposer extends Composer<_$AppDatabase, $HabitsTable> {
@@ -1689,6 +2036,9 @@ class $$HabitsTableAnnotationComposer extends Composer<_$AppDatabase, $HabitsTab
   GeneratedColumn<DateTime> get archivedAt =>
       $composableBuilder(column: $table.archivedAt, builder: (column) => column);
 
+  GeneratedColumn<int> get restDaysPerWeek =>
+      $composableBuilder(column: $table.restDaysPerWeek, builder: (column) => column);
+
   Expression<T> objectivesRefs<T extends Object>(Expression<T> Function($$ObjectivesTableAnnotationComposer a) f) {
     final $$ObjectivesTableAnnotationComposer composer = $composerBuilder(
       composer: this,
@@ -1724,6 +2074,24 @@ class $$HabitsTableAnnotationComposer extends Composer<_$AppDatabase, $HabitsTab
     );
     return f(composer);
   }
+
+  Expression<T> habitPausesRefs<T extends Object>(Expression<T> Function($$HabitPausesTableAnnotationComposer a) f) {
+    final $$HabitPausesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.habitPauses,
+      getReferencedColumn: (t) => t.habitId,
+      builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+          $$HabitPausesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.habitPauses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$HabitsTableTableManager
@@ -1739,7 +2107,7 @@ class $$HabitsTableTableManager
           $$HabitsTableUpdateCompanionBuilder,
           (HabitRow, $$HabitsTableReferences),
           HabitRow,
-          PrefetchHooks Function({bool objectivesRefs, bool habitLogsRefs})
+          PrefetchHooks Function({bool objectivesRefs, bool habitLogsRefs, bool habitPausesRefs})
         > {
   $$HabitsTableTableManager(_$AppDatabase db, $HabitsTable table)
     : super(
@@ -1762,6 +2130,7 @@ class $$HabitsTableTableManager
                 Value<int> scheduledWeekdayMask = const Value.absent(),
                 Value<int?> targetDaysPerWeek = const Value.absent(),
                 Value<DateTime?> archivedAt = const Value.absent(),
+                Value<int> restDaysPerWeek = const Value.absent(),
               }) => HabitsCompanion(
                 id: id,
                 title: title,
@@ -1774,6 +2143,7 @@ class $$HabitsTableTableManager
                 scheduledWeekdayMask: scheduledWeekdayMask,
                 targetDaysPerWeek: targetDaysPerWeek,
                 archivedAt: archivedAt,
+                restDaysPerWeek: restDaysPerWeek,
               ),
           createCompanionCallback:
               ({
@@ -1788,6 +2158,7 @@ class $$HabitsTableTableManager
                 Value<int> scheduledWeekdayMask = const Value.absent(),
                 Value<int?> targetDaysPerWeek = const Value.absent(),
                 Value<DateTime?> archivedAt = const Value.absent(),
+                Value<int> restDaysPerWeek = const Value.absent(),
               }) => HabitsCompanion.insert(
                 id: id,
                 title: title,
@@ -1800,14 +2171,19 @@ class $$HabitsTableTableManager
                 scheduledWeekdayMask: scheduledWeekdayMask,
                 targetDaysPerWeek: targetDaysPerWeek,
                 archivedAt: archivedAt,
+                restDaysPerWeek: restDaysPerWeek,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable<$HabitsTable, HabitRow>(table), $$HabitsTableReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: ({objectivesRefs = false, habitLogsRefs = false}) {
+          prefetchHooksCallback: ({objectivesRefs = false, habitLogsRefs = false, habitPausesRefs = false}) {
             return PrefetchHooks(
               db: db,
-              explicitlyWatchedTables: [if (objectivesRefs) db.objectives, if (habitLogsRefs) db.habitLogs],
+              explicitlyWatchedTables: [
+                if (objectivesRefs) db.objectives,
+                if (habitLogsRefs) db.habitLogs,
+                if (habitPausesRefs) db.habitPauses,
+              ],
               addJoins: null,
               getPrefetchedDataCallback: (items) async {
                 return [
@@ -1825,6 +2201,15 @@ class $$HabitsTableTableManager
                       currentTable: table,
                       referencedTable: $$HabitsTableReferences._habitLogsRefsTable(db),
                       managerFromTypedResult: (p0) => $$HabitsTableReferences(db, table, p0).habitLogsRefs,
+                      currentColumn: 'id',
+                      referencedColumn: 'habit_id',
+                      typedResults: items,
+                    ),
+                  if (habitPausesRefs)
+                    await $_getPrefetchedDataByColumns<HabitRow, $HabitsTable, HabitPauseRow, $HabitPausesTable>(
+                      currentTable: table,
+                      referencedTable: $$HabitsTableReferences._habitPausesRefsTable(db),
+                      managerFromTypedResult: (p0) => $$HabitsTableReferences(db, table, p0).habitPausesRefs,
                       currentColumn: 'id',
                       referencedColumn: 'habit_id',
                       typedResults: items,
@@ -1849,7 +2234,7 @@ typedef $$HabitsTableProcessedTableManager =
       $$HabitsTableUpdateCompanionBuilder,
       (HabitRow, $$HabitsTableReferences),
       HabitRow,
-      PrefetchHooks Function({bool objectivesRefs, bool habitLogsRefs})
+      PrefetchHooks Function({bool objectivesRefs, bool habitLogsRefs, bool habitPausesRefs})
     >;
 typedef $$ObjectivesTableCreateCompanionBuilder = ObjectivesCompanion Function({
   Value<int> id,
@@ -2595,6 +2980,232 @@ typedef $$NotesTableProcessedTableManager =
       NoteRow,
       PrefetchHooks Function()
     >;
+typedef $$HabitPausesTableCreateCompanionBuilder = HabitPausesCompanion Function({
+  Value<int> id,
+  required int habitId,
+  required int startDay,
+  Value<int?> endDay,
+});
+typedef $$HabitPausesTableUpdateCompanionBuilder = HabitPausesCompanion Function({
+  Value<int> id,
+  Value<int> habitId,
+  Value<int> startDay,
+  Value<int?> endDay,
+});
+
+final class $$HabitPausesTableReferences extends BaseReferences<_$AppDatabase, $HabitPausesTable, HabitPauseRow> {
+  $$HabitPausesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $HabitsTable _habitIdTable(_$AppDatabase db) => db.habits.createAlias('habit_pauses__habit_id__habits__id');
+
+  $$HabitsTableProcessedTableManager get habitId {
+    final $_column = $_itemColumn<int>('habit_id')!;
+
+    final manager = $$HabitsTableTableManager($_db, $_db.habits).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_habitIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$HabitPausesTableFilterComposer extends Composer<_$AppDatabase, $HabitPausesTable> {
+  $$HabitPausesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get startDay =>
+      $composableBuilder(column: $table.startDay, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get endDay =>
+      $composableBuilder(column: $table.endDay, builder: (column) => ColumnFilters(column));
+
+  $$HabitsTableFilterComposer get habitId {
+    final $$HabitsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.habitId,
+      referencedTable: $db.habits,
+      getReferencedColumn: (t) => t.id,
+      builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+          $$HabitsTableFilterComposer(
+            $db: $db,
+            $table: $db.habits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$HabitPausesTableOrderingComposer extends Composer<_$AppDatabase, $HabitPausesTable> {
+  $$HabitPausesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get startDay =>
+      $composableBuilder(column: $table.startDay, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get endDay =>
+      $composableBuilder(column: $table.endDay, builder: (column) => ColumnOrderings(column));
+
+  $$HabitsTableOrderingComposer get habitId {
+    final $$HabitsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.habitId,
+      referencedTable: $db.habits,
+      getReferencedColumn: (t) => t.id,
+      builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+          $$HabitsTableOrderingComposer(
+            $db: $db,
+            $table: $db.habits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$HabitPausesTableAnnotationComposer extends Composer<_$AppDatabase, $HabitPausesTable> {
+  $$HabitPausesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id => $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get startDay => $composableBuilder(column: $table.startDay, builder: (column) => column);
+
+  GeneratedColumn<int> get endDay => $composableBuilder(column: $table.endDay, builder: (column) => column);
+
+  $$HabitsTableAnnotationComposer get habitId {
+    final $$HabitsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.habitId,
+      referencedTable: $db.habits,
+      getReferencedColumn: (t) => t.id,
+      builder: (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
+          $$HabitsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.habits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$HabitPausesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $HabitPausesTable,
+          HabitPauseRow,
+          $$HabitPausesTableFilterComposer,
+          $$HabitPausesTableOrderingComposer,
+          $$HabitPausesTableAnnotationComposer,
+          $$HabitPausesTableCreateCompanionBuilder,
+          $$HabitPausesTableUpdateCompanionBuilder,
+          (HabitPauseRow, $$HabitPausesTableReferences),
+          HabitPauseRow,
+          PrefetchHooks Function({bool habitId})
+        > {
+  $$HabitPausesTableTableManager(_$AppDatabase db, $HabitPausesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () => $$HabitPausesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () => $$HabitPausesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () => $$HabitPausesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<int> habitId = const Value.absent(),
+            Value<int> startDay = const Value.absent(),
+            Value<int?> endDay = const Value.absent(),
+          }) => HabitPausesCompanion(id: id, habitId: habitId, startDay: startDay, endDay: endDay),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required int habitId,
+            required int startDay,
+            Value<int?> endDay = const Value.absent(),
+          }) => HabitPausesCompanion.insert(id: id, habitId: habitId, startDay: startDay, endDay: endDay),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) =>
+                    (e.readTable<$HabitPausesTable, HabitPauseRow>(table), $$HabitPausesTableReferences(db, table, e)),
+              )
+              .toList(),
+          prefetchHooksCallback: ({habitId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (habitId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.habitId,
+                        referencedTable: $$HabitPausesTableReferences._habitIdTable(db),
+                        referencedColumn: $$HabitPausesTableReferences._habitIdTable(db).id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$HabitPausesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $HabitPausesTable,
+      HabitPauseRow,
+      $$HabitPausesTableFilterComposer,
+      $$HabitPausesTableOrderingComposer,
+      $$HabitPausesTableAnnotationComposer,
+      $$HabitPausesTableCreateCompanionBuilder,
+      $$HabitPausesTableUpdateCompanionBuilder,
+      (HabitPauseRow, $$HabitPausesTableReferences),
+      HabitPauseRow,
+      PrefetchHooks Function({bool habitId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2603,4 +3214,5 @@ class $AppDatabaseManager {
   $$ObjectivesTableTableManager get objectives => $$ObjectivesTableTableManager(_db, _db.objectives);
   $$HabitLogsTableTableManager get habitLogs => $$HabitLogsTableTableManager(_db, _db.habitLogs);
   $$NotesTableTableManager get notes => $$NotesTableTableManager(_db, _db.notes);
+  $$HabitPausesTableTableManager get habitPauses => $$HabitPausesTableTableManager(_db, _db.habitPauses);
 }

@@ -92,13 +92,7 @@ class _StatisticsContent extends StatelessWidget {
     final komitColors = KomitColors.of(context);
     final textTheme = Theme.of(context).textTheme;
     final statistics = computeYearStatistics(objectiveIdByDay, year: year);
-    final streaks = computeScheduledStreakSummary(
-      objectiveIdByDay,
-      successObjectiveIds: habit.successObjectiveIds,
-      scheduledWeekdayMask: habit.habit.scheduledWeekdayMask,
-      targetDaysPerWeek: habit.habit.targetDaysPerWeek,
-      today: today,
-    );
+    final streaks = streakSummaryOf(habit, objectiveIdByDay, today: today);
     return SliverPadding(
       padding: EdgeInsets.fromLTRB(
         AppSpacing.screenGutter,

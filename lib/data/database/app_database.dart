@@ -4,7 +4,8 @@ import 'package:drift_flutter/drift_flutter.dart';
 import '../../domain/habit_schedule.dart';
 import 'app_database.steps.dart';
 
-export '../../domain/habit_schedule.dart' show everyWeekdayMask, maximumTargetDaysPerWeek, minimumTargetDaysPerWeek;
+export '../../domain/habit_schedule.dart'
+    show everyWeekdayMask, maximumRestDaysPerWeek, maximumTargetDaysPerWeek, minimumTargetDaysPerWeek;
 
 part 'app_database.g.dart';
 
@@ -45,6 +46,27 @@ class Habits extends Table {
 
   /// Null while the habit is active.
   DateTimeColumn get archivedAt => dateTime().nullable()();
+
+  /// Missed scheduled days per ISO week that keep a daily or weekday streak alive (docs/adr/0007).
+  IntColumn get restDaysPerWeek => integer()
+      .withDefault(const Constant(0))
+      // ignore: recursive_getters, drift's documented way to reference the column in its own CHECK.
+      .check(restDaysPerWeek.isBetweenValues(0, maximumRestDaysPerWeek))();
+}
+
+/// Days a habit is on hold; past pauses stay so its history reads the same (docs/adr/0007).
+@DataClassName('HabitPauseRow')
+class HabitPauses extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get habitId => integer().references(Habits, #id, onDelete: KeyAction.cascade)();
+
+  /// A [CalendarDay], included.
+  IntColumn get startDay => integer()();
+
+  /// A [CalendarDay], included; null while the pause is open.
+  IntColumn get endDay =>
+      // ignore: recursive_getters, drift's documented way to reference the column in its own CHECK.
+      integer().nullable().check(endDay.isBiggerOrEqual(startDay))();
 }
 
 /// The possible outcomes of a habit for one day (e.g. "2-5km", "Tired").
@@ -91,7 +113,7 @@ class Notes extends Table {
   DateTimeColumn get updatedAt => dateTime()();
 }
 
-@DriftDatabase(tables: [Habits, Objectives, HabitLogs, Notes])
+@DriftDatabase(tables: [Habits, Objectives, HabitLogs, Notes, HabitPauses])
 class AppDatabase extends _$AppDatabase {
   /// Background isolates (reminder actions, widgets) must open the database through this
   /// constructor too, so every isolate shares one connection (see docs/adr/0004).
@@ -99,7 +121,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? driftDatabase(name: 'komit', native: const DriftNativeOptions(shareAcrossIsolates: true)));
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -110,6 +132,10 @@ class AppDatabase extends _$AppDatabase {
         await migrator.addColumn(schema.habits, schema.habits.targetDaysPerWeek);
         await migrator.addColumn(schema.habits, schema.habits.archivedAt);
         await migrator.create(schema.habitLogsObjective);
+      },
+      from2To3: (migrator, schema) async {
+        await migrator.addColumn(schema.habits, schema.habits.restDaysPerWeek);
+        await migrator.create(schema.habitPauses);
       },
     ),
     beforeOpen: (details) async {
