@@ -1,6 +1,6 @@
 # 3. Design system, Komo the mascot, and brand assets
 
-Date: 2026-10-28 · Status: accepted
+Date: 2026-10-28 · Status: superseded by [0006](0006-material-3-expressive-art-direction.md) for the visual style (palette, type, shapes, Komo's look); the token structure and the haptics decisions still hold
 
 ## Context
 

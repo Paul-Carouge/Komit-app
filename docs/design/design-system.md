@@ -59,8 +59,43 @@ One expressive moment per surface:
 - **Komo in headers** moves only on a mood change or a tap, for
   `mascotHeaderAnimationBudget` (2.5 s): it sits next to text and must not pull the eye.
 
-Achievements use Komo's face as their badge: open eyes on the orange square when unlocked,
-closed eyes on a gray square, in an outlined tile, when locked. The status is also written.
+Achievements each have their own Lucide icon in a `HabitIconBadge`, tinted by family
+(`AchievementFamilyColors`: beginnings green, streaks orange, perfection yellow, totals
+blue, variety teal, special days pink, comebacks violet; mapping in
+`lib/features/achievements/achievement_appearance.dart`). Unlocked tiles are `SoftCard`s;
+locked ones are outlined, with the icon in `mutedText`. The status is also written, so it
+never relies on color alone.
+
+## Komo
+
+Komo is the launcher icon come alive: an orange rounded square (76 units, radius 26, on a
+108-unit grid) with two pill eyes (11 x 20, ±12.5 from the center, 33 units below the top),
+drawn by `KomoPainter`. It has no mouth, arms or outline; it shows moods only through motion
+and its eyes (`KomoMood`: idle breathes and blinks, happy hops and squints, sleepy closes its
+eyes, waving tilts and glances). Never add detail to it.
+
+Holidays (French calendar, `lib/domain/seasons.dart`): a witch hat (October 24 to
+November 6), a Santa hat (December 1 to January 6) and bunny ears (Palm Sunday to the
+Sunday after Easter). Accessories are flat shapes in `SeasonalAccessoryColors`, drawn in
+Komo's own coordinates so they move with it; Komo shrinks to 80 % to make room.
+`KomoSeasonScope` passes the season down from `currentSeasonProvider`, so every Komo dresses
+up and goes back to normal on its own.
+
+## Icons, colors of habits, haptics
+
+- Icons: Lucide only, through `KomitIcons` (one vendored font, tree-shaken). Add a glyph by
+  its code point from `assets/fonts/lucide_codepoints.json`; never mix icon families.
+- Habit colors come from `habitColorPaletteArgb` (20 colors). A habit's color tints its
+  icon badge, grid cells, schedule controls and celebration burst; brand orange stays for
+  primary actions and Komo.
+- Haptics through `KomitHaptics` only: `selection` for choices, `success` for a log or save,
+  `warning` before a destructive action, `celebration` for milestones.
+
+## Voice
+
+French copy always says "tu", in Komo's warm, short voice; English is plain and friendly.
+Sentences are short, actions are verbs ("Noter aujourd'hui"), errors say what happened and
+what to do. French uses non-breaking spaces before `?`, `!`, `:` and inside « ».
 
 ## Layout patterns
 
@@ -99,6 +134,14 @@ which blinks once (`splash_komo_blink.xml`, 800 ms, matching
 system reduces motion. The launcher icon itself is unchanged.
 
 ## Defaults we rejected
+
+- A game look (thick outlines, chunky 3D buttons, Supercell style): rejected by the user as
+  not pretty and too far from the original app.
+- A display serif (Fraunces) for headings: rejected; Roboto with heavy headlines instead.
+- A detailed Komo or launcher icon (limbs, mouth, highlights): rejected; the icon is only
+  orange with two pill eyes.
+- A grid of habit tiles on the home screen: replaced by a list, which shows the two-week
+  strip and the one-tap button side by side.
 
 - A violet gradient banner on the notes tab: decorative and off-brand; it is now the warm
   `primaryContainer` tint.
