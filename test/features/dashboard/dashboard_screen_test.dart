@@ -221,6 +221,22 @@ void main() {
     await environment.dispose(tester);
   });
 
+  testWidgets('after a cancelled lift, holding the row in place still opens its actions', (tester) async {
+    final environment = await KomitTestEnvironment.create(tester);
+    await pumpKomitApp(tester, environment, theme: lightAppTheme);
+
+    final cancelledGesture = await tester.startGesture(tester.getCenter(find.text('Morning run')));
+    await tester.pump(kLongPressTimeout + kPressTimeout);
+    await cancelledGesture.cancel();
+    await tester.pumpAndSettle();
+    await tester.longPress(find.text('Morning run'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Edit habit'), findsOneWidget);
+    await environment.dispose(tester);
+  });
+
   testWidgets('dragging a held row reorders it without opening its actions', (tester) async {
     final environment = await KomitTestEnvironment.create(tester);
     await pumpKomitApp(tester, environment, theme: lightAppTheme);

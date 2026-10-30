@@ -134,8 +134,14 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
                     IconButton(
                       tooltip: localizations.moreActionsTooltip,
                       icon: const Icon(KomitIcons.ellipsis),
-                      onPressed: () =>
-                          showHabitActionsSheet(context, ref, loadedHabit, onHabitRemoved: () => context.pop()),
+                      onPressed: () => showHabitActionsSheet(
+                        context,
+                        ref,
+                        loadedHabit,
+                        onHabitRemoved: () {
+                          if (context.mounted) context.pop();
+                        },
+                      ),
                     ),
                   ],
                 ],

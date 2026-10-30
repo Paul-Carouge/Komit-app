@@ -269,8 +269,11 @@ class _ReorderableHabitListState extends ConsumerState<_ReorderableHabitList> {
 
   final ListEntranceChoreographer _entranceChoreographer = ListEntranceChoreographer();
 
-  /// Where the finger was when the lifted row first followed it, and how far it went since:
-  /// a lift dropped where it started is a request for the row's actions, not a move.
+  /// The lifted row, where its finger was at the lift and how far it went since: a lift
+  /// dropped where it started is a request for the row's actions, not a move.
+  HabitWithObjectives? _liftedHabit;
+  int? _liftedIndex;
+  int? _liftPointer;
   Offset? _liftOrigin;
   double _liftTravel = 0;
   bool _isTrackingLift = false;
@@ -281,8 +284,13 @@ class _ReorderableHabitListState extends ConsumerState<_ReorderableHabitList> {
     super.dispose();
   }
 
-  void _startTrackingLift(int _) {
+  void _startTrackingLift(List<HabitWithObjectives> habits, int index) {
+    // A cancelled drag never reaches onReorderEnd.
+    _stopTrackingLift();
     unawaited(KomitHaptics.lift());
+    _liftedHabit = habits[index];
+    _liftedIndex = index;
+    _liftPointer = null;
     _liftOrigin = null;
     _liftTravel = 0;
     _isTrackingLift = true;
@@ -296,15 +304,20 @@ class _ReorderableHabitListState extends ConsumerState<_ReorderableHabitList> {
   }
 
   void _trackLiftTravel(PointerEvent event) {
+    // Another finger landing during the lift is not the lifted row moving.
+    if (event.pointer != (_liftPointer ??= event.pointer)) return;
     // The first event seen may already be a move: its start is where the finger was at the lift.
     final origin = _liftOrigin ??= event.position - event.delta;
     _liftTravel = math.max(_liftTravel, (event.position - origin).distance);
   }
 
-  void _showActionsIfLiftStayedInPlace(List<HabitWithObjectives> habits, int index) {
+  /// [insertIndex] counts the lifted row too: it equals the lifted index only if nothing moved,
+  /// which edge auto-scroll can do without the finger moving.
+  void _showActionsIfLiftStayedInPlace(int insertIndex) {
     _stopTrackingLift();
-    if (_liftTravel >= kTouchSlop) return;
-    unawaited(showHabitActionsSheet(context, ref, habits[index]));
+    final liftedHabit = _liftedHabit;
+    if (liftedHabit == null || insertIndex != _liftedIndex || _liftTravel >= kTouchSlop) return;
+    unawaited(showHabitActionsSheet(context, ref, liftedHabit));
   }
 
   @override
@@ -339,9 +352,9 @@ class _ReorderableHabitListState extends ConsumerState<_ReorderableHabitList> {
     _entranceChoreographer.updateRowIds(habits.map((habit) => habit.habit.id));
     return SliverReorderableList(
       itemCount: habits.length,
-      onReorderStart: _startTrackingLift,
+      onReorderStart: (index) => _startTrackingLift(habits, index),
       onReorderItem: (fromIndex, toIndex) => _move(habits, fromIndex, toIndex),
-      onReorderEnd: (index) => _showActionsIfLiftStayedInPlace(habits, index),
+      onReorderEnd: _showActionsIfLiftStayedInPlace,
       proxyDecorator: _liftedRow,
       itemBuilder: (context, index) {
         final habit = habits[index];
