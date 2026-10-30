@@ -125,14 +125,19 @@ Back up both files somewhere safe: losing them means users must uninstall and re
 ### Publish a version
 
 1. Bump `version:` in `pubspec.yaml` (SemVer, then `+` build number, incremented every release).
-2. Add the version to `CHANGELOG.md`.
-3. Build and publish:
+2. Add the version to `CHANGELOG.md`, merge to `main` and push.
+3. Write the release notes to a file outside the repository, then from an up-to-date `main`:
 
 ```sh
-flutter build apk --release --target-platform android-arm64 --split-debug-info=build/symbols/vX.Y.Z
-cp build/app/outputs/flutter-apk/app-release.apk komit-vX.Y.Z.apk
-gh release create vX.Y.Z komit-vX.Y.Z.apk --title "Komit X.Y.Z" --notes-file <notes.md>
+tool/release.sh <notes.md>
 ```
+
+The script refuses a dirty tree, a branch other than `main` or one behind `origin/main`, an
+existing tag and a version missing from `CHANGELOG.md`. It builds the arm64 APK with
+`--split-debug-info=build/symbols/vX.Y.Z`, checks with `apksigner` that it is signed with the
+published certificate only and with `aapt2` that its versionCode is above the latest release's,
+then asks before creating the tag and the GitHub release with `build/release/komit-vX.Y.Z.apk`.
+GitHub publishes the asset's SHA-256 digest that the in-app updater checks.
 
 The release notes are what users see in the in-app update dialog.
 
