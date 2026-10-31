@@ -202,6 +202,10 @@ void main() {
       await tester.enterText(find.widgetWithText(TextField, 'Unit'), 'glasses');
       await _save(tester);
       expect(find.text('The daily target and the step must be numbers above 0'), findsOneWidget);
+      // A target that rounds to 0 as stored is no target either.
+      await tester.enterText(find.widgetWithText(TextField, 'Daily target'), '0.0004');
+      await _save(tester);
+      expect(find.text('The daily target and the step must be numbers above 0'), findsOneWidget);
       final habits = await tester.runAsync(() => HabitRepository(environment.database).watchActiveHabits().first);
       expect(habits!.map((habit) => habit.habit.title), isNot(contains('Drink water')));
       await environment.dispose(tester);

@@ -399,8 +399,9 @@ int _requiredInt(Object? value, String path) =>
     value is int ? value : throw InvalidBackupException('$path: expected an integer');
 
 /// A JSON number above zero and at most [maximumQuantityValue], as stored.
+/// Rounded first, as stored: an amount that rounds to 0 would fail the database's check instead.
 double _requiredPositiveQuantity(Object? value, String path) => switch (value) {
-  final num number when number > 0 && number <= maximumQuantityValue => roundQuantity(number.toDouble()),
+  final num number when isStorableQuantity(roundQuantity(number.toDouble())) => roundQuantity(number.toDouble()),
   _ => throw InvalidBackupException('$path: expected an amount above 0 and at most $maximumQuantityValue'),
 };
 

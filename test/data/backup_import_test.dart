@@ -422,6 +422,8 @@ void main() {
         encode(quantitySnapshot(quantities: const [8])),
         encode(quantitySnapshot(quantities: null)),
         encode(quantitySnapshot()).replaceFirst('2.5', '0'),
+        // Rounds to 0 as stored: refused here rather than by the database's check.
+        encode(quantitySnapshot()).replaceFirst('2.5', '0.0004'),
         encode(quantitySnapshot()).replaceFirst(RegExp(r'"quantity": \{[^}]*\}'), '"quantity": null'),
       ]) {
         expect(() => decodeBackupSnapshotFromJson(json), throwsA(isA<InvalidBackupException>()));

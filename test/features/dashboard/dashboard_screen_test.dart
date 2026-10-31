@@ -262,6 +262,31 @@ void main() {
     await environment.dispose(tester);
   });
 
+  testWidgets('the sheet refuses "NaN" and clears the day for an amount that rounds to 0', (tester) async {
+    final environment = await KomitTestEnvironment.create(tester, hasWaterHabit: true);
+    await pumpKomitApp(tester, environment, theme: lightAppTheme, logicalSize: _tallPhoneLogicalSize);
+    final water = await _habitTitled(tester, environment, 'Drink water');
+    Future<double?> todayAmount() async => (await tester.runAsync(
+      () => _repositoryOf(environment).watchQuantityByDayForHabit(water.habit.id).first,
+    ))![_today];
+    final addStepButton = find.bySemanticsLabel('Add 1 glasses to Drink water');
+    final amountField = find.descendant(of: find.byType(BottomSheet), matching: find.byType(TextField));
+
+    await tester.longPress(addStepButton);
+    await tester.pumpAndSettle();
+    await tester.enterText(amountField, 'NaN');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(find.text('Enter an amount above 0'), findsOneWidget);
+    expect(await todayAmount(), 3);
+
+    await tester.enterText(amountField, '0.0004');
+    await tester.tap(find.text('Save'));
+    await settleWithDatabaseWork(tester);
+    expect(await todayAmount(), isNull);
+    await environment.dispose(tester);
+  });
+
   testWidgets('the sheet steps from a grouped amount: 2,000 glasses plus one is 2,001', (tester) async {
     final environment = await KomitTestEnvironment.create(tester, hasWaterHabit: true);
     final water = await _habitTitled(tester, environment, 'Drink water');

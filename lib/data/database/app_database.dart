@@ -20,6 +20,10 @@ const int maximumQuantityUnitLength = 16;
 /// Far above any daily amount a person logs; guards against a typo of extra digits.
 const double maximumQuantityValue = 1000000;
 
+/// Whether an amount, already rounded as stored, can be stored: 0.0004 rounds to 0 and is not.
+bool isStorableQuantity(double roundedQuantity) =>
+    roundedQuantity.isFinite && roundedQuantity > 0 && roundedQuantity <= maximumQuantityValue;
+
 /// How long a connection waits for another isolate's write lock before failing.
 const Duration databaseBusyTimeout = Duration(seconds: 5);
 

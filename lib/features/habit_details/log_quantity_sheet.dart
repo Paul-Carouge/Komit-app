@@ -262,14 +262,16 @@ class _LogQuantitySheetState extends State<_LogQuantitySheet> {
   }
 
   void _save() {
-    final quantity = parseQuantity(_amountController.text);
-    if (quantity == null || quantity < 0 || quantity > maximumQuantityValue) {
+    final typedQuantity = parseQuantity(_amountController.text);
+    // Rounded first, as stored: an amount that rounds to zero is no amount at all.
+    final quantity = typedQuantity == null ? null : roundQuantity(typedQuantity);
+    if (typedQuantity == null || typedQuantity < 0 || quantity == null || quantity > maximumQuantityValue) {
       unawaited(KomitHaptics.error());
       setState(() => _isAmountInvalid = true);
       return;
     }
-    // Zero is no amount at all: the day is cleared rather than storing an empty log.
-    Navigator.of(context).pop((quantity: quantity == 0 ? null : roundQuantity(quantity)));
+    // Zero clears the day rather than storing an empty log.
+    Navigator.of(context).pop((quantity: quantity == 0 ? null : quantity));
   }
 
   @override

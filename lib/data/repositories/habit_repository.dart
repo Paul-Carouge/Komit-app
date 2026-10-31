@@ -533,7 +533,7 @@ class HabitRepository {
       return Future.error(const InvalidLogException('cannot log a future day'));
     }
     final roundedQuantity = roundQuantity(quantity);
-    if (!roundedQuantity.isFinite || roundedQuantity <= 0 || roundedQuantity > maximumQuantityValue) {
+    if (!isStorableQuantity(roundedQuantity)) {
       return Future.error(InvalidLogException('invalid amount $quantity'));
     }
     return _database.transaction(() async {

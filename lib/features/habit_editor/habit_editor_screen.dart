@@ -441,11 +441,11 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
   /// The goal as typed, or null while a field is missing or not a number above zero.
   QuantityGoal? _typedQuantityGoal() {
     final unit = _quantityUnitController.text.trim();
-    final target = parseQuantity(_quantityTargetController.text);
-    final step = parseQuantity(_quantityStepController.text);
-    bool isValidAmount(double? amount) => amount != null && amount > 0 && amount <= maximumQuantityValue;
-    if (unit.isEmpty || !isValidAmount(target) || !isValidAmount(step)) return null;
-    return QuantityGoal(unit: unit, target: roundQuantity(target!), step: roundQuantity(step!));
+    // Rounded first, as stored: 0.0004 rounds to 0, which is no target.
+    final target = roundQuantity(parseQuantity(_quantityTargetController.text) ?? 0);
+    final step = roundQuantity(parseQuantity(_quantityStepController.text) ?? 0);
+    if (unit.isEmpty || !isStorableQuantity(target) || !isStorableQuantity(step)) return null;
+    return QuantityGoal(unit: unit, target: target, step: step);
   }
 
   String? _describeQuantityGoal(AppLocalizations localizations) => switch (_typedQuantityGoal()) {
