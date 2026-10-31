@@ -665,9 +665,192 @@ i1.GeneratedColumn<int> _column_38(String aliasedName) =>
       type: i1.DriftSqlType.int,
       $customConstraints: 'NULL CHECK (end_day >= start_day)',
     );
+
+final class Schema4 extends i0.VersionedSchema {
+  Schema4({required super.database}) : super(version: 4);
+  @override
+  late final List<i1.DatabaseSchemaEntity> entities = [
+    habits,
+    objectives,
+    habitLogs,
+    notes,
+    habitPauses,
+    habitLogsDay,
+    habitLogsObjective,
+  ];
+  late final Shape8 habits = Shape8(
+    source: i0.VersionedTable(
+      entityName: 'habits',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [
+        _column_18,
+        _column_19,
+        _column_20,
+        _column_21,
+        _column_22,
+        _column_23,
+        _column_24,
+        _column_25,
+        _column_26,
+        _column_27,
+        _column_28,
+        _column_29,
+        _column_39,
+        _column_40,
+        _column_41,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape5 objectives = Shape5(
+    source: i0.VersionedTable(
+      entityName: 'objectives',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['UNIQUE(habit_id, title)'],
+      columns: [
+        _column_18,
+        _column_30,
+        _column_19,
+        _column_21,
+        _column_31,
+        _column_32,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape9 habitLogs = Shape9(
+    source: i0.VersionedTable(
+      entityName: 'habit_logs',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['UNIQUE(habit_id, day)'],
+      columns: [_column_18, _column_30, _column_33, _column_34, _column_42],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape6 notes = Shape6(
+    source: i0.VersionedTable(
+      entityName: 'notes',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [_column_18, _column_35, _column_25, _column_36],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape7 habitPauses = Shape7(
+    source: i0.VersionedTable(
+      entityName: 'habit_pauses',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [_column_18, _column_30, _column_37, _column_38],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index habitLogsDay = i1.Index(
+    'habit_logs_day',
+    'CREATE INDEX habit_logs_day ON habit_logs (day)',
+  );
+  final i1.Index habitLogsObjective = i1.Index(
+    'habit_logs_objective',
+    'CREATE INDEX habit_logs_objective ON habit_logs (objective_id)',
+  );
+}
+
+class Shape8 extends i0.VersionedTable {
+  Shape8({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<int> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get title =>
+      columnsByName['title']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get description =>
+      columnsByName['description']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get colorArgb =>
+      columnsByName['color_argb']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get iconName =>
+      columnsByName['icon_name']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get reminderMinuteOfDay =>
+      columnsByName['reminder_minute_of_day']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get sortOrder =>
+      columnsByName['sort_order']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get createdAt =>
+      columnsByName['created_at']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get scheduledWeekdayMask =>
+      columnsByName['scheduled_weekday_mask']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get targetDaysPerWeek =>
+      columnsByName['target_days_per_week']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get archivedAt =>
+      columnsByName['archived_at']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get restDaysPerWeek =>
+      columnsByName['rest_days_per_week']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get quantityUnit =>
+      columnsByName['quantity_unit']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<double> get quantityTarget =>
+      columnsByName['quantity_target']! as i1.GeneratedColumn<double>;
+  i1.GeneratedColumn<double> get quantityStep =>
+      columnsByName['quantity_step']! as i1.GeneratedColumn<double>;
+}
+
+i1.GeneratedColumn<String> _column_39(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'quantity_unit',
+      aliasedName,
+      true,
+      type: i1.DriftSqlType.string,
+      $customConstraints: 'NULL',
+    );
+i1.GeneratedColumn<double> _column_40(String aliasedName) =>
+    i1.GeneratedColumn<double>(
+      'quantity_target',
+      aliasedName,
+      true,
+      type: i1.DriftSqlType.double,
+      $customConstraints: 'NULL CHECK (quantity_target > 0.0)',
+    );
+i1.GeneratedColumn<double> _column_41(String aliasedName) =>
+    i1.GeneratedColumn<double>(
+      'quantity_step',
+      aliasedName,
+      true,
+      type: i1.DriftSqlType.double,
+      $customConstraints: 'NULL CHECK (quantity_step > 0.0)',
+    );
+
+class Shape9 extends i0.VersionedTable {
+  Shape9({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<int> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get habitId =>
+      columnsByName['habit_id']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get objectiveId =>
+      columnsByName['objective_id']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get day =>
+      columnsByName['day']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<double> get quantity =>
+      columnsByName['quantity']! as i1.GeneratedColumn<double>;
+}
+
+i1.GeneratedColumn<double> _column_42(String aliasedName) =>
+    i1.GeneratedColumn<double>(
+      'quantity',
+      aliasedName,
+      true,
+      type: i1.DriftSqlType.double,
+      $customConstraints: 'NULL CHECK (quantity > 0.0)',
+    );
 i0.MigrationStepWithVersion migrationSteps({
   required Future<void> Function(i1.Migrator m, Schema2 schema) from1To2,
   required Future<void> Function(i1.Migrator m, Schema3 schema) from2To3,
+  required Future<void> Function(i1.Migrator m, Schema4 schema) from3To4,
 }) {
   return (currentVersion, database) async {
     switch (currentVersion) {
@@ -681,6 +864,11 @@ i0.MigrationStepWithVersion migrationSteps({
         final migrator = i1.Migrator(database, schema);
         await from2To3(migrator, schema);
         return 3;
+      case 3:
+        final schema = Schema4(database: database);
+        final migrator = i1.Migrator(database, schema);
+        await from3To4(migrator, schema);
+        return 4;
       default:
         throw ArgumentError.value('Unknown migration from $currentVersion');
     }
@@ -690,6 +878,11 @@ i0.MigrationStepWithVersion migrationSteps({
 i1.OnUpgrade stepByStep({
   required Future<void> Function(i1.Migrator m, Schema2 schema) from1To2,
   required Future<void> Function(i1.Migrator m, Schema3 schema) from2To3,
+  required Future<void> Function(i1.Migrator m, Schema4 schema) from3To4,
 }) => i0.VersionedSchema.stepByStepHelper(
-  step: migrationSteps(from1To2: from1To2, from2To3: from2To3),
+  step: migrationSteps(
+    from1To2: from1To2,
+    from2To3: from2To3,
+    from3To4: from3To4,
+  ),
 );

@@ -4,6 +4,7 @@ import '../../core/calendar_day.dart';
 import '../../domain/habit_pause.dart';
 import '../backup/backup_snapshot.dart';
 import '../database/app_database.dart';
+import 'habit_repository.dart';
 
 class BackupRepository {
   BackupRepository(this._database);
@@ -27,8 +28,12 @@ class BackupRepository {
       )..orderBy([(pause) => OrderingTerm.asc(pause.startDay)])).get();
 
       final loggedDaysByObjectiveId = <int, List<CalendarDay>>{};
+      final quantitiesByObjectiveId = <int, List<double>>{};
       for (final log in logs) {
         loggedDaysByObjectiveId.putIfAbsent(log.objectiveId, () => []).add(CalendarDay(log.day));
+        if (log.quantity case final quantity?) {
+          quantitiesByObjectiveId.putIfAbsent(log.objectiveId, () => []).add(quantity);
+        }
       }
       return BackupSnapshot(
         userName: userName,
@@ -45,6 +50,7 @@ class BackupRepository {
               targetDaysPerWeek: habit.targetDaysPerWeek,
               archivedAt: habit.archivedAt,
               restDaysPerWeek: habit.restDaysPerWeek,
+              quantityGoal: quantityGoalOf(habit),
               pauses: [
                 for (final pause in pauses.where((pause) => pause.habitId == habit.id))
                   HabitPause(
@@ -62,6 +68,7 @@ class BackupRepository {
                     colorArgb: objective.colorArgb,
                     countsAsSuccess: objective.countsAsSuccess,
                     loggedDays: loggedDaysByObjectiveId[objective.id] ?? const [],
+                    quantities: habit.quantityTarget == null ? null : quantitiesByObjectiveId[objective.id] ?? const [],
                   ),
               ],
             ),
@@ -99,6 +106,9 @@ class BackupRepository {
                 targetDaysPerWeek: Value(habit.targetDaysPerWeek),
                 archivedAt: Value(habit.archivedAt),
                 restDaysPerWeek: Value(habit.targetDaysPerWeek == null ? habit.restDaysPerWeek : 0),
+                quantityUnit: Value(habit.quantityGoal?.unit),
+                quantityTarget: Value(habit.quantityGoal?.target),
+                quantityStep: Value(habit.quantityGoal?.step),
               ),
             );
         await _database.batch((batch) {
@@ -125,8 +135,13 @@ class BackupRepository {
               );
           await _database.batch((batch) {
             batch.insertAll(_database.habitLogs, [
-              for (final day in objective.loggedDays)
-                HabitLogsCompanion.insert(habitId: habitId, objectiveId: objectiveId, day: day.daysSinceEpoch),
+              for (final (index, day) in objective.loggedDays.indexed)
+                HabitLogsCompanion.insert(
+                  habitId: habitId,
+                  objectiveId: objectiveId,
+                  day: day.daysSinceEpoch,
+                  quantity: Value(objective.quantities?[index]),
+                ),
             ]);
           });
         }

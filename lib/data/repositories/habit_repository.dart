@@ -4,6 +4,7 @@ import '../../core/calendar_day.dart';
 import '../../domain/habit_pause.dart';
 import '../../domain/habit_schedule.dart';
 import '../../domain/habit_statistics.dart';
+import '../../domain/quantity_goal.dart';
 import '../database/app_database.dart';
 
 class HabitWithObjectives {
@@ -33,6 +34,9 @@ class HabitWithObjectives {
     return null;
   }
 
+  /// Null for an objectives habit (docs/adr/0008).
+  QuantityGoal? get quantityGoal => quantityGoalOf(habit);
+
   /// The objectives whose logs extend a streak.
   Set<int> get successObjectiveIds => {
     for (final objective in objectives)
@@ -46,6 +50,13 @@ class HabitWithObjectives {
     return null;
   }
 }
+
+/// Null for an objectives habit; the three columns are set together.
+QuantityGoal? quantityGoalOf(HabitRow habit) =>
+    switch ((habit.quantityUnit, habit.quantityTarget, habit.quantityStep)) {
+      (final unit?, final target?, final step?) => QuantityGoal(unit: unit, target: target, step: step),
+      _ => null,
+    };
 
 /// Whether [habit] asks for a log on [day]: on its schedule and not paused. A weekly target can
 /// be met on any day of the week.
@@ -80,6 +91,7 @@ class HabitDraft {
     this.scheduledWeekdayMask = everyWeekdayMask,
     this.targetDaysPerWeek,
     this.restDaysPerWeek = 0,
+    this.quantityGoal,
   });
 
   final int? id;
@@ -98,6 +110,10 @@ class HabitDraft {
 
   /// See [HabitRow.restDaysPerWeek]; ignored with a weekly target.
   final int restDaysPerWeek;
+
+  /// Set for a quantity habit, whose [objectives] then hold at most the id of its one hidden
+  /// objective (docs/adr/0008).
+  final QuantityGoal? quantityGoal;
 }
 
 class ObjectiveDraft {
@@ -117,6 +133,15 @@ class InvalidLogException implements Exception {
 
   @override
   String toString() => 'InvalidLogException: $message';
+}
+
+/// Thrown when a habit with logs would switch between objectives and a quantity: its logs
+/// would lose their meaning (docs/adr/0008).
+class HabitKindChangeException implements Exception {
+  const HabitKindChangeException();
+
+  @override
+  String toString() => 'HabitKindChangeException: a habit with logs keeps its kind';
 }
 
 /// Thrown when a pause would overlap another one or end before it starts.
@@ -197,31 +222,62 @@ class HabitRepository {
     });
   }
 
-  /// Every logged day of [habitId], mapped to the chosen objective id.
-  Stream<Map<CalendarDay, int>> watchObjectiveIdByDayForHabit(int habitId) {
-    final query = _database.select(_database.habitLogs)..where((log) => log.habitId.equals(habitId));
-    return query.watch().map((logs) => {for (final log in logs) CalendarDay(log.day): log.objectiveId});
-  }
+  /// Every logged day of [habitId], mapped to the chosen objective id. A quantity day below its
+  /// target is left out: it counts like a day without a log everywhere (docs/adr/0008).
+  Stream<Map<CalendarDay, int>> watchObjectiveIdByDayForHabit(int habitId) =>
+      _watchObjectiveIdByDayByHabitId(_database.habitLogs.habitId.equals(habitId))
+          .map((logsByHabitId) => logsByHabitId[habitId] ?? const {});
 
-  /// Logs of every habit since [firstDay] included: habit id -> day -> objective id.
+  /// Logs of every habit since [firstDay] included: habit id -> day -> objective id. Quantity
+  /// days below their target are left out, as in [watchObjectiveIdByDayForHabit].
   Stream<Map<int, Map<CalendarDay, int>>> watchObjectiveIdByDayForAllHabitsSince(CalendarDay firstDay) =>
-      _watchObjectiveIdByDayByHabitId(
-        _database.select(_database.habitLogs)..where((log) => log.day.isBiggerOrEqualValue(firstDay.daysSinceEpoch)),
-      );
+      _watchObjectiveIdByDayByHabitId(_database.habitLogs.day.isBiggerOrEqualValue(firstDay.daysSinceEpoch));
 
-  /// Every log of every habit, archived ones included: habit id -> day -> objective id.
+  /// Every log of every habit, archived ones included: habit id -> day -> objective id. Quantity
+  /// days below their target are left out, as in [watchObjectiveIdByDayForHabit].
   Stream<Map<int, Map<CalendarDay, int>>> watchObjectiveIdByDayForAllHabits() =>
-      _watchObjectiveIdByDayByHabitId(_database.select(_database.habitLogs));
+      _watchObjectiveIdByDayByHabitId(const Constant(true));
 
-  Stream<Map<int, Map<CalendarDay, int>>> _watchObjectiveIdByDayByHabitId(
-    SimpleSelectStatement<$HabitLogsTable, HabitLogRow> query,
-  ) {
-    return query.watch().map((logs) {
+  Stream<Map<int, Map<CalendarDay, int>>> _watchObjectiveIdByDayByHabitId(Expression<bool> logFilter) {
+    final logs = _database.habitLogs;
+    final habits = _database.habits;
+    // Decided on read, so a changed target re-reads every past day.
+    final isObjectiveLogOrReachedQuantity =
+        habits.quantityTarget.isNull() | logs.quantity.isBiggerOrEqual(habits.quantityTarget);
+    final query = _database.select(logs).join([innerJoin(habits, habits.id.equalsExp(logs.habitId), useColumns: false)])
+      ..where(logFilter & isObjectiveLogOrReachedQuantity);
+    return query.watch().map((rows) {
       final logsByHabitId = <int, Map<CalendarDay, int>>{};
-      for (final log in logs) {
+      for (final row in rows) {
+        final log = row.readTable(logs);
         logsByHabitId.putIfAbsent(log.habitId, () => {})[CalendarDay(log.day)] = log.objectiveId;
       }
       return logsByHabitId;
+    });
+  }
+
+  /// The amount logged on each day of quantity habit [habitId], reached or not.
+  Stream<Map<CalendarDay, double>> watchQuantityByDayForHabit(int habitId) =>
+      _watchQuantityByDayByHabitId(_database.habitLogs.habitId.equals(habitId))
+          .map((quantitiesByHabitId) => quantitiesByHabitId[habitId] ?? const {});
+
+  /// Amounts of every quantity habit since [firstDay] included: habit id -> day -> amount.
+  Stream<Map<int, Map<CalendarDay, double>>> watchQuantityByDayForAllHabitsSince(CalendarDay firstDay) =>
+      _watchQuantityByDayByHabitId(_database.habitLogs.day.isBiggerOrEqualValue(firstDay.daysSinceEpoch));
+
+  Stream<Map<int, Map<CalendarDay, double>>> _watchQuantityByDayByHabitId(Expression<bool> logFilter) {
+    final logs = _database.habitLogs;
+    final query = _database.selectOnly(logs)
+      ..addColumns([logs.habitId, logs.day, logs.quantity])
+      ..where(logFilter & logs.quantity.isNotNull());
+    return query.watch().map((rows) {
+      final quantitiesByHabitId = <int, Map<CalendarDay, double>>{};
+      for (final row in rows) {
+        quantitiesByHabitId.putIfAbsent(row.read(logs.habitId)!, () => {})[CalendarDay(row.read(logs.day)!)] = row.read(
+          logs.quantity,
+        )!;
+      }
+      return quantitiesByHabitId;
     });
   }
 
@@ -246,9 +302,18 @@ class HabitRepository {
 
   /// Creates or updates the habit and its objectives atomically; returns the habit id.
   ///
-  /// Objectives missing from [draft] are deleted together with their logs.
+  /// Objectives missing from [draft] are deleted together with their logs. Throws
+  /// [HabitKindChangeException] when a habit with logs would change kind.
   Future<int> saveHabit(HabitDraft draft) {
+    final quantityGoal = draft.quantityGoal;
+    // A quantity habit's one hidden objective follows its unit and color (docs/adr/0008).
+    final objectiveDrafts = quantityGoal == null
+        ? draft.objectives
+        : [ObjectiveDraft(id: draft.objectives.firstOrNull?.id, title: quantityGoal.unit, colorArgb: draft.colorArgb)];
     return _database.transaction(() async {
+      if (draft.id case final existingHabitId?) {
+        await _ensureKindCanChange(existingHabitId, isQuantity: quantityGoal != null);
+      }
       final habitColumns = HabitsCompanion(
         title: Value(draft.title.trim()),
         description: Value(draft.description.trim()),
@@ -258,6 +323,15 @@ class HabitRepository {
         scheduledWeekdayMask: Value(draft.scheduledWeekdayMask),
         targetDaysPerWeek: Value(draft.targetDaysPerWeek),
         restDaysPerWeek: Value(draft.targetDaysPerWeek == null ? draft.restDaysPerWeek : 0),
+        quantityUnit: Value(quantityGoal?.unit.trim()),
+        quantityTarget: Value(switch (quantityGoal) {
+          final goal? => roundQuantity(goal.target),
+          null => null,
+        }),
+        quantityStep: Value(switch (quantityGoal) {
+          final goal? => roundQuantity(goal.step),
+          null => null,
+        }),
       );
       final int habitId;
       if (draft.id case final existingHabitId?) {
@@ -270,7 +344,7 @@ class HabitRepository {
             .insert(habitColumns.copyWith(createdAt: Value(_now()), sortOrder: Value(nextSortOrder)));
       }
 
-      final keptObjectiveIds = [for (final objective in draft.objectives) ?objective.id];
+      final keptObjectiveIds = [for (final objective in objectiveDrafts) ?objective.id];
       await (_database.delete(
         _database.objectives,
       )..where((objective) => objective.habitId.equals(habitId) & objective.id.isNotIn(keptObjectiveIds))).go();
@@ -280,7 +354,7 @@ class HabitRepository {
           ObjectivesCompanion(title: Value('\u{FFFF}$objectiveId')),
         );
       }
-      for (final (sortOrder, objective) in draft.objectives.indexed) {
+      for (final (sortOrder, objective) in objectiveDrafts.indexed) {
         final objectiveColumns = ObjectivesCompanion(
           habitId: Value(habitId),
           title: Value(objective.title.trim()),
@@ -298,6 +372,19 @@ class HabitRepository {
       }
       return habitId;
     });
+  }
+
+  Future<void> _ensureKindCanChange(int habitId, {required bool isQuantity}) async {
+    final habit = await (_database.select(
+      _database.habits,
+    )..where((habit) => habit.id.equals(habitId))).getSingleOrNull();
+    if (habit == null || (habit.quantityTarget != null) == isQuantity) return;
+    final firstLog =
+        await (_database.select(_database.habitLogs)
+              ..where((log) => log.habitId.equals(habitId))
+              ..limit(1))
+            .getSingleOrNull();
+    if (firstLog != null) throw const HabitKindChangeException();
   }
 
   Future<int> _nextHabitSortOrder() async {
@@ -412,6 +499,9 @@ class HabitRepository {
 
   /// Throws [InvalidLogException] when [day] is after today or [objectiveId] is not one of
   /// [habitId]'s objectives; the foreign keys alone would accept both.
+  ///
+  /// On a quantity habit this is "Done" (reminders, the widget): it raises the day's amount to
+  /// the target and never lowers a bigger one (docs/adr/0008).
   Future<void> logObjectiveForDay({required int habitId, required int objectiveId, required CalendarDay day}) {
     if (day.isAfter(CalendarDay.fromDateTime(_now()))) {
       return Future.error(const InvalidLogException('cannot log a future day'));
@@ -423,17 +513,69 @@ class HabitRepository {
       if (objective == null) {
         throw InvalidLogException('objective $objectiveId does not belong to habit $habitId');
       }
-      await _database
-          .into(_database.habitLogs)
-          .insert(
-            HabitLogsCompanion.insert(habitId: habitId, objectiveId: objectiveId, day: day.daysSinceEpoch),
-            onConflict: DoUpdate(
-              (_) => HabitLogsCompanion(objectiveId: Value(objectiveId)),
-              target: [_database.habitLogs.habitId, _database.habitLogs.day],
-            ),
-          );
+      final habit = await (_database.select(_database.habits)..where((habit) => habit.id.equals(habitId))).getSingle();
+      double? quantity;
+      if (habit.quantityTarget case final target?) {
+        final currentQuantity = await _quantityOn(habitId, day);
+        quantity = currentQuantity != null && currentQuantity > target ? currentQuantity : target;
+      }
+      await _upsertLog(habitId: habitId, objectiveId: objectiveId, day: day, quantity: quantity);
     });
   }
+
+  /// Sets the amount of quantity habit [habitId] on [day]. Throws [InvalidLogException] for a
+  /// future day, an objectives habit, or an amount not above zero or above
+  /// [maximumQuantityValue]; clearing a day goes through [clearLogForDay].
+  Future<void> logQuantityForDay({required int habitId, required double quantity, required CalendarDay day}) {
+    if (day.isAfter(CalendarDay.fromDateTime(_now()))) {
+      return Future.error(const InvalidLogException('cannot log a future day'));
+    }
+    final roundedQuantity = roundQuantity(quantity);
+    if (!roundedQuantity.isFinite || roundedQuantity <= 0 || roundedQuantity > maximumQuantityValue) {
+      return Future.error(InvalidLogException('invalid amount $quantity'));
+    }
+    return _database.transaction(() async {
+      final habit = await (_database.select(
+        _database.habits,
+      )..where((habit) => habit.id.equals(habitId))).getSingleOrNull();
+      if (habit == null || habit.quantityTarget == null) {
+        throw InvalidLogException('habit $habitId does not track an amount');
+      }
+      final objective =
+          await (_database.select(_database.objectives)
+                ..where((objective) => objective.habitId.equals(habitId))
+                ..limit(1))
+              .getSingle();
+      await _upsertLog(habitId: habitId, objectiveId: objective.id, day: day, quantity: roundedQuantity);
+    });
+  }
+
+  Future<double?> _quantityOn(int habitId, CalendarDay day) async {
+    final log = await (_database.select(
+      _database.habitLogs,
+    )..where((log) => log.habitId.equals(habitId) & log.day.equals(day.daysSinceEpoch))).getSingleOrNull();
+    return log?.quantity;
+  }
+
+  Future<void> _upsertLog({
+    required int habitId,
+    required int objectiveId,
+    required CalendarDay day,
+    required double? quantity,
+  }) => _database
+      .into(_database.habitLogs)
+      .insert(
+        HabitLogsCompanion.insert(
+          habitId: habitId,
+          objectiveId: objectiveId,
+          day: day.daysSinceEpoch,
+          quantity: Value(quantity),
+        ),
+        onConflict: DoUpdate(
+          (_) => HabitLogsCompanion(objectiveId: Value(objectiveId), quantity: Value(quantity)),
+          target: [_database.habitLogs.habitId, _database.habitLogs.day],
+        ),
+      );
 
   Future<void> clearLogForDay({required int habitId, required CalendarDay day}) {
     return (_database.delete(

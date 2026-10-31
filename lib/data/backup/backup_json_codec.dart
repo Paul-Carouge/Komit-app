@@ -2,13 +2,16 @@ import 'dart:convert';
 
 import '../../core/calendar_day.dart';
 import '../../domain/habit_pause.dart';
+import '../../domain/quantity_goal.dart';
 import '../database/app_database.dart';
 import 'backup_snapshot.dart';
 
 const String backupFormatName = 'komit-backup';
 
-/// Version 3 adds rest days and pauses (docs/adr/0007); version 2 files still import.
-const int currentBackupFormatVersion = 3;
+/// Version 4 adds quantity habits (docs/adr/0008), version 3 rest days and pauses
+/// (docs/adr/0007); versions 2 and 3 still import.
+const int currentBackupFormatVersion = 4;
+const int _versionBeforeQuantities = 3;
 const int _versionBeforePauses = 2;
 
 /// Versions written by the first Komit app (Isar based) have no `format` key.
@@ -37,6 +40,10 @@ String encodeBackupSnapshotToJson(BackupSnapshot snapshot, {required DateTime ex
           'targetDaysPerWeek': habit.targetDaysPerWeek,
           'archivedAt': habit.archivedAt?.toUtc().toIso8601String(),
           'restDaysPerWeek': habit.restDaysPerWeek,
+          'quantity': switch (habit.quantityGoal) {
+            final goal? => {'unit': goal.unit, 'target': goal.target, 'step': goal.step},
+            null => null,
+          },
           'pauses': [
             for (final pause in habit.pauses)
               {
@@ -54,6 +61,7 @@ String encodeBackupSnapshotToJson(BackupSnapshot snapshot, {required DateTime ex
                 'colorArgb': objective.colorArgb,
                 'countsAsSuccess': objective.countsAsSuccess,
                 'loggedDays': [for (final day in objective.loggedDays) _formatIsoDate(day)],
+                'quantities': ?objective.quantities,
               },
           ],
         },
@@ -69,7 +77,7 @@ String encodeBackupSnapshotToJson(BackupSnapshot snapshot, {required DateTime ex
   });
 }
 
-/// Decodes a backup written by this app (v2, v3) or by the original Komit app (v1).
+/// Decodes a backup written by this app (v2 to v4) or by the original Komit app (v1).
 ///
 /// Throws [InvalidBackupException] with a readable reason on any malformed input:
 /// nothing must be written to the database from a half-understood file.
@@ -87,6 +95,7 @@ BackupSnapshot decodeBackupSnapshotFromJson(String jsonText) {
   final version = root['version'];
   final snapshot = switch (version) {
     currentBackupFormatVersion ||
+    _versionBeforeQuantities ||
     _versionBeforePauses when root['format'] == backupFormatName => _decodeCurrentFormat(root),
     legacyBackupFormatVersion => _decodeLegacyFormat(root),
     _ => throw InvalidBackupException('Unsupported backup version: $version'),
@@ -135,6 +144,10 @@ BackupHabit _decodeCurrentHabit(Map<String, Object?> habit, String path) {
       for (final (index, rawPause) in _asList(habit['pauses'] ?? const <Object?>[], '$path.pauses').indexed)
         _decodePause(_asMap(rawPause, '$path.pauses[$index]'), '$path.pauses[$index]'),
     ],
+    // Version 4 key; an older file holds objectives habits only.
+    quantityGoal: habit['quantity'] == null
+        ? null
+        : _decodeQuantityGoal(_asMap(habit['quantity'], '$path.quantity'), '$path.quantity'),
     objectives: [
       for (final (index, rawObjective) in _asList(habit['objectives'], '$path.objectives').indexed)
         _decodeCurrentObjective(_asMap(rawObjective, '$path.objectives[$index]'), '$path.objectives[$index]'),
@@ -145,6 +158,12 @@ BackupHabit _decodeCurrentHabit(Map<String, Object?> habit, String path) {
 HabitPause _decodePause(Map<String, Object?> pause, String path) => HabitPause(
   startDay: _requiredCalendarDay(pause['start'], '$path.start'),
   endDay: pause['end'] == null ? null : _requiredCalendarDay(pause['end'], '$path.end'),
+);
+
+QuantityGoal _decodeQuantityGoal(Map<String, Object?> quantity, String path) => QuantityGoal(
+  unit: _requiredTrimmedString(quantity['unit'], '$path.unit'),
+  target: _requiredPositiveQuantity(quantity['target'], '$path.target'),
+  step: _requiredPositiveQuantity(quantity['step'], '$path.step'),
 );
 
 BackupObjective _decodeCurrentObjective(Map<String, Object?> objective, String path) {
@@ -160,6 +179,12 @@ BackupObjective _decodeCurrentObjective(Map<String, Object?> objective, String p
       for (final (index, rawDay) in _asList(objective['loggedDays'], '$path.loggedDays').indexed)
         _requiredCalendarDay(rawDay, '$path.loggedDays[$index]'),
     ],
+    quantities: objective['quantities'] == null
+        ? null
+        : [
+            for (final (index, rawQuantity) in _asList(objective['quantities'], '$path.quantities').indexed)
+              _requiredPositiveQuantity(rawQuantity, '$path.quantities[$index]'),
+          ],
   );
 }
 
@@ -308,6 +333,7 @@ void _validateSnapshot(BackupSnapshot snapshot, {required bool isCurrentFormat})
     if (habit.objectives.isEmpty) {
       throw InvalidBackupException('Habit "${habit.title}": has no objective');
     }
+    _validateQuantities(habit);
     final objectiveTitles = <String>{};
     final loggedDays = <CalendarDay>{};
     for (final objective in habit.objectives) {
@@ -323,6 +349,27 @@ void _validateSnapshot(BackupSnapshot snapshot, {required bool isCurrentFormat})
         }
       }
     }
+  }
+}
+
+/// A quantity habit has a short unit and one objective whose every log has an amount; an
+/// objectives habit has no amount at all (docs/adr/0008).
+void _validateQuantities(BackupHabit habit) {
+  final goal = habit.quantityGoal;
+  if (goal == null) {
+    if (habit.objectives.any((objective) => objective.quantities != null)) {
+      throw InvalidBackupException('Habit "${habit.title}": amounts on a habit without a target');
+    }
+    return;
+  }
+  if (goal.unit.length > maximumQuantityUnitLength) {
+    throw InvalidBackupException('Habit "${habit.title}": unit longer than $maximumQuantityUnitLength characters');
+  }
+  final objective = habit.objectives.length == 1
+      ? habit.objectives.single
+      : throw InvalidBackupException('Habit "${habit.title}": a habit with a target has one objective');
+  if (objective.quantities?.length != objective.loggedDays.length) {
+    throw InvalidBackupException('Habit "${habit.title}": every logged day needs an amount');
   }
 }
 
@@ -350,6 +397,12 @@ List<Object?> _asList(Object? value, String path) =>
 
 int _requiredInt(Object? value, String path) =>
     value is int ? value : throw InvalidBackupException('$path: expected an integer');
+
+/// A JSON number above zero and at most [maximumQuantityValue], as stored.
+double _requiredPositiveQuantity(Object? value, String path) => switch (value) {
+  final num number when number > 0 && number <= maximumQuantityValue => roundQuantity(number.toDouble()),
+  _ => throw InvalidBackupException('$path: expected an amount above 0 and at most $maximumQuantityValue'),
+};
 
 String? _optionalString(Object? value, String path) =>
     value == null || value is String ? value as String? : throw InvalidBackupException('$path: expected a string');

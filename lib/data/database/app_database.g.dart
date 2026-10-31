@@ -127,6 +127,36 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _quantityUnitMeta = const VerificationMeta('quantityUnit');
+  @override
+  late final GeneratedColumn<String> quantityUnit = GeneratedColumn<String>(
+    'quantity_unit',
+    aliasedName,
+    true,
+    additionalChecks: GeneratedColumn.checkTextLength(minTextLength: 1),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _quantityTargetMeta = const VerificationMeta('quantityTarget');
+  @override
+  late final GeneratedColumn<double> quantityTarget = GeneratedColumn<double>(
+    'quantity_target',
+    aliasedName,
+    true,
+    check: () => ComparableExpr(quantityTarget).isBiggerThanValue(0),
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _quantityStepMeta = const VerificationMeta('quantityStep');
+  @override
+  late final GeneratedColumn<double> quantityStep = GeneratedColumn<double>(
+    'quantity_step',
+    aliasedName,
+    true,
+    check: () => ComparableExpr(quantityStep).isBiggerThanValue(0),
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -141,6 +171,9 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
     targetDaysPerWeek,
     archivedAt,
     restDaysPerWeek,
+    quantityUnit,
+    quantityTarget,
+    quantityStep,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -207,6 +240,18 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
         restDaysPerWeek.isAcceptableOrUnknown(data['rest_days_per_week']!, _restDaysPerWeekMeta),
       );
     }
+    if (data.containsKey('quantity_unit')) {
+      context.handle(_quantityUnitMeta, quantityUnit.isAcceptableOrUnknown(data['quantity_unit']!, _quantityUnitMeta));
+    }
+    if (data.containsKey('quantity_target')) {
+      context.handle(
+        _quantityTargetMeta,
+        quantityTarget.isAcceptableOrUnknown(data['quantity_target']!, _quantityTargetMeta),
+      );
+    }
+    if (data.containsKey('quantity_step')) {
+      context.handle(_quantityStepMeta, quantityStep.isAcceptableOrUnknown(data['quantity_step']!, _quantityStepMeta));
+    }
     return context;
   }
 
@@ -240,6 +285,9 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
         DriftSqlType.int,
         data['${effectivePrefix}rest_days_per_week'],
       )!,
+      quantityUnit: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}quantity_unit']),
+      quantityTarget: attachedDatabase.typeMapping.read(DriftSqlType.double, data['${effectivePrefix}quantity_target']),
+      quantityStep: attachedDatabase.typeMapping.read(DriftSqlType.double, data['${effectivePrefix}quantity_step']),
     );
   }
 
@@ -270,6 +318,16 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
 
   /// Missed scheduled days per ISO week that keep a daily or weekday streak alive (docs/adr/0007).
   final int restDaysPerWeek;
+
+  /// The three quantity columns are null for an objectives habit and all set for a quantity
+  /// habit (docs/adr/0008).
+  final String? quantityUnit;
+
+  /// The daily amount that makes the day a success.
+  final double? quantityTarget;
+
+  /// The amount one tap adds.
+  final double? quantityStep;
   const HabitRow({
     required this.id,
     required this.title,
@@ -283,6 +341,9 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     this.targetDaysPerWeek,
     this.archivedAt,
     required this.restDaysPerWeek,
+    this.quantityUnit,
+    this.quantityTarget,
+    this.quantityStep,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -305,6 +366,15 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
       map['archived_at'] = Variable<DateTime>(archivedAt);
     }
     map['rest_days_per_week'] = Variable<int>(restDaysPerWeek);
+    if (!nullToAbsent || quantityUnit != null) {
+      map['quantity_unit'] = Variable<String>(quantityUnit);
+    }
+    if (!nullToAbsent || quantityTarget != null) {
+      map['quantity_target'] = Variable<double>(quantityTarget);
+    }
+    if (!nullToAbsent || quantityStep != null) {
+      map['quantity_step'] = Variable<double>(quantityStep);
+    }
     return map;
   }
 
@@ -324,6 +394,9 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
       targetDaysPerWeek: targetDaysPerWeek == null && nullToAbsent ? const Value.absent() : Value(targetDaysPerWeek),
       archivedAt: archivedAt == null && nullToAbsent ? const Value.absent() : Value(archivedAt),
       restDaysPerWeek: Value(restDaysPerWeek),
+      quantityUnit: quantityUnit == null && nullToAbsent ? const Value.absent() : Value(quantityUnit),
+      quantityTarget: quantityTarget == null && nullToAbsent ? const Value.absent() : Value(quantityTarget),
+      quantityStep: quantityStep == null && nullToAbsent ? const Value.absent() : Value(quantityStep),
     );
   }
 
@@ -342,6 +415,9 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
       targetDaysPerWeek: serializer.fromJson<int?>(json['targetDaysPerWeek']),
       archivedAt: serializer.fromJson<DateTime?>(json['archivedAt']),
       restDaysPerWeek: serializer.fromJson<int>(json['restDaysPerWeek']),
+      quantityUnit: serializer.fromJson<String?>(json['quantityUnit']),
+      quantityTarget: serializer.fromJson<double?>(json['quantityTarget']),
+      quantityStep: serializer.fromJson<double?>(json['quantityStep']),
     );
   }
   @override
@@ -360,6 +436,9 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
       'targetDaysPerWeek': serializer.toJson<int?>(targetDaysPerWeek),
       'archivedAt': serializer.toJson<DateTime?>(archivedAt),
       'restDaysPerWeek': serializer.toJson<int>(restDaysPerWeek),
+      'quantityUnit': serializer.toJson<String?>(quantityUnit),
+      'quantityTarget': serializer.toJson<double?>(quantityTarget),
+      'quantityStep': serializer.toJson<double?>(quantityStep),
     };
   }
 
@@ -376,6 +455,9 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     Value<int?> targetDaysPerWeek = const Value.absent(),
     Value<DateTime?> archivedAt = const Value.absent(),
     int? restDaysPerWeek,
+    Value<String?> quantityUnit = const Value.absent(),
+    Value<double?> quantityTarget = const Value.absent(),
+    Value<double?> quantityStep = const Value.absent(),
   }) => HabitRow(
     id: id ?? this.id,
     title: title ?? this.title,
@@ -389,6 +471,9 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     targetDaysPerWeek: targetDaysPerWeek.present ? targetDaysPerWeek.value : this.targetDaysPerWeek,
     archivedAt: archivedAt.present ? archivedAt.value : this.archivedAt,
     restDaysPerWeek: restDaysPerWeek ?? this.restDaysPerWeek,
+    quantityUnit: quantityUnit.present ? quantityUnit.value : this.quantityUnit,
+    quantityTarget: quantityTarget.present ? quantityTarget.value : this.quantityTarget,
+    quantityStep: quantityStep.present ? quantityStep.value : this.quantityStep,
   );
   HabitRow copyWithCompanion(HabitsCompanion data) {
     return HabitRow(
@@ -406,6 +491,9 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
       targetDaysPerWeek: data.targetDaysPerWeek.present ? data.targetDaysPerWeek.value : this.targetDaysPerWeek,
       archivedAt: data.archivedAt.present ? data.archivedAt.value : this.archivedAt,
       restDaysPerWeek: data.restDaysPerWeek.present ? data.restDaysPerWeek.value : this.restDaysPerWeek,
+      quantityUnit: data.quantityUnit.present ? data.quantityUnit.value : this.quantityUnit,
+      quantityTarget: data.quantityTarget.present ? data.quantityTarget.value : this.quantityTarget,
+      quantityStep: data.quantityStep.present ? data.quantityStep.value : this.quantityStep,
     );
   }
 
@@ -423,7 +511,10 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
           ..write('scheduledWeekdayMask: $scheduledWeekdayMask, ')
           ..write('targetDaysPerWeek: $targetDaysPerWeek, ')
           ..write('archivedAt: $archivedAt, ')
-          ..write('restDaysPerWeek: $restDaysPerWeek')
+          ..write('restDaysPerWeek: $restDaysPerWeek, ')
+          ..write('quantityUnit: $quantityUnit, ')
+          ..write('quantityTarget: $quantityTarget, ')
+          ..write('quantityStep: $quantityStep')
           ..write(')'))
         .toString();
   }
@@ -442,6 +533,9 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     targetDaysPerWeek,
     archivedAt,
     restDaysPerWeek,
+    quantityUnit,
+    quantityTarget,
+    quantityStep,
   );
   @override
   bool operator ==(Object other) =>
@@ -458,7 +552,10 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
           other.scheduledWeekdayMask == this.scheduledWeekdayMask &&
           other.targetDaysPerWeek == this.targetDaysPerWeek &&
           other.archivedAt == this.archivedAt &&
-          other.restDaysPerWeek == this.restDaysPerWeek);
+          other.restDaysPerWeek == this.restDaysPerWeek &&
+          other.quantityUnit == this.quantityUnit &&
+          other.quantityTarget == this.quantityTarget &&
+          other.quantityStep == this.quantityStep);
 }
 
 class HabitsCompanion extends UpdateCompanion<HabitRow> {
@@ -474,6 +571,9 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
   final Value<int?> targetDaysPerWeek;
   final Value<DateTime?> archivedAt;
   final Value<int> restDaysPerWeek;
+  final Value<String?> quantityUnit;
+  final Value<double?> quantityTarget;
+  final Value<double?> quantityStep;
   const HabitsCompanion({
     this.id = const Value.absent(),
     this.title = const Value.absent(),
@@ -487,6 +587,9 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     this.targetDaysPerWeek = const Value.absent(),
     this.archivedAt = const Value.absent(),
     this.restDaysPerWeek = const Value.absent(),
+    this.quantityUnit = const Value.absent(),
+    this.quantityTarget = const Value.absent(),
+    this.quantityStep = const Value.absent(),
   });
   HabitsCompanion.insert({
     this.id = const Value.absent(),
@@ -501,6 +604,9 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     this.targetDaysPerWeek = const Value.absent(),
     this.archivedAt = const Value.absent(),
     this.restDaysPerWeek = const Value.absent(),
+    this.quantityUnit = const Value.absent(),
+    this.quantityTarget = const Value.absent(),
+    this.quantityStep = const Value.absent(),
   }) : title = Value(title),
        colorArgb = Value(colorArgb),
        iconName = Value(iconName),
@@ -518,6 +624,9 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     Expression<int>? targetDaysPerWeek,
     Expression<DateTime>? archivedAt,
     Expression<int>? restDaysPerWeek,
+    Expression<String>? quantityUnit,
+    Expression<double>? quantityTarget,
+    Expression<double>? quantityStep,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -532,6 +641,9 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
       if (targetDaysPerWeek != null) 'target_days_per_week': targetDaysPerWeek,
       if (archivedAt != null) 'archived_at': archivedAt,
       if (restDaysPerWeek != null) 'rest_days_per_week': restDaysPerWeek,
+      if (quantityUnit != null) 'quantity_unit': quantityUnit,
+      if (quantityTarget != null) 'quantity_target': quantityTarget,
+      if (quantityStep != null) 'quantity_step': quantityStep,
     });
   }
 
@@ -548,6 +660,9 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     Value<int?>? targetDaysPerWeek,
     Value<DateTime?>? archivedAt,
     Value<int>? restDaysPerWeek,
+    Value<String?>? quantityUnit,
+    Value<double?>? quantityTarget,
+    Value<double?>? quantityStep,
   }) {
     return HabitsCompanion(
       id: id ?? this.id,
@@ -562,6 +677,9 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
       targetDaysPerWeek: targetDaysPerWeek ?? this.targetDaysPerWeek,
       archivedAt: archivedAt ?? this.archivedAt,
       restDaysPerWeek: restDaysPerWeek ?? this.restDaysPerWeek,
+      quantityUnit: quantityUnit ?? this.quantityUnit,
+      quantityTarget: quantityTarget ?? this.quantityTarget,
+      quantityStep: quantityStep ?? this.quantityStep,
     );
   }
 
@@ -604,6 +722,15 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     if (restDaysPerWeek.present) {
       map['rest_days_per_week'] = Variable<int>(restDaysPerWeek.value);
     }
+    if (quantityUnit.present) {
+      map['quantity_unit'] = Variable<String>(quantityUnit.value);
+    }
+    if (quantityTarget.present) {
+      map['quantity_target'] = Variable<double>(quantityTarget.value);
+    }
+    if (quantityStep.present) {
+      map['quantity_step'] = Variable<double>(quantityStep.value);
+    }
     return map;
   }
 
@@ -621,7 +748,10 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
           ..write('scheduledWeekdayMask: $scheduledWeekdayMask, ')
           ..write('targetDaysPerWeek: $targetDaysPerWeek, ')
           ..write('archivedAt: $archivedAt, ')
-          ..write('restDaysPerWeek: $restDaysPerWeek')
+          ..write('restDaysPerWeek: $restDaysPerWeek, ')
+          ..write('quantityUnit: $quantityUnit, ')
+          ..write('quantityTarget: $quantityTarget, ')
+          ..write('quantityStep: $quantityStep')
           ..write(')'))
         .toString();
   }
@@ -1025,8 +1155,18 @@ class $HabitLogsTable extends HabitLogs with TableInfo<$HabitLogsTable, HabitLog
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _quantityMeta = const VerificationMeta('quantity');
   @override
-  List<GeneratedColumn> get $columns => [id, habitId, objectiveId, day];
+  late final GeneratedColumn<double> quantity = GeneratedColumn<double>(
+    'quantity',
+    aliasedName,
+    true,
+    check: () => ComparableExpr(quantity).isBiggerThanValue(0),
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, habitId, objectiveId, day, quantity];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1054,6 +1194,9 @@ class $HabitLogsTable extends HabitLogs with TableInfo<$HabitLogsTable, HabitLog
     } else if (isInserting) {
       context.missing(_dayMeta);
     }
+    if (data.containsKey('quantity')) {
+      context.handle(_quantityMeta, quantity.isAcceptableOrUnknown(data['quantity']!, _quantityMeta));
+    }
     return context;
   }
 
@@ -1071,6 +1214,7 @@ class $HabitLogsTable extends HabitLogs with TableInfo<$HabitLogsTable, HabitLog
       habitId: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}habit_id'])!,
       objectiveId: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}objective_id'])!,
       day: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}day'])!,
+      quantity: attachedDatabase.typeMapping.read(DriftSqlType.double, data['${effectivePrefix}quantity']),
     );
   }
 
@@ -1087,7 +1231,16 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
 
   /// A [CalendarDay], so one log per habit per calendar day.
   final int day;
-  const HabitLogRow({required this.id, required this.habitId, required this.objectiveId, required this.day});
+
+  /// The amount logged on a quantity habit; null for an objectives habit (docs/adr/0008).
+  final double? quantity;
+  const HabitLogRow({
+    required this.id,
+    required this.habitId,
+    required this.objectiveId,
+    required this.day,
+    this.quantity,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1095,11 +1248,20 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
     map['habit_id'] = Variable<int>(habitId);
     map['objective_id'] = Variable<int>(objectiveId);
     map['day'] = Variable<int>(day);
+    if (!nullToAbsent || quantity != null) {
+      map['quantity'] = Variable<double>(quantity);
+    }
     return map;
   }
 
   HabitLogsCompanion toCompanion(bool nullToAbsent) {
-    return HabitLogsCompanion(id: Value(id), habitId: Value(habitId), objectiveId: Value(objectiveId), day: Value(day));
+    return HabitLogsCompanion(
+      id: Value(id),
+      habitId: Value(habitId),
+      objectiveId: Value(objectiveId),
+      day: Value(day),
+      quantity: quantity == null && nullToAbsent ? const Value.absent() : Value(quantity),
+    );
   }
 
   factory HabitLogRow.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
@@ -1109,6 +1271,7 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
       habitId: serializer.fromJson<int>(json['habitId']),
       objectiveId: serializer.fromJson<int>(json['objectiveId']),
       day: serializer.fromJson<int>(json['day']),
+      quantity: serializer.fromJson<double?>(json['quantity']),
     );
   }
   @override
@@ -1119,14 +1282,22 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
       'habitId': serializer.toJson<int>(habitId),
       'objectiveId': serializer.toJson<int>(objectiveId),
       'day': serializer.toJson<int>(day),
+      'quantity': serializer.toJson<double?>(quantity),
     };
   }
 
-  HabitLogRow copyWith({int? id, int? habitId, int? objectiveId, int? day}) => HabitLogRow(
+  HabitLogRow copyWith({
+    int? id,
+    int? habitId,
+    int? objectiveId,
+    int? day,
+    Value<double?> quantity = const Value.absent(),
+  }) => HabitLogRow(
     id: id ?? this.id,
     habitId: habitId ?? this.habitId,
     objectiveId: objectiveId ?? this.objectiveId,
     day: day ?? this.day,
+    quantity: quantity.present ? quantity.value : this.quantity,
   );
   HabitLogRow copyWithCompanion(HabitLogsCompanion data) {
     return HabitLogRow(
@@ -1134,6 +1305,7 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
       habitId: data.habitId.present ? data.habitId.value : this.habitId,
       objectiveId: data.objectiveId.present ? data.objectiveId.value : this.objectiveId,
       day: data.day.present ? data.day.value : this.day,
+      quantity: data.quantity.present ? data.quantity.value : this.quantity,
     );
   }
 
@@ -1143,13 +1315,14 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
           ..write('id: $id, ')
           ..write('habitId: $habitId, ')
           ..write('objectiveId: $objectiveId, ')
-          ..write('day: $day')
+          ..write('day: $day, ')
+          ..write('quantity: $quantity')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, habitId, objectiveId, day);
+  int get hashCode => Object.hash(id, habitId, objectiveId, day, quantity);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1157,7 +1330,8 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
           other.id == this.id &&
           other.habitId == this.habitId &&
           other.objectiveId == this.objectiveId &&
-          other.day == this.day);
+          other.day == this.day &&
+          other.quantity == this.quantity);
 }
 
 class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
@@ -1165,17 +1339,20 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
   final Value<int> habitId;
   final Value<int> objectiveId;
   final Value<int> day;
+  final Value<double?> quantity;
   const HabitLogsCompanion({
     this.id = const Value.absent(),
     this.habitId = const Value.absent(),
     this.objectiveId = const Value.absent(),
     this.day = const Value.absent(),
+    this.quantity = const Value.absent(),
   });
   HabitLogsCompanion.insert({
     this.id = const Value.absent(),
     required int habitId,
     required int objectiveId,
     required int day,
+    this.quantity = const Value.absent(),
   }) : habitId = Value(habitId),
        objectiveId = Value(objectiveId),
        day = Value(day);
@@ -1184,21 +1361,30 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
     Expression<int>? habitId,
     Expression<int>? objectiveId,
     Expression<int>? day,
+    Expression<double>? quantity,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (habitId != null) 'habit_id': habitId,
       if (objectiveId != null) 'objective_id': objectiveId,
       if (day != null) 'day': day,
+      if (quantity != null) 'quantity': quantity,
     });
   }
 
-  HabitLogsCompanion copyWith({Value<int>? id, Value<int>? habitId, Value<int>? objectiveId, Value<int>? day}) {
+  HabitLogsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? habitId,
+    Value<int>? objectiveId,
+    Value<int>? day,
+    Value<double?>? quantity,
+  }) {
     return HabitLogsCompanion(
       id: id ?? this.id,
       habitId: habitId ?? this.habitId,
       objectiveId: objectiveId ?? this.objectiveId,
       day: day ?? this.day,
+      quantity: quantity ?? this.quantity,
     );
   }
 
@@ -1217,6 +1403,9 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
     if (day.present) {
       map['day'] = Variable<int>(day.value);
     }
+    if (quantity.present) {
+      map['quantity'] = Variable<double>(quantity.value);
+    }
     return map;
   }
 
@@ -1226,7 +1415,8 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
           ..write('id: $id, ')
           ..write('habitId: $habitId, ')
           ..write('objectiveId: $objectiveId, ')
-          ..write('day: $day')
+          ..write('day: $day, ')
+          ..write('quantity: $quantity')
           ..write(')'))
         .toString();
   }
@@ -1800,6 +1990,9 @@ typedef $$HabitsTableCreateCompanionBuilder = HabitsCompanion Function({
   Value<int?> targetDaysPerWeek,
   Value<DateTime?> archivedAt,
   Value<int> restDaysPerWeek,
+  Value<String?> quantityUnit,
+  Value<double?> quantityTarget,
+  Value<double?> quantityStep,
 });
 typedef $$HabitsTableUpdateCompanionBuilder = HabitsCompanion Function({
   Value<int> id,
@@ -1814,6 +2007,9 @@ typedef $$HabitsTableUpdateCompanionBuilder = HabitsCompanion Function({
   Value<int?> targetDaysPerWeek,
   Value<DateTime?> archivedAt,
   Value<int> restDaysPerWeek,
+  Value<String?> quantityUnit,
+  Value<double?> quantityTarget,
+  Value<double?> quantityStep,
 });
 
 final class $$HabitsTableReferences extends BaseReferences<_$AppDatabase, $HabitsTable, HabitRow> {
@@ -1901,6 +2097,15 @@ class $$HabitsTableFilterComposer extends Composer<_$AppDatabase, $HabitsTable> 
 
   ColumnFilters<int> get restDaysPerWeek =>
       $composableBuilder(column: $table.restDaysPerWeek, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get quantityUnit =>
+      $composableBuilder(column: $table.quantityUnit, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get quantityTarget =>
+      $composableBuilder(column: $table.quantityTarget, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get quantityStep =>
+      $composableBuilder(column: $table.quantityStep, builder: (column) => ColumnFilters(column));
 
   Expression<bool> objectivesRefs(Expression<bool> Function($$ObjectivesTableFilterComposer f) f) {
     final $$ObjectivesTableFilterComposer composer = $composerBuilder(
@@ -1999,6 +2204,15 @@ class $$HabitsTableOrderingComposer extends Composer<_$AppDatabase, $HabitsTable
 
   ColumnOrderings<int> get restDaysPerWeek =>
       $composableBuilder(column: $table.restDaysPerWeek, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get quantityUnit =>
+      $composableBuilder(column: $table.quantityUnit, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get quantityTarget =>
+      $composableBuilder(column: $table.quantityTarget, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get quantityStep =>
+      $composableBuilder(column: $table.quantityStep, builder: (column) => ColumnOrderings(column));
 }
 
 class $$HabitsTableAnnotationComposer extends Composer<_$AppDatabase, $HabitsTable> {
@@ -2038,6 +2252,15 @@ class $$HabitsTableAnnotationComposer extends Composer<_$AppDatabase, $HabitsTab
 
   GeneratedColumn<int> get restDaysPerWeek =>
       $composableBuilder(column: $table.restDaysPerWeek, builder: (column) => column);
+
+  GeneratedColumn<String> get quantityUnit =>
+      $composableBuilder(column: $table.quantityUnit, builder: (column) => column);
+
+  GeneratedColumn<double> get quantityTarget =>
+      $composableBuilder(column: $table.quantityTarget, builder: (column) => column);
+
+  GeneratedColumn<double> get quantityStep =>
+      $composableBuilder(column: $table.quantityStep, builder: (column) => column);
 
   Expression<T> objectivesRefs<T extends Object>(Expression<T> Function($$ObjectivesTableAnnotationComposer a) f) {
     final $$ObjectivesTableAnnotationComposer composer = $composerBuilder(
@@ -2131,6 +2354,9 @@ class $$HabitsTableTableManager
                 Value<int?> targetDaysPerWeek = const Value.absent(),
                 Value<DateTime?> archivedAt = const Value.absent(),
                 Value<int> restDaysPerWeek = const Value.absent(),
+                Value<String?> quantityUnit = const Value.absent(),
+                Value<double?> quantityTarget = const Value.absent(),
+                Value<double?> quantityStep = const Value.absent(),
               }) => HabitsCompanion(
                 id: id,
                 title: title,
@@ -2144,6 +2370,9 @@ class $$HabitsTableTableManager
                 targetDaysPerWeek: targetDaysPerWeek,
                 archivedAt: archivedAt,
                 restDaysPerWeek: restDaysPerWeek,
+                quantityUnit: quantityUnit,
+                quantityTarget: quantityTarget,
+                quantityStep: quantityStep,
               ),
           createCompanionCallback:
               ({
@@ -2159,6 +2388,9 @@ class $$HabitsTableTableManager
                 Value<int?> targetDaysPerWeek = const Value.absent(),
                 Value<DateTime?> archivedAt = const Value.absent(),
                 Value<int> restDaysPerWeek = const Value.absent(),
+                Value<String?> quantityUnit = const Value.absent(),
+                Value<double?> quantityTarget = const Value.absent(),
+                Value<double?> quantityStep = const Value.absent(),
               }) => HabitsCompanion.insert(
                 id: id,
                 title: title,
@@ -2172,6 +2404,9 @@ class $$HabitsTableTableManager
                 targetDaysPerWeek: targetDaysPerWeek,
                 archivedAt: archivedAt,
                 restDaysPerWeek: restDaysPerWeek,
+                quantityUnit: quantityUnit,
+                quantityTarget: quantityTarget,
+                quantityStep: quantityStep,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable<$HabitsTable, HabitRow>(table), $$HabitsTableReferences(db, table, e)))
@@ -2566,12 +2801,14 @@ typedef $$HabitLogsTableCreateCompanionBuilder = HabitLogsCompanion Function({
   required int habitId,
   required int objectiveId,
   required int day,
+  Value<double?> quantity,
 });
 typedef $$HabitLogsTableUpdateCompanionBuilder = HabitLogsCompanion Function({
   Value<int> id,
   Value<int> habitId,
   Value<int> objectiveId,
   Value<int> day,
+  Value<double?> quantity,
 });
 
 final class $$HabitLogsTableReferences extends BaseReferences<_$AppDatabase, $HabitLogsTable, HabitLogRow> {
@@ -2612,6 +2849,9 @@ class $$HabitLogsTableFilterComposer extends Composer<_$AppDatabase, $HabitLogsT
   ColumnFilters<int> get id => $composableBuilder(column: $table.id, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get day => $composableBuilder(column: $table.day, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get quantity =>
+      $composableBuilder(column: $table.quantity, builder: (column) => ColumnFilters(column));
 
   $$HabitsTableFilterComposer get habitId {
     final $$HabitsTableFilterComposer composer = $composerBuilder(
@@ -2662,6 +2902,9 @@ class $$HabitLogsTableOrderingComposer extends Composer<_$AppDatabase, $HabitLog
 
   ColumnOrderings<int> get day => $composableBuilder(column: $table.day, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<double> get quantity =>
+      $composableBuilder(column: $table.quantity, builder: (column) => ColumnOrderings(column));
+
   $$HabitsTableOrderingComposer get habitId {
     final $$HabitsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -2710,6 +2953,8 @@ class $$HabitLogsTableAnnotationComposer extends Composer<_$AppDatabase, $HabitL
   GeneratedColumn<int> get id => $composableBuilder(column: $table.id, builder: (column) => column);
 
   GeneratedColumn<int> get day => $composableBuilder(column: $table.day, builder: (column) => column);
+
+  GeneratedColumn<double> get quantity => $composableBuilder(column: $table.quantity, builder: (column) => column);
 
   $$HabitsTableAnnotationComposer get habitId {
     final $$HabitsTableAnnotationComposer composer = $composerBuilder(
@@ -2776,13 +3021,22 @@ class $$HabitLogsTableTableManager
             Value<int> habitId = const Value.absent(),
             Value<int> objectiveId = const Value.absent(),
             Value<int> day = const Value.absent(),
-          }) => HabitLogsCompanion(id: id, habitId: habitId, objectiveId: objectiveId, day: day),
-          createCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            required int habitId,
-            required int objectiveId,
-            required int day,
-          }) => HabitLogsCompanion.insert(id: id, habitId: habitId, objectiveId: objectiveId, day: day),
+            Value<double?> quantity = const Value.absent(),
+          }) => HabitLogsCompanion(id: id, habitId: habitId, objectiveId: objectiveId, day: day, quantity: quantity),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int habitId,
+                required int objectiveId,
+                required int day,
+                Value<double?> quantity = const Value.absent(),
+              }) => HabitLogsCompanion.insert(
+                id: id,
+                habitId: habitId,
+                objectiveId: objectiveId,
+                day: day,
+                quantity: quantity,
+              ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable<$HabitLogsTable, HabitLogRow>(table), $$HabitLogsTableReferences(db, table, e)))
               .toList(),

@@ -14,6 +14,12 @@ const int maximumObjectiveTitleLength = 60;
 const int maximumHabitDescriptionLength = 1000;
 const int maximumNoteContentLength = 20000;
 
+/// Long enough for "glasses" or "pages", short enough to sit next to a number on a row.
+const int maximumQuantityUnitLength = 16;
+
+/// Far above any daily amount a person logs; guards against a typo of extra digits.
+const double maximumQuantityValue = 1000000;
+
 /// How long a connection waits for another isolate's write lock before failing.
 const Duration databaseBusyTimeout = Duration(seconds: 5);
 
@@ -52,6 +58,20 @@ class Habits extends Table {
       .withDefault(const Constant(0))
       // ignore: recursive_getters, drift's documented way to reference the column in its own CHECK.
       .check(restDaysPerWeek.isBetweenValues(0, maximumRestDaysPerWeek))();
+
+  /// The three quantity columns are null for an objectives habit and all set for a quantity
+  /// habit (docs/adr/0008).
+  TextColumn get quantityUnit => text().nullable().withLength(min: 1, max: maximumQuantityUnitLength)();
+
+  /// The daily amount that makes the day a success.
+  RealColumn get quantityTarget =>
+      // ignore: recursive_getters, drift's documented way to reference the column in its own CHECK.
+      real().nullable().check(quantityTarget.isBiggerThanValue(0))();
+
+  /// The amount one tap adds.
+  RealColumn get quantityStep =>
+      // ignore: recursive_getters, drift's documented way to reference the column in its own CHECK.
+      real().nullable().check(quantityStep.isBiggerThanValue(0))();
 }
 
 /// Days a habit is on hold; past pauses stay so its history reads the same (docs/adr/0007).
@@ -99,6 +119,11 @@ class HabitLogs extends Table {
   /// A [CalendarDay], so one log per habit per calendar day.
   IntColumn get day => integer()();
 
+  /// The amount logged on a quantity habit; null for an objectives habit (docs/adr/0008).
+  RealColumn get quantity =>
+      // ignore: recursive_getters, drift's documented way to reference the column in its own CHECK.
+      real().nullable().check(quantity.isBiggerThanValue(0))();
+
   @override
   List<Set<Column>> get uniqueKeys => [
     {habitId, day},
@@ -121,7 +146,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? driftDatabase(name: 'komit', native: const DriftNativeOptions(shareAcrossIsolates: true)));
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -136,6 +161,12 @@ class AppDatabase extends _$AppDatabase {
       from2To3: (migrator, schema) async {
         await migrator.addColumn(schema.habits, schema.habits.restDaysPerWeek);
         await migrator.create(schema.habitPauses);
+      },
+      from3To4: (migrator, schema) async {
+        await migrator.addColumn(schema.habits, schema.habits.quantityUnit);
+        await migrator.addColumn(schema.habits, schema.habits.quantityTarget);
+        await migrator.addColumn(schema.habits, schema.habits.quantityStep);
+        await migrator.addColumn(schema.habitLogs, schema.habitLogs.quantity);
       },
     ),
     beforeOpen: (details) async {

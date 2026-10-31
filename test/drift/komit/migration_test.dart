@@ -10,6 +10,7 @@ import 'generated/schema.dart';
 import 'generated/schema_v1.dart' as v1;
 import 'generated/schema_v2.dart' as v2;
 import 'generated/schema_v3.dart' as v3;
+import 'generated/schema_v4.dart' as v4;
 
 void main() {
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
@@ -234,6 +235,70 @@ void main() {
           expect(habits.map((habit) => habit.targetDaysPerWeek), [null, 3]);
           expect(habits.map((habit) => habit.restDaysPerWeek), [0, 0]);
           expect(await newDb.select(newDb.habitPauses).get(), isEmpty);
+        },
+      );
+    },
+  );
+
+  test(
+    'migration from v3 to v4 keeps every log, all as objectives habits',
+    () async {
+      // v3 snapshot classes hold raw SQLite values: Unix seconds and 0/1 booleans.
+      const createdAt = 1767200328;
+      await verifier.testWithDataIntegrity(
+        oldVersion: 3,
+        newVersion: 4,
+        createOld: v3.DatabaseAtV3.new,
+        createNew: v4.DatabaseAtV4.new,
+        openTestedDatabase: AppDatabase.new,
+        createItems: (batch, oldDb) {
+          batch.insertAll(oldDb.habits, [
+            const v3.HabitsData(
+              id: 1,
+              title: 'Water',
+              description: '',
+              colorArgb: 1,
+              iconName: 'glass',
+              sortOrder: 0,
+              createdAt: createdAt,
+              scheduledWeekdayMask: 0x7F,
+              restDaysPerWeek: 1,
+            ),
+          ]);
+          batch.insertAll(oldDb.objectives, [
+            const v3.ObjectivesData(
+              id: 1,
+              habitId: 1,
+              title: 'Yes',
+              colorArgb: 2,
+              sortOrder: 0,
+              countsAsSuccess: 1,
+            ),
+          ]);
+          batch.insertAll(oldDb.habitLogs, [
+            const v3.HabitLogsData(
+              id: 1,
+              habitId: 1,
+              objectiveId: 1,
+              day: 20000,
+            ),
+            const v3.HabitLogsData(
+              id: 2,
+              habitId: 1,
+              objectiveId: 1,
+              day: 20001,
+            ),
+          ]);
+        },
+        validateItems: (newDb) async {
+          final habits = await newDb.select(newDb.habits).get();
+          expect(habits.single.restDaysPerWeek, 1);
+          expect(habits.single.quantityUnit, isNull);
+          expect(habits.single.quantityTarget, isNull);
+          expect(habits.single.quantityStep, isNull);
+          final logs = await newDb.select(newDb.habitLogs).get();
+          expect(logs.map((log) => log.day), [20000, 20001]);
+          expect(logs.map((log) => log.quantity), everyElement(isNull));
         },
       );
     },

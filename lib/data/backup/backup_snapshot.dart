@@ -1,5 +1,6 @@
 import '../../core/calendar_day.dart';
 import '../../domain/habit_pause.dart';
+import '../../domain/quantity_goal.dart';
 import '../database/app_database.dart';
 
 /// Storage-independent copy of all user data, used for import and export.
@@ -30,6 +31,7 @@ class BackupHabit {
     this.archivedAt,
     this.restDaysPerWeek = 0,
     this.pauses = const [],
+    this.quantityGoal,
   });
 
   final String title;
@@ -45,6 +47,9 @@ class BackupHabit {
   final int restDaysPerWeek;
   final List<HabitPause> pauses;
 
+  /// Set for a quantity habit, which then has one objective (docs/adr/0008).
+  final QuantityGoal? quantityGoal;
+
   int get logCount => objectives.fold(0, (total, objective) => total + objective.loggedDays.length);
 }
 
@@ -54,12 +59,16 @@ class BackupObjective {
     required this.colorArgb,
     required this.loggedDays,
     this.countsAsSuccess = true,
+    this.quantities,
   });
 
   final String title;
   final int colorArgb;
   final bool countsAsSuccess;
   final List<CalendarDay> loggedDays;
+
+  /// The amount of each of [loggedDays], in the same order; null for an objectives habit.
+  final List<double>? quantities;
 }
 
 class BackupNote {

@@ -12,6 +12,7 @@ import 'package:komit/data/repositories/backup_repository.dart';
 import 'package:komit/domain/habit_pause.dart';
 import 'package:komit/data/repositories/habit_repository.dart';
 import 'package:komit/domain/habit_statistics.dart';
+import 'package:komit/domain/quantity_goal.dart';
 
 /// Same shape as a file exported by the original Komit app (format v1).
 String buildLegacyBackupJson({List<Map<String, Object?>>? extraLogs}) => jsonEncode({
@@ -334,7 +335,7 @@ void main() {
         HabitPause(startDay: CalendarDay.fromDate(2026, 10, 20)),
       ];
       final json = encode(snapshotWith(restDaysPerWeek: 1, pauses: pauses));
-      expect((jsonDecode(json) as Map<String, Object?>)['version'], 3);
+      expect((jsonDecode(json) as Map<String, Object?>)['version'], currentBackupFormatVersion);
 
       final habit = decodeBackupSnapshotFromJson(json).habits.single;
       expect(habit.restDaysPerWeek, 1);
@@ -367,6 +368,63 @@ void main() {
         snapshotWith(restDaysPerWeek: 3),
       ]) {
         expect(() => decodeBackupSnapshotFromJson(encode(snapshot)), throwsA(isA<InvalidBackupException>()));
+      }
+    });
+  });
+
+  group('decodeBackupSnapshotFromJson with a v4 file', () {
+    BackupSnapshot quantitySnapshot({List<double>? quantities = const [2.5, 8]}) => BackupSnapshot(
+      userName: null,
+      notes: const [],
+      habits: [
+        BackupHabit(
+          title: 'Water',
+          description: '',
+          colorArgb: 1,
+          iconName: 'glassWater',
+          reminderMinuteOfDay: null,
+          createdAt: DateTime.utc(2026),
+          quantityGoal: const QuantityGoal(unit: 'glasses', target: 8, step: 1),
+          objectives: [
+            BackupObjective(
+              title: 'glasses',
+              colorArgb: 1,
+              loggedDays: [CalendarDay.fromDate(2026, 10, 5), CalendarDay.fromDate(2026, 10, 6)],
+              quantities: quantities,
+            ),
+          ],
+        ),
+      ],
+    );
+    String encode(BackupSnapshot snapshot) =>
+        encodeBackupSnapshotToJson(snapshot, exportedAt: DateTime.utc(2026, 10, 28));
+
+    test('round-trips the unit, target, step and every amount', () {
+      final habit = decodeBackupSnapshotFromJson(encode(quantitySnapshot())).habits.single;
+      expect((habit.quantityGoal?.unit, habit.quantityGoal?.target, habit.quantityGoal?.step), ('glasses', 8, 1));
+      expect(habit.objectives.single.quantities, [2.5, 8]);
+    });
+
+    test('a v3 file still imports, as objectives habits', () {
+      final root = jsonDecode(encode(quantitySnapshot())) as Map<String, Object?>;
+      final habitJson = (root['habits']! as List<Object?>).single! as Map<String, Object?>;
+      habitJson.remove('quantity');
+      ((habitJson['objectives']! as List<Object?>).single! as Map<String, Object?>).remove('quantities');
+      root['version'] = 3;
+      final habit = decodeBackupSnapshotFromJson(jsonEncode(root)).habits.single;
+      expect(habit.quantityGoal, isNull);
+      expect(habit.objectives.single.quantities, isNull);
+      expect(habit.logCount, 2);
+    });
+
+    test('rejects a missing amount, an amount not above zero and amounts without a target', () {
+      for (final json in [
+        encode(quantitySnapshot(quantities: const [8])),
+        encode(quantitySnapshot(quantities: null)),
+        encode(quantitySnapshot()).replaceFirst('2.5', '0'),
+        encode(quantitySnapshot()).replaceFirst(RegExp(r'"quantity": \{[^}]*\}'), '"quantity": null'),
+      ]) {
+        expect(() => decodeBackupSnapshotFromJson(json), throwsA(isA<InvalidBackupException>()));
       }
     });
   });
@@ -459,6 +517,40 @@ void main() {
       final habit = (await backupRepository.readSnapshot(userName: null)).habits.single;
       expect(habit.restDaysPerWeek, 2);
       expect(habit.pauses, pauses);
+    });
+
+    test('stores and reads back a quantity habit and its amounts', () async {
+      final repository = HabitRepository(database, now: () => DateTime(2026, 10, 7));
+      final habitId = await repository.saveHabit(
+        const HabitDraft(
+          id: null,
+          title: 'Water',
+          description: '',
+          colorArgb: 1,
+          iconName: 'glassWater',
+          reminderMinuteOfDay: null,
+          objectives: [],
+          quantityGoal: QuantityGoal(unit: 'glasses', target: 8, step: 1),
+        ),
+      );
+      await repository.logQuantityForDay(habitId: habitId, quantity: 3, day: CalendarDay.fromDate(2026, 10, 5));
+      await repository.logQuantityForDay(habitId: habitId, quantity: 8, day: CalendarDay.fromDate(2026, 10, 6));
+
+      final json = encodeBackupSnapshotToJson(
+        await backupRepository.readSnapshot(userName: null),
+        exportedAt: DateTime.utc(2026, 10, 7),
+      );
+      await backupRepository.replaceAllDataWith(decodeBackupSnapshotFromJson(json));
+
+      final habit = (await repository.watchActiveHabits().first).single;
+      expect(habit.quantityGoal?.target, 8);
+      expect(await repository.watchQuantityByDayForHabit(habit.habit.id).first, {
+        CalendarDay.fromDate(2026, 10, 5): 3,
+        CalendarDay.fromDate(2026, 10, 6): 8,
+      });
+      expect((await repository.watchObjectiveIdByDayForHabit(habit.habit.id).first).keys, [
+        CalendarDay.fromDate(2026, 10, 6),
+      ]);
     });
 
     test('leaves existing data untouched when an import fails midway', () async {

@@ -5,6 +5,7 @@ import 'package:komit/core/calendar_day.dart';
 import 'package:komit/data/database/app_database.dart';
 import 'package:komit/data/repositories/habit_repository.dart';
 import 'package:komit/domain/habit_pause.dart';
+import 'package:komit/domain/quantity_goal.dart';
 
 void main() {
   late AppDatabase database;
@@ -359,5 +360,109 @@ void main() {
 
   test('watchHabitWithObjectives returns null for an unknown habit', () async {
     expect(await repository.watchHabitWithObjectives(42).first, isNull);
+  });
+
+  group('quantity habits', () {
+    HabitDraft quantityDraft({int? id, double target = 8, List<ObjectiveDraft> objectives = const []}) => HabitDraft(
+      id: id,
+      title: 'Water',
+      description: '',
+      colorArgb: 0xFF2196F3,
+      iconName: 'glassWater',
+      reminderMinuteOfDay: null,
+      objectives: objectives,
+      quantityGoal: QuantityGoal(unit: ' glasses ', target: target, step: 1),
+    );
+
+    test('keeps one hidden objective named after the unit, in the habit color', () async {
+      final habitId = await repository.saveHabit(quantityDraft());
+      final habit = (await repository.watchHabitWithObjectives(habitId).first)!;
+      expect(habit.quantityGoal?.unit, 'glasses');
+      expect(habit.objectives.single.title, 'glasses');
+      expect(habit.objectives.single.colorArgb, 0xFF2196F3);
+    });
+
+    test('a day counts only once its amount reaches the target, re-read when the target changes', () async {
+      final habitId = await repository.saveHabit(quantityDraft());
+      await repository.logQuantityForDay(habitId: habitId, quantity: 5, day: day);
+      await repository.logQuantityForDay(habitId: habitId, quantity: 8, day: day.addDays(1));
+
+      expect(await repository.watchQuantityByDayForHabit(habitId).first, {day: 5, day.addDays(1): 8});
+      expect((await repository.watchObjectiveIdByDayForHabit(habitId).first).keys, [day.addDays(1)]);
+      expect((await repository.watchObjectiveIdByDayForAllHabitsSince(day).first)[habitId]?.keys, [day.addDays(1)]);
+      var habit = (await repository.watchHabitWithObjectives(habitId).first)!;
+      var streak = streakSummaryOf(
+        habit,
+        await repository.watchObjectiveIdByDayForHabit(habitId).first,
+        today: day.addDays(1),
+      );
+      expect((streak.currentStreakLength, streak.bestStreakLength), (1, 1));
+
+      await repository.saveHabit(
+        quantityDraft(
+          id: habitId,
+          target: 5,
+          objectives: [ObjectiveDraft(id: habit.objectives.single.id, title: 'glasses', colorArgb: 1)],
+        ),
+      );
+      habit = (await repository.watchHabitWithObjectives(habitId).first)!;
+      streak = streakSummaryOf(
+        habit,
+        await repository.watchObjectiveIdByDayForHabit(habitId).first,
+        today: day.addDays(1),
+      );
+      expect((streak.currentStreakLength, streak.bestStreakLength), (2, 2));
+      expect(habit.objectives, hasLength(1));
+    });
+
+    test('rounds amounts so repeated small steps reach the target exactly', () async {
+      final habitId = await repository.saveHabit(quantityDraft(target: 0.3));
+      var amount = 0.0;
+      for (var step = 0; step < 3; step++) {
+        amount += 0.1;
+        await repository.logQuantityForDay(habitId: habitId, quantity: amount, day: day);
+      }
+      expect((await repository.watchQuantityByDayForHabit(habitId).first)[day], 0.3);
+      expect((await repository.watchObjectiveIdByDayForHabit(habitId).first).keys, [day]);
+    });
+
+    test('"Done" raises the amount to the target and never lowers a bigger one', () async {
+      final habitId = await repository.saveHabit(quantityDraft());
+      final objectiveId = (await repository.watchHabitWithObjectives(habitId).first)!.objectives.single.id;
+      await repository.logQuantityForDay(habitId: habitId, quantity: 3, day: day);
+      await repository.logObjectiveForDay(habitId: habitId, objectiveId: objectiveId, day: day);
+      await repository.logQuantityForDay(habitId: habitId, quantity: 11, day: day.addDays(1));
+      await repository.logObjectiveForDay(habitId: habitId, objectiveId: objectiveId, day: day.addDays(1));
+
+      expect(await repository.watchQuantityByDayForHabit(habitId).first, {day: 8, day.addDays(1): 11});
+    });
+
+    test('refuses a future day, an amount not above zero and an objectives habit', () async {
+      final habitId = await repository.saveHabit(quantityDraft());
+      final objectivesHabitId = await repository.saveHabit(
+        draftWith(const [ObjectiveDraft(id: null, title: 'Yes', colorArgb: 1)]),
+      );
+      for (final write in [
+        () => repository.logQuantityForDay(habitId: habitId, quantity: 1, day: day.addDays(2)),
+        () => repository.logQuantityForDay(habitId: habitId, quantity: 0, day: day),
+        () => repository.logQuantityForDay(habitId: habitId, quantity: maximumQuantityValue * 2, day: day),
+        () => repository.logQuantityForDay(habitId: objectivesHabitId, quantity: 1, day: day),
+      ]) {
+        await expectLater(write(), throwsA(isA<InvalidLogException>()));
+      }
+      expect(await database.select(database.habitLogs).get(), isEmpty);
+    });
+
+    test('a habit keeps its kind once it has a log, and may change it before', () async {
+      final habitId = await repository.saveHabit(quantityDraft());
+      final objectiveDraft = [const ObjectiveDraft(id: null, title: 'Yes', colorArgb: 1)];
+      await repository.saveHabit(draftWith(objectiveDraft, id: habitId));
+      expect((await repository.watchHabitWithObjectives(habitId).first)!.quantityGoal, isNull);
+
+      final objectiveId = (await repository.watchHabitWithObjectives(habitId).first)!.objectives.single.id;
+      await repository.logObjectiveForDay(habitId: habitId, objectiveId: objectiveId, day: day);
+      await expectLater(repository.saveHabit(quantityDraft(id: habitId)), throwsA(isA<HabitKindChangeException>()));
+      expect((await repository.watchHabitWithObjectives(habitId).first)!.quantityGoal, isNull);
+    });
   });
 }
