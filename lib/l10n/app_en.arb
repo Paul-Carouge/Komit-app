@@ -1151,6 +1151,7 @@
     }
   },
   "logDayPausedNote": "Paused that day: a log here does not count toward the streak.",
+  "reorderObjectivesHint": "Hold an objective to move it. The first one is logged with a single tap.",
   "restDaysTitle": "Rest days",
   "restDaysHelp": "Missed days each week that keep your streak alive",
   "restDaysOption": "{count, plural, =0{None} =1{1 day} other{{count} days}}",

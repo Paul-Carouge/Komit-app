@@ -1727,6 +1727,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get logDayPausedNote => 'En pause ce jour-là : noter ce jour ne compte pas dans ta série.';
 
   @override
+  String get reorderObjectivesHint => 'Maintiens un objectif pour le déplacer. Le premier se coche d’un seul tap.';
+
+  @override
   String get restDaysTitle => 'Jours de repos';
 
   @override

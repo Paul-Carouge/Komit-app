@@ -1678,6 +1678,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get logDayPausedNote => 'Paused that day: a log here does not count toward the streak.';
 
   @override
+  String get reorderObjectivesHint => 'Hold an objective to move it. The first one is logged with a single tap.';
+
+  @override
   String get restDaysTitle => 'Rest days';
 
   @override

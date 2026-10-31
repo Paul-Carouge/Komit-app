@@ -160,6 +160,27 @@ void main() {
     expect(habits.map((habit) => habit.habit.id), [thirdId, firstId, secondId]);
   });
 
+  test('reorderObjectives persists the order, so the first objective is the one-tap default', () async {
+    final habitId = await repository.saveHabit(
+      draftWith(const [
+        ObjectiveDraft(id: null, title: 'A', colorArgb: 1),
+        ObjectiveDraft(id: null, title: 'B', colorArgb: 2),
+        ObjectiveDraft(id: null, title: 'C', colorArgb: 3),
+      ]),
+    );
+    final otherHabitId = await saveHabitWithOneObjective('Other');
+    final [a, b, c] = (await repository.watchHabitWithObjectives(habitId).first)!.objectives;
+    final otherObjective = (await repository.watchHabitWithObjectives(otherHabitId).first)!.objectives.single;
+
+    await repository.reorderObjectives(habitId: habitId, objectiveIdsInOrder: [c.id, a.id, b.id, otherObjective.id]);
+
+    final reordered = (await repository.watchHabitWithObjectives(habitId).first)!.objectives;
+    expect(reordered.map((objective) => objective.title), ['C', 'A', 'B']);
+    // An objective of another habit is never touched.
+    final other = (await repository.watchHabitWithObjectives(otherHabitId).first)!.objectives.single;
+    expect(other.sortOrder, otherObjective.sortOrder);
+  });
+
   test('archiving moves a habit out of the active list and back, keeping its logs', () async {
     final runningId = await saveHabitWithOneObjective('Running');
     final readingId = await saveHabitWithOneObjective('Reading');

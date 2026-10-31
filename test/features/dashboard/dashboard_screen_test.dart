@@ -88,6 +88,39 @@ void main() {
     await environment.dispose(tester);
   });
 
+  testWidgets('holding an objective in the sheet moves it; the new first one is logged by one tap', (tester) async {
+    final environment = await KomitTestEnvironment.create(tester);
+    await pumpKomitApp(tester, environment, theme: lightAppTheme);
+    final running = await _habitTitled(tester, environment, 'Morning run');
+    final [walk, fiveKilometers] = running.objectives;
+
+    await tester.longPress(find.byTooltip('Log today').first);
+    await tester.pumpAndSettle();
+    final walkPill = find.descendant(of: find.byType(BottomSheet), matching: find.text('Walk'));
+    final pillHeight = tester.getSize(find.ancestor(of: walkPill, matching: find.byType(Padding)).first).height;
+    final gesture = await tester.startGesture(tester.getCenter(walkPill));
+    await tester.pump(kLongPressTimeout + kPressTimeout);
+    for (var step = 0; step < 4; step++) {
+      await gesture.moveBy(Offset(0, pillHeight / 2));
+      await tester.pump();
+    }
+    await gesture.up();
+    await settleWithDatabaseWork(tester);
+
+    // Moving is not choosing: the sheet stays open and nothing is logged.
+    expect(find.byType(BottomSheet), findsOneWidget);
+    expect(await _countLogsOnDay(tester, environment, _today), 0);
+    final reordered = await _habitTitled(tester, environment, 'Morning run');
+    expect(reordered.objectives.map((objective) => objective.id), [fiveKilometers.id, walk.id]);
+
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Log today').first);
+    await settleWithDatabaseWork(tester);
+    expect((await _logsOf(tester, environment, running.habit.id))[_today], fiveKilometers.id);
+    await environment.dispose(tester);
+  });
+
   testWidgets('one tap on a single-objective habit logs today once, and Undo removes it', (tester) async {
     final environment = await KomitTestEnvironment.create(tester);
     await pumpKomitApp(tester, environment, theme: lightAppTheme);

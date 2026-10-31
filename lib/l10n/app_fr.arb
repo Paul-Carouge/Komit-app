@@ -466,6 +466,7 @@
   "stripDayLoggedWhilePaused": "{date} : {objective}, en pause, ne compte pas",
   "habitRowPausedToday": "{habit}, en pause",
   "logDayPausedNote": "En pause ce jour-là : noter ce jour ne compte pas dans ta série.",
+  "reorderObjectivesHint": "Maintiens un objectif pour le déplacer. Le premier se coche d’un seul tap.",
   "restDaysTitle": "Jours de repos",
   "restDaysHelp": "Jours manqués par semaine qui ne cassent pas ta série",
   "restDaysOption": "{count, plural, =0{Aucun} =1{1 jour} other{{count} jours}}",

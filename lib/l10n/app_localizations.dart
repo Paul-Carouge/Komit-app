@@ -2888,6 +2888,12 @@ abstract class AppLocalizations {
   /// **'Paused that day: a log here does not count toward the streak.'**
   String get logDayPausedNote;
 
+  /// No description provided for @reorderObjectivesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold an objective to move it. The first one is logged with a single tap.'**
+  String get reorderObjectivesHint;
+
   /// No description provided for @restDaysTitle.
   ///
   /// In en, this message translates to:

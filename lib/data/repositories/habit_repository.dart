@@ -317,6 +317,18 @@ class HabitRepository {
     });
   }
 
+  /// Persists [objectiveIdsInOrder] as [habitId]'s objective order, atomically. The first
+  /// objective is the one a single tap logs.
+  Future<void> reorderObjectives({required int habitId, required List<int> objectiveIdsInOrder}) {
+    return _database.transaction(() async {
+      for (final (sortOrder, objectiveId) in objectiveIdsInOrder.indexed) {
+        await (_database.update(_database.objectives)
+              ..where((objective) => objective.id.equals(objectiveId) & objective.habitId.equals(habitId)))
+            .write(ObjectivesCompanion(sortOrder: Value(sortOrder)));
+      }
+    });
+  }
+
   /// Hides the habit from the dashboard and its reminders; its logs are kept.
   Future<void> archiveHabit(int habitId) => _writeArchivedAt(habitId, _now());
 
