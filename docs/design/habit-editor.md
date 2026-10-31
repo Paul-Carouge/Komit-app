@@ -90,6 +90,11 @@ picked up, `warning` on removal, `error` on a failed save, `success` on save.
   are clamped to 1.5x so they stay inside their circles, everything else wraps at word
   boundaries. French strings keep non-breaking spaces before "?" and inside guillemets.
 
+- **What you track** (under the identity card): "Objectives" or "An amount", option rows like
+  the schedule's. The amount row opens a unit field and, side by side, the daily target and the
+  step, in the theme's outlined fields; its subtitle sums them up ("8 glasses a day · 1 per
+  tap"). The objectives section disappears for an amount. Once the habit has a log the rows
+  stop responding and a muted line with a lock says why (ADR 0008).
 - **Rest days**: see [pauses.md](pauses.md). The segmented control takes the habit's color,
   disables values above scheduled days minus one, remembers the choice while weekdays are
   toggled and saves it capped; at 200 % text its labels shrink instead of wrapping.

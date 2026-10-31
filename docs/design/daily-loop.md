@@ -43,6 +43,14 @@ Compact phone (360 dp)                    Large screen: same column, content wid
 - **Editor**: see [habit-editor.md](habit-editor.md): an identity card that is its own
   preview, a schedule card whose chosen row opens its setting, grouped objectives, and a
   frosted save bar at the bottom where the thumb is.
+- **Quantity habits** ([ADR 0008](../adr/0008-quantity-habits.md)): the round button adds one
+  step per tap, with the same haptics and "Undo"; a ring in the habit color fills toward the
+  target (no track, so an untouched day looks like any other), and the check and fill come only
+  when the target is reached. The row reads "3/8 glasses". Holding opens a sheet with -/+ around
+  the typed amount (page-color well, so it reads on the dark sheet), a progress bar, "+5 steps"
+  and "Target" chips, "Save" and "Clear this day". The strip and yearly grid shade a day from
+  `emptyCell` toward the habit color with its share of the target, up to
+  `AppOpacity.partialQuantityCellMaximumShade`; only a reached day takes the full color.
 - **Paused habits**: see [pauses.md](pauses.md). The row says "Paused until Nov 12" instead
   of asking for today, stays loggable (the log does not count), and paused days are hatched
   on the strip.

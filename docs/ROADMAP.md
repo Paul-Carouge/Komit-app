@@ -14,7 +14,7 @@ Status: `todo`, `in progress`, `done (vX.Y.Z)`.
 | 2b | [Update freshness and release notes](#2b-update-freshness-and-release-notes) | done (v2.4.0) | 2.4.0 |
 | 3 | [Year in review](#3-year-in-review) | done (v2.5.0) | 2.5.0, before December 1 |
 | 4 | [Pause and rest days](#4-pause-and-rest-days) | done (v2.6.0) | 2.6.0 |
-| 5 | [Quantity habits](#5-quantity-habits) | todo | 3.0.0 if the backup format breaks, else 2.7.0 |
+| 5 | [Quantity habits](#5-quantity-habits) | done (v2.8.0) | 2.8.0 |
 | 6 | [A note on a logged day](#6-a-note-on-a-logged-day) | todo | minor |
 | 7 | [Finer reminders](#7-finer-reminders) | todo | minor |
 | 8 | [Per-habit widget](#8-per-habit-widget) | todo | minor |
@@ -152,6 +152,19 @@ still import.
 - Dashboard button, log sheet, reminders' actions, widget, statistics and achievements all
   learn the new kind.
 
+**Decisions:** `docs/adr/0008-quantity-habits.md`. A habit is either "objectives" or
+"quantity"; a quantity habit has a unit, a daily target and a step and keeps one hidden
+objective that carries its logs, each with an amount. A day succeeds when its amount reaches the
+target, decided on read: the repository's day maps leave out days below the target, so streaks,
+recaps, achievements, the year in review, reminders and the widget needed no change. One tap
+adds a step (with Undo, even past the target); holding opens a sheet with -/+, a typed amount,
+"+5 steps", "Target" and "Clear this day". "Done" on a reminder and a tap on the widget complete
+the day (raise the amount to the target, never lower it). The strip and yearly grid shade a day
+by its share of the target; statistics show days at the target and the year's total. The kind
+cannot change once a habit has a log. Schema v4 and backup format v4; v1 to v3 backups still
+import. The widget's snapshot and Kotlin code are unchanged: "logged today" now means "target
+reached" for a quantity habit.
+
 ## 6. A note on a logged day
 
 - An optional short text in the log sheet, shown on the day in the details screen and the
@@ -265,3 +278,7 @@ Record each finished item here: date, version, pull request or commit, and anyth
   (0 to 2 a week) in streaks, recaps, achievements, reminders, widget, schema v3 and backups
   v3, branch `feat/pause-and-rest-days`. Not checked on a device: TalkBack on hatched cells,
   the real date picker.
+- 2026-10-31, item 5, v2.8.0 (not released yet): quantity habits (unit, daily target, step;
+  ring button, stepper sheet, shaded grids, statistics total), schema v4 and backups v4, branch
+  `feat/quantity-habits`. Not checked on a device: TalkBack on the ring button and the sheet,
+  the numeric keyboard, a reminder's "Done" and a widget tap on a quantity habit.

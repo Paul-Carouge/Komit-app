@@ -4,6 +4,18 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
 
 ## [Unreleased]
 
+### Added
+- Quantity habits: track an amount with a unit and a daily target, like "8 glasses" or
+  "20 min". One tap on the round button adds a step (with Undo) and fills a ring until the
+  target is reached; hold it to type an amount, step up or down, jump to the target or clear the
+  day. The day counts for your streak once the target is reached.
+- Your grids shade each day of a quantity habit by how close it came to the target, and its
+  statistics show the days at the target and the year's total.
+- "Done" on a reminder and a tap on the "Today" widget complete a quantity habit's day.
+
+### Changed
+- Backups now use format version 4 to carry amounts; older backups still import.
+
 ## [2.7.1] - 2026-10-31
 
 ### Fixed
