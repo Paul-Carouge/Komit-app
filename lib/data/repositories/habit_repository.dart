@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:drift/drift.dart';
 
 import '../../core/calendar_day.dart';
@@ -547,6 +549,31 @@ class HabitRepository {
                 ..limit(1))
               .getSingle();
       await _upsertLog(habitId: habitId, objectiveId: objective.id, day: day, quantity: roundedQuantity);
+    });
+  }
+
+  /// Adds one step of quantity habit [habitId] to [day], read and written in one transaction so
+  /// fast taps all count; capped at [maximumQuantityValue]. Returns the amount before, for "Undo".
+  /// Throws [InvalidLogException] for a future day or an objectives habit.
+  Future<double?> addQuantityStepForDay({required int habitId, required CalendarDay day}) {
+    if (day.isAfter(CalendarDay.fromDateTime(_now()))) {
+      return Future.error(const InvalidLogException('cannot log a future day'));
+    }
+    return _database.transaction(() async {
+      final habit = await (_database.select(
+        _database.habits,
+      )..where((habit) => habit.id.equals(habitId))).getSingleOrNull();
+      final step = habit?.quantityStep;
+      if (step == null) throw InvalidLogException('habit $habitId does not track an amount');
+      final objective =
+          await (_database.select(_database.objectives)
+                ..where((objective) => objective.habitId.equals(habitId))
+                ..limit(1))
+              .getSingle();
+      final previousQuantity = await _quantityOn(habitId, day);
+      final quantity = math.min(roundQuantity((previousQuantity ?? 0) + step), maximumQuantityValue);
+      await _upsertLog(habitId: habitId, objectiveId: objective.id, day: day, quantity: quantity);
+      return previousQuantity;
     });
   }
 

@@ -7,7 +7,10 @@ import '../l10n/app_localizations.dart';
 /// "1,5" in French, "1.5" in English, grouped ("10,000"): at most the three decimals an amount
 /// keeps. For display only; a field gets [formatQuantityForEditing].
 String formatQuantity(BuildContext context, double value) =>
-    _quantityFormat(Localizations.localeOf(context).toLanguageTag()).format(value);
+    formatQuantityIn(Localizations.localeOf(context).toLanguageTag(), value);
+
+/// [formatQuantity] for a locale tag, once the widget that asked may be gone.
+String formatQuantityIn(String localeTag, double value) => _quantityFormat(localeTag).format(value);
 
 /// Like [formatQuantity] without grouping, so [parseQuantity] reads the text back unchanged:
 /// a grouping comma would read as a decimal separator ("10,000" as 10).

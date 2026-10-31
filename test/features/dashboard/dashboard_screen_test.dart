@@ -245,6 +245,23 @@ void main() {
     await environment.dispose(tester);
   });
 
+  testWidgets('two quick taps on a quantity habit add two steps', (tester) async {
+    final environment = await KomitTestEnvironment.create(tester, hasWaterHabit: true);
+    await pumpKomitApp(tester, environment, theme: lightAppTheme, logicalSize: _tallPhoneLogicalSize);
+    final water = await _habitTitled(tester, environment, 'Drink water');
+    final addStepButton = find.bySemanticsLabel('Add 1 glasses to Drink water');
+
+    await tester.tap(addStepButton);
+    await tester.tap(addStepButton);
+    await settleWithDatabaseWork(tester);
+
+    final amounts = await tester.runAsync(
+      () => _repositoryOf(environment).watchQuantityByDayForHabit(water.habit.id).first,
+    );
+    expect(amounts![_today], 5);
+    await environment.dispose(tester);
+  });
+
   testWidgets('the sheet steps from a grouped amount: 2,000 glasses plus one is 2,001', (tester) async {
     final environment = await KomitTestEnvironment.create(tester, hasWaterHabit: true);
     final water = await _habitTitled(tester, environment, 'Drink water');

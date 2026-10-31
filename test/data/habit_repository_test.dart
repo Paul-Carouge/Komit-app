@@ -426,6 +426,24 @@ void main() {
       expect((await repository.watchObjectiveIdByDayForHabit(habitId).first).keys, [day]);
     });
 
+    test('two steps added without waiting both count, and each returns the amount before it', () async {
+      final habitId = await repository.saveHabit(quantityDraft());
+      await repository.logQuantityForDay(habitId: habitId, quantity: 3, day: day);
+
+      final previousQuantities = await Future.wait([
+        repository.addQuantityStepForDay(habitId: habitId, day: day),
+        repository.addQuantityStepForDay(habitId: habitId, day: day.addDays(1)),
+        repository.addQuantityStepForDay(habitId: habitId, day: day),
+      ]);
+
+      expect(previousQuantities, [3, null, 4]);
+      expect(await repository.watchQuantityByDayForHabit(habitId).first, {day: 5, day.addDays(1): 1});
+      await expectLater(
+        repository.addQuantityStepForDay(habitId: habitId, day: day.addDays(2)),
+        throwsA(isA<InvalidLogException>()),
+      );
+    });
+
     test('"Done" raises the amount to the target and never lowers a bigger one', () async {
       final habitId = await repository.saveHabit(quantityDraft());
       final objectiveId = (await repository.watchHabitWithObjectives(habitId).first)!.objectives.single.id;

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -50,20 +51,54 @@ Future<void> logQuantityFromSheet(
     ref,
     habit: habit,
     day: day,
-    previousQuantity: currentQuantity,
-    quantity: choice.quantity,
+    change: (repository) async {
+      await _writeQuantity(repository, habitId: habit.habit.id, day: day, quantity: choice.quantity);
+      return (previousQuantity: currentQuantity, quantity: choice.quantity);
+    },
   );
 }
 
-/// Saves [quantity] for [day] (clears the day when null), then offers to restore
-/// [previousQuantity] from a message, as [writeDayLogWithUndo] does for objectives.
+/// The amount a day held before a write, and the amount it holds after; null is no log.
+typedef QuantityChange = ({double? previousQuantity, double? quantity});
+
+/// Adds one step to [day] in the repository, which reads the amount in the same transaction, so
+/// two fast taps both count.
+Future<void> addQuantityStepWithUndo(
+  BuildContext context,
+  WidgetRef ref, {
+  required HabitWithObjectives habit,
+  required CalendarDay day,
+}) => writeQuantityLogWithUndo(
+  context,
+  ref,
+  habit: habit,
+  day: day,
+  change: (repository) async {
+    final previousQuantity = await repository.addQuantityStepForDay(habitId: habit.habit.id, day: day);
+    return (
+      previousQuantity: previousQuantity,
+      quantity: math.min(roundQuantity((previousQuantity ?? 0) + habit.quantityGoal!.step), maximumQuantityValue),
+    );
+  },
+);
+
+Future<void> _writeQuantity(
+  HabitRepository repository, {
+  required int habitId,
+  required CalendarDay day,
+  required double? quantity,
+}) => quantity == null
+    ? repository.clearLogForDay(habitId: habitId, day: day)
+    : repository.logQuantityForDay(habitId: habitId, quantity: quantity, day: day);
+
+/// Runs [change], then offers to restore the amount it replaced from a message, as
+/// [writeDayLogWithUndo] does for objectives.
 Future<void> writeQuantityLogWithUndo(
   BuildContext context,
   WidgetRef ref, {
   required HabitWithObjectives habit,
   required CalendarDay day,
-  required double? previousQuantity,
-  required double? quantity,
+  required Future<QuantityChange> Function(HabitRepository repository) change,
 }) async {
   final goal = habit.quantityGoal!;
   // Captured before any await: the row or sheet that asked may be gone when the write ends.
@@ -72,28 +107,30 @@ Future<void> writeQuantityLogWithUndo(
   final repository = ref.read(habitRepositoryProvider);
   final logger = ref.read(appLoggerProvider);
   final celebrator = LogCelebrator.of(context, ref);
-  final progressText = describeQuantityProgress(context, goal, quantity);
+  final localeTag = Localizations.localeOf(context).toLanguageTag();
   final habitId = habit.habit.id;
 
-  Future<bool> write(double? quantityToWrite) async {
+  Future<QuantityChange?> write(Future<QuantityChange> Function(HabitRepository repository) changeToWrite) async {
     try {
-      if (quantityToWrite == null) {
-        await repository.clearLogForDay(habitId: habitId, day: day);
-      } else {
-        await repository.logQuantityForDay(habitId: habitId, quantity: quantityToWrite, day: day);
-      }
-      return true;
+      return await changeToWrite(repository);
     } on Object catch (error, stackTrace) {
       unawaited(KomitHaptics.error());
       unawaited(logger.logError(event: 'quantity_log_write_failed', error: error, stackTrace: stackTrace));
       messenger
         ..hideCurrentSnackBar()
         ..showSnackBar(SnackBar(content: SnackBarMessage(localizations.genericError, kind: SnackBarMessageKind.error)));
-      return false;
+      return null;
     }
   }
 
-  if (!await write(quantity)) return;
+  final written = await write(change);
+  if (written == null) return;
+  final (:previousQuantity, :quantity) = written;
+  final progressText = localizations.quantityProgress(
+    formatQuantityIn(localeTag, quantity ?? 0),
+    formatQuantityIn(localeTag, goal.target),
+    goal.unit,
+  );
   final isReached = goal.isReachedBy(quantity);
   if (quantity == null) {
     unawaited(KomitHaptics.warning());
@@ -132,7 +169,12 @@ Future<void> writeQuantityLogWithUndo(
           label: localizations.undo,
           onPressed: () {
             unawaited(KomitHaptics.selection());
-            unawaited(write(previousQuantity));
+            unawaited(
+              write((repository) async {
+                await _writeQuantity(repository, habitId: habitId, day: day, quantity: previousQuantity);
+                return (previousQuantity: quantity, quantity: previousQuantity);
+              }),
+            );
           },
         ),
       ),

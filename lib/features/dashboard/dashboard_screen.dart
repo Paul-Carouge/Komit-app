@@ -19,7 +19,6 @@ import '../../core/haptics.dart';
 import '../../core/quantity_formatting.dart';
 import '../../core/theme/app_motion.dart';
 import '../../core/theme/app_theme.dart';
-import '../../data/database/app_database.dart' show maximumQuantityValue;
 import '../../data/repositories/habit_repository.dart';
 import '../../domain/greeting_period.dart';
 import '../../domain/habit_pause.dart';
@@ -577,7 +576,7 @@ class _HabitRow extends ConsumerWidget {
                       title,
                     ),
                     longPressHint: localizations.typeAnAmountHint,
-                    onTap: () => _addQuantityStepToday(context, ref, quantityGoal, todayQuantity),
+                    onTap: () => _addQuantityStepToday(context, ref),
                     onLongPress: () => _openQuantitySheet(context, ref, today, todayQuantity),
                   ),
               ],
@@ -625,18 +624,9 @@ class _HabitRow extends ConsumerWidget {
   }
 
   /// One tap adds one step, even past the target: counting is what the row is for.
-  void _addQuantityStepToday(BuildContext context, WidgetRef ref, QuantityGoal goal, double? todayQuantity) {
+  void _addQuantityStepToday(BuildContext context, WidgetRef ref) {
     unawaited(KomitHaptics.selection());
-    unawaited(
-      writeQuantityLogWithUndo(
-        context,
-        ref,
-        habit: habit,
-        day: today,
-        previousQuantity: todayQuantity,
-        quantity: math.min(roundQuantity((todayQuantity ?? 0) + goal.step), maximumQuantityValue),
-      ),
-    );
+    unawaited(addQuantityStepWithUndo(context, ref, habit: habit, day: today));
   }
 
   void _openQuantitySheet(BuildContext context, WidgetRef ref, CalendarDay day, double? currentQuantity) {
