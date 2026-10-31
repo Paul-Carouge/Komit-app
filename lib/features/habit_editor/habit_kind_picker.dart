@@ -111,16 +111,9 @@ class _QuantityFields extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
-    InputDecoration decoration(String label, {String? hint}) => InputDecoration(
-      labelText: label,
-      hintText: hint,
-      counterText: '',
-      fillColor: Theme.of(context).colorScheme.surface,
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadii.medium),
-        borderSide: BorderSide.none,
-      ),
-    );
+    // The theme's outlined field: its label sits in the outline's notch once filled.
+    InputDecoration decoration(String label, {String? hint}) =>
+        InputDecoration(labelText: label, hintText: hint, counterText: '');
     Widget numberField(TextEditingController controller, String label) => TextField(
       controller: controller,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),

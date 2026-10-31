@@ -236,9 +236,11 @@ class _LogQuantitySheetState extends State<_LogQuantitySheet> {
     final habitColor = Color(widget.habit.habit.colorArgb);
     final goal = _goal;
     final typedQuantity = _typedQuantity;
+    // The page color, sunk into the sheet in both themes (the dark sheet is surfaceContainerHigh).
+    final wellColor = colorScheme.surface;
     final stepButtonStyle = IconButton.styleFrom(
       minimumSize: const Size.square(AppSizes.primaryButtonHeight),
-      backgroundColor: colorScheme.surfaceContainerHigh,
+      backgroundColor: wellColor,
       foregroundColor: colorScheme.onSurface,
     );
     return Padding(
@@ -296,22 +298,27 @@ class _LogQuantitySheetState extends State<_LogQuantitySheet> {
                     ),
                     const SizedBox(width: AppSpacing.medium),
                     Expanded(
-                      child: TextField(
-                        controller: _amountController,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        textAlign: TextAlign.center,
-                        style: textTheme.headlineLarge?.copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
-                        onChanged: (_) => setState(() => _isAmountInvalid = false),
-                        onSubmitted: (_) => _save(),
-                        decoration: InputDecoration(
-                          labelText: localizations.quantityFieldLabel,
-                          suffixText: goal.unit,
-                          errorText: _isAmountInvalid ? localizations.quantityMustBePositive : null,
-                          errorMaxLines: 2,
-                          fillColor: colorScheme.surfaceContainerHigh,
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(AppRadii.medium),
-                            borderSide: BorderSide.none,
+                      // The visible unit and progress line say what the number is; screen readers
+                      // also hear the field's name.
+                      child: Semantics(
+                        label: localizations.quantityFieldLabel,
+                        child: TextField(
+                          controller: _amountController,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          textAlign: TextAlign.center,
+                          style: textTheme.headlineLarge?.copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
+                          onChanged: (_) => setState(() => _isAmountInvalid = false),
+                          onSubmitted: (_) => _save(),
+                          decoration: InputDecoration(
+                            suffixText: goal.unit,
+                            suffixStyle: textTheme.titleMedium?.copyWith(color: komitColors.mutedText),
+                            errorText: _isAmountInvalid ? localizations.quantityMustBePositive : null,
+                            errorMaxLines: 2,
+                            fillColor: wellColor,
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(AppRadii.medium),
+                              borderSide: BorderSide.none,
+                            ),
                           ),
                         ),
                       ),
@@ -418,7 +425,8 @@ class _QuantityProgressBar extends StatelessWidget {
                 value: share,
                 minHeight: AppSizes.recapProgressBarHeight,
                 color: habitColor,
-                backgroundColor: komitColors.emptyCell,
+                // Visible on the sheet in both themes, where emptyCell is the dark sheet's own color.
+                backgroundColor: Theme.of(context).colorScheme.outlineVariant,
               ),
             ),
           ),
