@@ -462,14 +462,16 @@ ThemeData _buildTheme({
       shape: cardShape,
       titleTextStyle: textTheme.headlineSmall?.copyWith(color: colorScheme.onSurface),
     ),
-    // A floating card in the ink color with a pill action, like the rest of Komit's controls.
+    // A floating card in the page's own colors, like the other cards: white by day, a raised
+    // dark surface at night, with a hairline so it stands out without a shadow.
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
-      backgroundColor: colorScheme.inverseSurface,
-      contentTextStyle: textTheme.bodyLarge?.copyWith(color: colorScheme.onInverseSurface, fontWeight: FontWeight.w500),
-      actionTextColor: colorScheme.inverseSurface,
-      actionBackgroundColor: colorScheme.inversePrimary,
-      // The ink fill already stands out from the page; an elevation shadow drew a hard dark ring.
+      backgroundColor: brightness == Brightness.dark
+          ? colorScheme.surfaceContainerHigh
+          : colorScheme.surfaceContainerLowest,
+      contentTextStyle: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface, fontWeight: FontWeight.w500),
+      actionTextColor: colorScheme.onPrimary,
+      actionBackgroundColor: colorScheme.primary,
       elevation: AppElevation.flat,
       insetPadding: const EdgeInsets.fromLTRB(
         AppSpacing.screenGutter,
@@ -477,7 +479,10 @@ ThemeData _buildTheme({
         AppSpacing.screenGutter,
         AppSpacing.medium,
       ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.tile)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadii.tile),
+        side: BorderSide(color: colorScheme.outlineVariant, width: AppSizes.hairline),
+      ),
     ),
     // Brand orange is too light on white for a focus ring or a label (WCAG 1.4.11 asks 3:1),
     // so focused fields use the accent text color.

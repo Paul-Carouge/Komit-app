@@ -617,8 +617,8 @@ class SnackBarMessage extends StatelessWidget {
     final badgeColor =
         color ??
         switch (kind) {
-          SnackBarMessageKind.information => colorScheme.onInverseSurface,
-          SnackBarMessageKind.success => colorScheme.inversePrimary,
+          SnackBarMessageKind.information => colorScheme.onSurfaceVariant,
+          SnackBarMessageKind.success => colorScheme.primary,
           SnackBarMessageKind.error => colorScheme.error,
         };
     final badgeIcon =
