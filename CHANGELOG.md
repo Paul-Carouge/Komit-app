@@ -4,6 +4,12 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
 
 ## [Unreleased]
 
+## [2.7.1] - 2026-10-31
+
+### Fixed
+- Messages at the bottom of the screen follow the theme: a white card in light mode and a dark
+  card in dark mode, instead of a light message on a dark screen.
+
 ## [2.7.0] - 2026-10-31
 
 ### Added
