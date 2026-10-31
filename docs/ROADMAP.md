@@ -20,6 +20,18 @@ Status: `todo`, `in progress`, `done (vX.Y.Z)`.
 | 8 | [Per-habit widget](#8-per-habit-widget) | todo | minor |
 | 9 | [Habit templates](#9-habit-templates) | todo | minor |
 | 10 | [CSV export](#10-csv-export) | todo | minor |
+| 11 | [Consistency score](#11-consistency-score) | todo | minor |
+| 12 | [Habit groups](#12-habit-groups) | todo | minor |
+| 13 | [Habits to quit](#13-habits-to-quit) | todo | minor |
+| 14 | [Challenges](#14-challenges) | todo | minor |
+| 15 | [Month calendar of all habits](#15-month-calendar-of-all-habits) | todo | minor |
+| 16 | [Trends and correlations](#16-trends-and-correlations) | todo | minor |
+| 17 | [Quick settings tile](#17-quick-settings-tile) | todo | minor |
+| 18 | [Automatic backup to a chosen folder](#18-automatic-backup-to-a-chosen-folder) | todo | minor |
+| 19 | [Komo grows with you](#19-komo-grows-with-you) | todo | minor |
+| 20 | [Material You colors](#20-material-you-colors) | todo | minor |
+| 21 | [Wear OS tile](#21-wear-os-tile) | todo | minor |
+| 22 | [End-to-end encrypted sync](#22-end-to-end-encrypted-sync) | todo | major, ADR first |
 
 ## 1. CI and scripted release
 
@@ -168,6 +180,71 @@ still import.
 
 - Export the history as CSV (one row per habit and day) for spreadsheets, next to the backup
   export. Last, so the columns include pauses, quantities and notes.
+
+## 11. Consistency score
+
+- A 0-100 % score per habit: an exponentially weighted share of scheduled days done, so one
+  missed day lowers it a little instead of resetting it like a streak. Pauses and rest days
+  are ignored. Shown on the details screen next to the streaks, with its trend over 30 days.
+
+## 12. Habit groups
+
+- Optional groups ("Morning", "Evening", "Health") with a name and an order; the home screen
+  shows each group under a header that can be collapsed. Habits without a group stay on top.
+  Schema and backup change; reorder within and across groups.
+
+## 13. Habits to quit
+
+- A habit kind for things to stop ("No smoking"): the home screen counts the days since the
+  last slip and the best run; logging a slip resets it. Achievements and the year in review
+  read it the same way as a streak.
+
+## 14. Challenges
+
+- Start a challenge on a habit with an end date ("30 days of reading"): a progress bar on the
+  row, a celebration with Komo and a dedicated badge when it ends on time. Abandon at any time.
+
+## 15. Month calendar of all habits
+
+- A month view where each day shows how many scheduled habits were done (a ring or a dot
+  scale), with a tap to see and log that day's habits. Swipe between months.
+
+## 16. Trends and correlations
+
+- On-device insights on the statistics screen: best and worst weekdays per habit, and, for
+  pairs of habits with enough history, "on days you do A, you do B x % more often". Plain
+  sentences, never sent anywhere, hidden below a minimum number of days.
+
+## 17. Quick settings tile
+
+- An Android quick settings tile that logs the first habit planned today and not done yet, or
+  opens Komit. Follows the app lock rules: names no habit while locked.
+
+## 18. Automatic backup to a chosen folder
+
+- Pick a folder once with the Android file picker (Drive, Nextcloud, a USB key...); Komit then
+  writes an encrypted backup there daily when something changed, keeping the last N. No
+  account, no network code in Komit itself.
+
+## 19. Komo grows with you
+
+- Komo slowly gains small, minimal touches (a leaf, a scarf, a crown) as the overall
+  consistency score grows, and loses none for a bad week. Stays within the minimal style.
+
+## 20. Material You colors
+
+- An option in Settings to use the wallpaper's colors (Android 12 and later) instead of the
+  orange palette; Komo and the icon stay orange.
+
+## 21. Wear OS tile
+
+- A Wear OS tile listing today's habits with a tap to log, talking to the phone over the
+  Data Layer. Separate module; ADR on the sync between watch and phone.
+
+## 22. End-to-end encrypted sync
+
+- Keep two phones in sync without a Komit account: an ADR first (transport, conflict rules,
+  key exchange by QR code). Large; only after everything above.
 
 ## Shipped
 
