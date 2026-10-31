@@ -198,7 +198,7 @@ class _LogQuantitySheetState extends State<_LogQuantitySheet> {
     super.didChangeDependencies();
     // Formatting needs the locale, which is not available in initState.
     if (_amountController.text.isEmpty) {
-      _amountController.text = formatQuantity(context, widget.currentQuantity ?? 0);
+      _amountController.text = formatQuantityForEditing(context, widget.currentQuantity ?? 0);
     }
   }
 
@@ -212,7 +212,10 @@ class _LogQuantitySheetState extends State<_LogQuantitySheet> {
     unawaited(KomitHaptics.selection());
     setState(() {
       _isAmountInvalid = false;
-      _amountController.text = formatQuantity(context, roundQuantity(quantity.clamp(0, maximumQuantityValue)));
+      _amountController.text = formatQuantityForEditing(
+        context,
+        roundQuantity(quantity.clamp(0, maximumQuantityValue)),
+      );
     });
   }
 

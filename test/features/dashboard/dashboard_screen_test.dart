@@ -245,6 +245,28 @@ void main() {
     await environment.dispose(tester);
   });
 
+  testWidgets('the sheet steps from a grouped amount: 2,000 glasses plus one is 2,001', (tester) async {
+    final environment = await KomitTestEnvironment.create(tester, hasWaterHabit: true);
+    final water = await _habitTitled(tester, environment, 'Drink water');
+    await tester.runAsync(
+      () => _repositoryOf(environment).logQuantityForDay(habitId: water.habit.id, quantity: 2000, day: _today),
+    );
+    await pumpKomitApp(tester, environment, theme: lightAppTheme, logicalSize: _tallPhoneLogicalSize);
+
+    await tester.longPress(find.bySemanticsLabel('Add 1 glasses to Drink water'));
+    await tester.pumpAndSettle();
+    expect(find.descendant(of: find.byType(BottomSheet), matching: find.text('2,000/8 glasses')), findsOneWidget);
+    await tester.tap(find.byTooltip('More'));
+    await tester.pump();
+    await tester.tap(find.text('Save'));
+    await settleWithDatabaseWork(tester);
+    final amounts = await tester.runAsync(
+      () => _repositoryOf(environment).watchQuantityByDayForHabit(water.habit.id).first,
+    );
+    expect(amounts![_today], 2001);
+    await environment.dispose(tester);
+  });
+
   testWidgets('tapping yesterday in the strip logs yesterday; a future day is not tappable', (tester) async {
     final environment = await KomitTestEnvironment.create(tester, additionalHabitTitles: ['Drink water']);
     final semantics = tester.ensureSemantics();

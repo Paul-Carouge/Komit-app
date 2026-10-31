@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:komit/core/theme/app_theme.dart';
 import 'package:komit/data/repositories/habit_repository.dart';
+import 'package:komit/domain/quantity_goal.dart';
 import 'package:komit/router.dart';
 
 import '../../support/komit_test_app.dart';
@@ -222,5 +223,41 @@ void main() {
       expect(find.text('Objectives'), findsWidgets);
       await environment.dispose(tester);
     });
+
+    for (final locale in [const Locale('en'), const Locale('fr')]) {
+      testWidgets('saving a habit of 10,000 steps keeps its target (${locale.languageCode})', (tester) async {
+        final environment = await KomitTestEnvironment.create(tester);
+        final habitId = (await tester.runAsync(
+          () => HabitRepository(environment.database).saveHabit(
+            const HabitDraft(
+              id: null,
+              title: 'Walk',
+              description: '',
+              colorArgb: 0xFF2196F3,
+              iconName: 'footprints',
+              reminderMinuteOfDay: null,
+              objectives: [],
+              quantityGoal: QuantityGoal(unit: 'steps', target: 10000, step: 1000),
+            ),
+          ),
+        ))!;
+        await pumpKomitApp(
+          tester,
+          environment,
+          theme: lightAppTheme,
+          locale: locale,
+          location: AppRoutes.habitEditor(habitId),
+        );
+        await settleWithDatabaseWork(tester);
+
+        await tester.enterText(find.byType(TextField).first, 'Walk more');
+        await tester.tap(find.byType(FilledButton).last);
+        await settleWithDatabaseWork(tester);
+
+        final saved = await _savedHabitTitled(tester, environment, 'Walk more');
+        expect((saved.quantityGoal?.target, saved.quantityGoal?.step), (10000, 1000));
+        await environment.dispose(tester);
+      });
+    }
   });
 }

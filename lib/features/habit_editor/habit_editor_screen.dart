@@ -118,11 +118,11 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
   /// Typed with the locale's decimal separator; formatted once the locale is known.
   void _fillQuantityFields(QuantityGoal? goal) {
     _quantityUnitController.text = goal?.unit ?? '';
-    _quantityTargetController.text = goal == null ? '' : formatQuantity(context, goal.target);
+    _quantityTargetController.text = goal == null ? '' : formatQuantityForEditing(context, goal.target);
     // A whole default needs no locale, which initState cannot read yet.
     _quantityStepController.text = goal == null
         ? '${_defaultQuantityStep.round()}'
-        : formatQuantity(context, goal.step);
+        : formatQuantityForEditing(context, goal.step);
   }
 
   Future<void> _loadHabit() async {
