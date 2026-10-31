@@ -578,11 +578,71 @@ Future<bool> showDestructiveConfirmationDialog(
   return isConfirmed ?? false;
 }
 
-void showMessageSnackBar(BuildContext context, String message, {SnackBarAction? action}) {
+void showMessageSnackBar(
+  BuildContext context,
+  String message, {
+  SnackBarAction? action,
+  SnackBarMessageKind kind = SnackBarMessageKind.information,
+}) {
   ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
     // With an action, Flutter keeps the message until the user acts on it or dismisses it.
-    ..showSnackBar(SnackBar(content: Text(message), action: action));
+    ..showSnackBar(
+      SnackBar(
+        content: SnackBarMessage(message, kind: kind),
+        action: action,
+      ),
+    );
+}
+
+enum SnackBarMessageKind { information, success, error }
+
+/// A message with a round icon that says at a glance whether it went well: a check in the
+/// habit's color for a log, a red alert for a failure.
+class SnackBarMessage extends StatelessWidget {
+  const SnackBarMessage(this.message, {this.kind = SnackBarMessageKind.information, this.icon, this.color, super.key});
+
+  final String message;
+  final SnackBarMessageKind kind;
+
+  /// Replaces the kind's icon, e.g. an archive box for "archived".
+  final IconData? icon;
+
+  /// Replaces the kind's color, e.g. the color of the objective just logged.
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final badgeColor =
+        color ??
+        switch (kind) {
+          SnackBarMessageKind.information => colorScheme.onInverseSurface,
+          SnackBarMessageKind.success => colorScheme.inversePrimary,
+          SnackBarMessageKind.error => colorScheme.error,
+        };
+    final badgeIcon =
+        icon ??
+        switch (kind) {
+          SnackBarMessageKind.information => KomitIcons.info,
+          SnackBarMessageKind.success => KomitIcons.check,
+          SnackBarMessageKind.error => KomitIcons.circleAlert,
+        };
+    return Row(
+      children: [
+        ExcludeSemantics(
+          child: Container(
+            width: AppSizes.snackBarIconBadge,
+            height: AppSizes.snackBarIconBadge,
+            decoration: BoxDecoration(color: badgeColor, shape: BoxShape.circle),
+            child: Icon(badgeIcon, size: AppSizes.iconSmall, color: foregroundColorReadableOn(badgeColor)),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.medium),
+        Expanded(child: Text(message)),
+      ],
+    );
+  }
 }
 
 /// Explains why Komit is about to ask Android for a permission, before Android asks.

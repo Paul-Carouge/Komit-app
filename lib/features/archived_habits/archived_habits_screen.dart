@@ -121,7 +121,15 @@ Future<void> unarchiveHabitWithMessage(BuildContext context, WidgetRef ref, Habi
     unawaited(KomitHaptics.success());
     messenger
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(localizations.habitUnarchivedMessage(habit.habit.title))));
+      ..showSnackBar(
+        SnackBar(
+          content: SnackBarMessage(
+            localizations.habitUnarchivedMessage(habit.habit.title),
+            kind: SnackBarMessageKind.success,
+            icon: KomitIcons.archiveRestore,
+          ),
+        ),
+      );
   } on Object catch (error, stackTrace) {
     unawaited(KomitHaptics.error());
     unawaited(
@@ -129,6 +137,6 @@ Future<void> unarchiveHabitWithMessage(BuildContext context, WidgetRef ref, Habi
     );
     messenger
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(localizations.genericError)));
+      ..showSnackBar(SnackBar(content: SnackBarMessage(localizations.genericError, kind: SnackBarMessageKind.error)));
   }
 }

@@ -211,7 +211,9 @@ Future<void> _openReleasesPage(BuildContext context, WidgetRef ref) async {
     unawaited(
       ref.read(appLoggerProvider).logError(event: 'releases_page_failed', error: error, stackTrace: stackTrace),
     );
-    if (context.mounted) showMessageSnackBar(context, AppLocalizations.of(context).settingsUnavailable);
+    if (context.mounted) {
+      showMessageSnackBar(context, AppLocalizations.of(context).settingsUnavailable, kind: SnackBarMessageKind.error);
+    }
   }
 }
 
@@ -282,7 +284,7 @@ class _PrivacyAndSecurityCard extends ConsumerWidget {
           .authenticate(title: localizations.appLockSetting, subtitle: localizations.appLockPromptSubtitle);
     } on PlatformException catch (error, stackTrace) {
       unawaited(ref.read(appLoggerProvider).logError(event: 'app_lock_failed', error: error, stackTrace: stackTrace));
-      if (context.mounted) showMessageSnackBar(context, localizations.appLockFailed);
+      if (context.mounted) showMessageSnackBar(context, localizations.appLockFailed, kind: SnackBarMessageKind.error);
       return;
     }
     if (result == AppLockAuthenticationResult.succeeded) {
@@ -455,7 +457,9 @@ class _NotificationSettingsCard extends ConsumerWidget {
             .read(appLoggerProvider)
             .logError(event: 'notification_settings_failed', error: error, stackTrace: stackTrace),
       );
-      if (context.mounted) showMessageSnackBar(context, AppLocalizations.of(context).settingsUnavailable);
+      if (context.mounted) {
+        showMessageSnackBar(context, AppLocalizations.of(context).settingsUnavailable, kind: SnackBarMessageKind.error);
+      }
     }
   }
 }

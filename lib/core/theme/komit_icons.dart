@@ -36,6 +36,8 @@ abstract final class KomitIcons {
   static const IconData chevronLeft = IconData(0xe06e, fontFamily: _fontFamily);
   static const IconData chevronRight = IconData(0xe06f, fontFamily: _fontFamily);
   static const IconData cigaretteOff = IconData(0xe2c7, fontFamily: _fontFamily);
+  static const IconData circleAlert = IconData(0xe077, fontFamily: _fontFamily);
+  static const IconData circleCheck = IconData(0xe226, fontFamily: _fontFamily);
   static const IconData cloudOff = IconData(0xe08d, fontFamily: _fontFamily);
   static const IconData code = IconData(0xe093, fontFamily: _fontFamily);
   static const IconData coffee = IconData(0xe096, fontFamily: _fontFamily);

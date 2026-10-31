@@ -137,7 +137,9 @@ Future<void> _pause(BuildContext context, WidgetRef ref, HabitWithObjectives hab
     unawaited(logger.logError(event: 'habit_pause_rejected', error: error, stackTrace: stackTrace));
     messenger
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(localizations.pauseOverlapError)));
+      ..showSnackBar(
+        SnackBar(content: SnackBarMessage(localizations.pauseOverlapError, kind: SnackBarMessageKind.error)),
+      );
     return;
   } on Object catch (error, stackTrace) {
     _reportActionFailure(messenger, localizations, logger, 'habit_pause_failed', error, stackTrace);
@@ -148,7 +150,7 @@ Future<void> _pause(BuildContext context, WidgetRef ref, HabitWithObjectives hab
     ..hideCurrentSnackBar()
     ..showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: SnackBarMessage(message, icon: KomitIcons.pause),
         persist: false,
         duration: AppDurations.undoSnackBar,
         action: SnackBarAction(
@@ -190,7 +192,9 @@ Future<void> resumeHabitWithMessage(BuildContext context, WidgetRef ref, HabitWi
     ..hideCurrentSnackBar()
     ..showSnackBar(
       SnackBar(
-        content: Text(
+        content: SnackBarMessage(
+          kind: SnackBarMessageKind.success,
+          icon: KomitIcons.play,
           isPausePlanned
               ? localizations.plannedPauseCancelledMessage(habit.habit.title)
               : localizations.habitResumedMessage(habit.habit.title),
@@ -223,7 +227,7 @@ Future<void> _archive(
     ..hideCurrentSnackBar()
     ..showSnackBar(
       SnackBar(
-        content: Text(localizations.habitArchivedMessage(habit.habit.title)),
+        content: SnackBarMessage(localizations.habitArchivedMessage(habit.habit.title), icon: KomitIcons.archive),
         persist: false,
         duration: AppDurations.undoSnackBar,
         action: SnackBarAction(
@@ -278,5 +282,5 @@ void _reportActionFailure(
   unawaited(logger.logError(event: event, error: error, stackTrace: stackTrace));
   messenger
     ..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(content: Text(localizations.genericError)));
+    ..showSnackBar(SnackBar(content: SnackBarMessage(localizations.genericError, kind: SnackBarMessageKind.error)));
 }

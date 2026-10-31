@@ -46,7 +46,7 @@ Future<bool> exportBackupToUserChosenFile(BuildContext context, WidgetRef ref, {
     unawaited(
       ref.read(appLoggerProvider).logError(event: 'backup_export_failed', error: error, stackTrace: stackTrace),
     );
-    if (context.mounted) showMessageSnackBar(context, localizations.exportFailed);
+    if (context.mounted) showMessageSnackBar(context, localizations.exportFailed, kind: SnackBarMessageKind.error);
     return false;
   }
 }
@@ -65,11 +65,19 @@ Future<bool> importBackupFromUserChosenFile(BuildContext context, WidgetRef ref)
     fileContent = await pickedFile.xFile.readAsString();
     envelope = await Isolate.run(() => decodeEncryptedBackupEnvelopeIfPresent(fileContent));
   } on InvalidBackupException catch (error) {
-    if (context.mounted) showMessageSnackBar(context, localizations.importFailed(error.message));
+    if (context.mounted) {
+      showMessageSnackBar(context, localizations.importFailed(error.message), kind: SnackBarMessageKind.error);
+    }
     return false;
   } on Object catch (error, stackTrace) {
     unawaited(ref.read(appLoggerProvider).logError(event: 'backup_read_failed', error: error, stackTrace: stackTrace));
-    if (context.mounted) showMessageSnackBar(context, localizations.importFailed(localizations.genericError));
+    if (context.mounted) {
+      showMessageSnackBar(
+        context,
+        localizations.importFailed(localizations.genericError),
+        kind: SnackBarMessageKind.error,
+      );
+    }
     return false;
   }
 
@@ -88,13 +96,21 @@ Future<bool> importBackupFromUserChosenFile(BuildContext context, WidgetRef ref)
     // Decoding and validating a large file must not freeze the UI.
     snapshot = await Isolate.run(() => decodeBackupSnapshotFromJson(backupJson));
   } on InvalidBackupException catch (error) {
-    if (context.mounted) showMessageSnackBar(context, localizations.importFailed(error.message));
+    if (context.mounted) {
+      showMessageSnackBar(context, localizations.importFailed(error.message), kind: SnackBarMessageKind.error);
+    }
     return false;
   } on Object catch (error, stackTrace) {
     unawaited(
       ref.read(appLoggerProvider).logError(event: 'backup_decode_failed', error: error, stackTrace: stackTrace),
     );
-    if (context.mounted) showMessageSnackBar(context, localizations.importFailed(localizations.genericError));
+    if (context.mounted) {
+      showMessageSnackBar(
+        context,
+        localizations.importFailed(localizations.genericError),
+        kind: SnackBarMessageKind.error,
+      );
+    }
     return false;
   }
   if (!context.mounted) return false;
@@ -123,13 +139,21 @@ Future<bool> restoreAutomaticBackup(BuildContext context, WidgetRef ref, Automat
   try {
     snapshot = await ref.read(automaticBackupServiceProvider).readSnapshot(backup);
   } on InvalidBackupException catch (error) {
-    if (context.mounted) showMessageSnackBar(context, localizations.importFailed(error.message));
+    if (context.mounted) {
+      showMessageSnackBar(context, localizations.importFailed(error.message), kind: SnackBarMessageKind.error);
+    }
     return false;
   } on Object catch (error, stackTrace) {
     unawaited(
       ref.read(appLoggerProvider).logError(event: 'automatic_backup_read_failed', error: error, stackTrace: stackTrace),
     );
-    if (context.mounted) showMessageSnackBar(context, localizations.importFailed(localizations.genericError));
+    if (context.mounted) {
+      showMessageSnackBar(
+        context,
+        localizations.importFailed(localizations.genericError),
+        kind: SnackBarMessageKind.error,
+      );
+    }
     return false;
   }
   if (!context.mounted) return false;
@@ -159,7 +183,13 @@ Future<String?> _decryptWithPassphraseFromUser(
       unawaited(
         ref.read(appLoggerProvider).logError(event: 'backup_decrypt_failed', error: error, stackTrace: stackTrace),
       );
-      if (context.mounted) showMessageSnackBar(context, localizations.importFailed(localizations.genericError));
+      if (context.mounted) {
+        showMessageSnackBar(
+          context,
+          localizations.importFailed(localizations.genericError),
+          kind: SnackBarMessageKind.error,
+        );
+      }
       return null;
     }
   }
@@ -179,7 +209,9 @@ Future<bool> _replaceAllDataKeepingACopy(BuildContext context, WidgetRef ref, Ba
     await ref.read(automaticBackupServiceProvider).writeSnapshot(AutomaticBackupReason.beforeImport);
   } on Object catch (error, stackTrace) {
     unawaited(logger.logError(event: 'pre_import_backup_failed', error: error, stackTrace: stackTrace));
-    if (context.mounted) showMessageSnackBar(context, localizations.preImportBackupFailed);
+    if (context.mounted) {
+      showMessageSnackBar(context, localizations.preImportBackupFailed, kind: SnackBarMessageKind.error);
+    }
     return false;
   }
 
@@ -187,7 +219,13 @@ Future<bool> _replaceAllDataKeepingACopy(BuildContext context, WidgetRef ref, Ba
     await ref.read(backupRepositoryProvider).replaceAllDataWith(snapshot);
   } on Object catch (error, stackTrace) {
     unawaited(logger.logError(event: 'backup_import_failed', error: error, stackTrace: stackTrace));
-    if (context.mounted) showMessageSnackBar(context, localizations.importFailed(localizations.genericError));
+    if (context.mounted) {
+      showMessageSnackBar(
+        context,
+        localizations.importFailed(localizations.genericError),
+        kind: SnackBarMessageKind.error,
+      );
+    }
     return false;
   }
 
@@ -199,7 +237,9 @@ Future<bool> _replaceAllDataKeepingACopy(BuildContext context, WidgetRef ref, Ba
       unawaited(logger.logError(event: 'imported_name_save_failed', error: error, stackTrace: stackTrace));
     }
   }
-  if (context.mounted) showMessageSnackBar(context, localizations.importSucceeded(snapshot.logCount));
+  if (context.mounted) {
+    showMessageSnackBar(context, localizations.importSucceeded(snapshot.logCount), kind: SnackBarMessageKind.success);
+  }
 
   // Imported reminders would otherwise be scheduled but silently never shown.
   final hasImportedReminders = snapshot.habits.any((habit) => habit.reminderMinuteOfDay != null);

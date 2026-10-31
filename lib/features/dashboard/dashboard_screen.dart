@@ -344,7 +344,7 @@ class _ReorderableHabitListState extends ConsumerState<_ReorderableHabitList> {
       );
       if (!mounted) return;
       setState(() => _droppedOrder = null);
-      showMessageSnackBar(context, AppLocalizations.of(context).genericError);
+      showMessageSnackBar(context, AppLocalizations.of(context).genericError, kind: SnackBarMessageKind.error);
     }
   }
 

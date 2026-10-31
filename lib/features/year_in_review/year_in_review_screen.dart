@@ -147,7 +147,7 @@ class _YearInReviewStoryState extends ConsumerState<_YearInReviewStory> {
     } on Object catch (error, stackTrace) {
       unawaited(appLogger.logError(event: 'year_in_review_share_failed', error: error, stackTrace: stackTrace));
       unawaited(KomitHaptics.error());
-      if (mounted) showMessageSnackBar(context, localizations.yearInReviewShareFailed);
+      if (mounted) showMessageSnackBar(context, localizations.yearInReviewShareFailed, kind: SnackBarMessageKind.error);
     } finally {
       if (mounted) setState(() => _isSharing = false);
     }

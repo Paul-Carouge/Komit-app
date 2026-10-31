@@ -471,7 +471,7 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
             .read(appLoggerProvider)
             .logError(event: 'notification_settings_failed', error: error, stackTrace: stackTrace),
       );
-      if (mounted) showMessageSnackBar(context, localizations.settingsUnavailable);
+      if (mounted) showMessageSnackBar(context, localizations.settingsUnavailable, kind: SnackBarMessageKind.error);
     }
   }
 
@@ -558,7 +558,7 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
       unawaited(ref.read(appLoggerProvider).logError(event: 'habit_save_failed', error: error, stackTrace: stackTrace));
       if (mounted) {
         setState(() => _isSaving = false);
-        showMessageSnackBar(context, localizations.genericError);
+        showMessageSnackBar(context, localizations.genericError, kind: SnackBarMessageKind.error);
       }
     }
   }

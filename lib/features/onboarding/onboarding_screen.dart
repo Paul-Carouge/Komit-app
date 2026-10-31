@@ -78,7 +78,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       unawaited(KomitHaptics.error());
       if (!mounted) return;
       setState(() => _isFinishing = false);
-      showMessageSnackBar(context, AppLocalizations.of(context).genericError);
+      showMessageSnackBar(context, AppLocalizations.of(context).genericError, kind: SnackBarMessageKind.error);
       return;
     }
     if (mounted) context.go(AppRoutes.habits);

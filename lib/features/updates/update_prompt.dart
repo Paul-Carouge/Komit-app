@@ -79,7 +79,9 @@ Future<void> checkForUpdate(BuildContext context, WidgetRef ref, {required bool 
     update = await updateService.findAvailableUpdate();
   } on Object catch (error) {
     developer.log('Update check failed', name: 'komit.update', error: error);
-    if (isUserInitiated && context.mounted) showMessageSnackBar(context, localizations.updateCheckFailed);
+    if (isUserInitiated && context.mounted) {
+      showMessageSnackBar(context, localizations.updateCheckFailed, kind: SnackBarMessageKind.error);
+    }
     return;
   }
   await ref
@@ -87,7 +89,7 @@ Future<void> checkForUpdate(BuildContext context, WidgetRef ref, {required bool 
       .recordUpdateCheckResult(upToDateAt: update == null ? ref.read(clockProvider)() : null);
   if (!context.mounted) return;
   if (update == null) {
-    if (isUserInitiated) showMessageSnackBar(context, localizations.upToDate);
+    if (isUserInitiated) showMessageSnackBar(context, localizations.upToDate, kind: SnackBarMessageKind.success);
     return;
   }
   final isInstallRequested = await showDialog<bool>(
@@ -145,11 +147,15 @@ Future<bool> _ensureInstallPermission(BuildContext context, AppUpdateService upd
       lifecycleListener.dispose();
     }
     if (await updateService.canInstallPackages()) return true;
-    if (context.mounted) showMessageSnackBar(context, localizations.updateErrorInstallPermission);
+    if (context.mounted) {
+      showMessageSnackBar(context, localizations.updateErrorInstallPermission, kind: SnackBarMessageKind.error);
+    }
     return false;
   } on Object catch (error) {
     developer.log('Install permission flow failed', name: 'komit.update', error: error);
-    if (context.mounted) showMessageSnackBar(context, localizations.settingsUnavailable);
+    if (context.mounted) {
+      showMessageSnackBar(context, localizations.settingsUnavailable, kind: SnackBarMessageKind.error);
+    }
     return false;
   }
 }

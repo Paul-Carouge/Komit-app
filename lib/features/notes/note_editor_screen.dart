@@ -97,7 +97,9 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
       unawaited(logger.logError(event: 'note_save_failed', error: error, stackTrace: stackTrace));
       messenger
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text(localizations.noteSaveFailed)));
+        ..showSnackBar(
+          SnackBar(content: SnackBarMessage(localizations.noteSaveFailed, kind: SnackBarMessageKind.error)),
+        );
     }
   }
 
@@ -110,7 +112,9 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
     } on Object catch (error, stackTrace) {
       unawaited(KomitHaptics.error());
       unawaited(logger.logError(event: 'note_save_failed', error: error, stackTrace: stackTrace));
-      if (mounted) showMessageSnackBar(context, AppLocalizations.of(context).noteSaveFailed);
+      if (mounted) {
+        showMessageSnackBar(context, AppLocalizations.of(context).noteSaveFailed, kind: SnackBarMessageKind.error);
+      }
     }
   }
 
@@ -134,7 +138,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
       unawaited(
         ref.read(appLoggerProvider).logError(event: 'note_delete_failed', error: error, stackTrace: stackTrace),
       );
-      if (mounted) showMessageSnackBar(context, localizations.genericError);
+      if (mounted) showMessageSnackBar(context, localizations.genericError, kind: SnackBarMessageKind.error);
       return;
     }
     unawaited(KomitHaptics.warning());

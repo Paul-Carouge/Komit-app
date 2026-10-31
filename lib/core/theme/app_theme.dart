@@ -45,6 +45,7 @@ abstract final class AppSizes {
   static const double colorDotLarge = 24;
   static const double iconSmall = 16;
   static const double iconMedium = 20;
+  static const double snackBarIconBadge = 32;
   static const double iconHero = 32;
   static const double hairline = 1;
   static const double emphasisBorderWidth = 2;
@@ -159,7 +160,6 @@ abstract final class SeasonalAccessoryColors {
 
 abstract final class AppElevation {
   static const double flat = 0;
-  static const double floating = 3;
 }
 
 /// Blur strength of frosted bars and sheets.
@@ -462,13 +462,22 @@ ThemeData _buildTheme({
       shape: cardShape,
       titleTextStyle: textTheme.headlineSmall?.copyWith(color: colorScheme.onSurface),
     ),
+    // A floating card in the ink color with a pill action, like the rest of Komit's controls.
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
       backgroundColor: colorScheme.inverseSurface,
-      contentTextStyle: textTheme.bodyMedium?.copyWith(color: colorScheme.onInverseSurface),
-      actionTextColor: colorScheme.inversePrimary,
-      elevation: AppElevation.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.medium)),
+      contentTextStyle: textTheme.bodyLarge?.copyWith(color: colorScheme.onInverseSurface, fontWeight: FontWeight.w500),
+      actionTextColor: colorScheme.inverseSurface,
+      actionBackgroundColor: colorScheme.inversePrimary,
+      // The ink fill already stands out from the page; an elevation shadow drew a hard dark ring.
+      elevation: AppElevation.flat,
+      insetPadding: const EdgeInsets.fromLTRB(
+        AppSpacing.screenGutter,
+        AppSpacing.small,
+        AppSpacing.screenGutter,
+        AppSpacing.medium,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.tile)),
     ),
     // Brand orange is too light on white for a focus ring or a label (WCAG 1.4.11 asks 3:1),
     // so focused fields use the accent text color.
