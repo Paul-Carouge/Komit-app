@@ -10,6 +10,7 @@ import '../../core/theme/komit_icons.dart';
 import '../../core/calendar_day.dart';
 import '../../core/current_calendar_day.dart';
 import '../../core/haptics.dart';
+import '../../core/quantity_formatting.dart';
 import '../../core/theme/app_motion.dart';
 import '../../core/habit_appearance.dart';
 import '../../core/theme/app_theme.dart';
@@ -26,6 +27,7 @@ import '../shared/habit_icon_hero.dart';
 import '../shared/shared_widgets.dart';
 import 'habit_actions_sheet.dart';
 import 'log_day_sheet.dart';
+import 'log_quantity_sheet.dart';
 import 'pause_habit_sheet.dart';
 import 'streak_cards.dart';
 import 'yearly_grid.dart';
@@ -71,11 +73,14 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
     final objectiveIdByDay = ref.watch(objectiveIdByDayProvider);
     final loadedHabit = habit.value;
     final loadedObjectiveIdByDay = objectiveIdByDay.value;
+    // Empty for an objectives habit; a quantity habit's amounts shade its grid (docs/adr/0008).
+    final quantityByDay = ref.watch(quantityByDayForHabitProvider(widget.habitId)).value ?? const {};
     final Widget content = switch ((habit, objectiveIdByDay)) {
       (AsyncData(value: final habit?), AsyncData(value: final objectiveIdByDay)) => _buildContent(
         context,
         habit,
         objectiveIdByDay,
+        quantityByDay,
         today,
       ),
       (AsyncData(value: null), _) => SliverFillRemaining(
@@ -126,7 +131,7 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
                     _YearChip(
                       year: _selectedYear,
                       onPressed: () => _chooseYear(
-                        firstYear: _firstYearWithData(loadedHabit, loadedObjectiveIdByDay),
+                        firstYear: _firstYearWithData(loadedHabit, loadedObjectiveIdByDay, quantityByDay),
                         lastYear: today.year,
                       ),
                     ),
@@ -158,25 +163,35 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
     );
   }
 
-  int _firstYearWithData(HabitWithObjectives habit, Map<CalendarDay, int> objectiveIdByDay) => [
+  int _firstYearWithData(
+    HabitWithObjectives habit,
+    Map<CalendarDay, int> objectiveIdByDay,
+    Map<CalendarDay, double> quantityByDay,
+  ) => [
     habit.habit.createdAt.year,
     ...objectiveIdByDay.keys.map((day) => day.year),
+    ...quantityByDay.keys.map((day) => day.year),
   ].reduce((earliest, year) => year < earliest ? year : earliest);
 
   Widget _buildContent(
     BuildContext context,
     HabitWithObjectives habit,
     Map<CalendarDay, int> objectiveIdByDay,
+    Map<CalendarDay, double> quantityByDay,
     CalendarDay today,
   ) {
     final localizations = AppLocalizations.of(context);
+    final quantityGoal = habit.quantityGoal;
+    Future<void> openLogSheet(CalendarDay day) => quantityGoal == null
+        ? _openLogSheet(habit, day, objectiveIdByDay[day])
+        : logQuantityFromSheet(context, ref, habit: habit, day: day, currentQuantity: quantityByDay[day]);
     final streaks = streakSummaryOf(habit, objectiveIdByDay, today: today);
     // An imported habit may hold more rest days than its schedule allows; show what applies.
     final allowedRestDaysPerWeek = math.min(
       habit.habit.restDaysPerWeek,
       maximumRestDaysFor(habit.habit.scheduledWeekdayMask),
     );
-    final firstYear = _firstYearWithData(habit, objectiveIdByDay);
+    final firstYear = _firstYearWithData(habit, objectiveIdByDay, quantityByDay);
     return SliverPadding(
       padding: EdgeInsets.fromLTRB(
         AppSpacing.screenGutter,
@@ -221,7 +236,7 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
                       backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                       foregroundColor: KomitColors.of(context).accentText,
                     ),
-                    onPressed: () => _openLogSheet(habit, today, objectiveIdByDay[today]),
+                    onPressed: () => openLogSheet(today),
                     icon: const Icon(KomitIcons.plus),
                     label: Text(localizations.logToday),
                   )
@@ -236,7 +251,8 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
                 today: today,
                 habit: habit,
                 objectiveIdByDay: objectiveIdByDay,
-                onDayTapped: (day) => _openLogSheet(habit, day, objectiveIdByDay[day]),
+                quantityByDay: quantityByDay,
+                onDayTapped: openLogSheet,
               ),
             ),
           ),
@@ -244,32 +260,43 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
           Align(
             alignment: Alignment.centerRight,
             child: TextButton.icon(
-              onPressed: () => _pickDayToLog(habit, objectiveIdByDay, firstYear: firstYear, today: today),
+              onPressed: () => _pickDayToLog(openLogSheet, firstYear: firstYear, today: today),
               icon: const Icon(KomitIcons.calendarPlus),
               label: Text(localizations.logAnotherDay),
             ),
           ),
-          SectionTitle(localizations.objectivesLegend),
-          Wrap(
-            spacing: AppSpacing.small,
-            runSpacing: AppSpacing.small,
-            children: [
-              for (final objective in habit.objectives)
-                Chip(
-                  avatar: ColorDot(color: Color(objective.colorArgb)),
-                  label: Text(objective.title),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.medium)),
-                ),
-            ],
-          ),
+          if (quantityGoal != null) ...[
+            SectionTitle(localizations.quantityTargetLabel),
+            Text(
+              localizations.quantityGoalSummary(
+                formatQuantity(context, quantityGoal.target),
+                quantityGoal.unit,
+                formatQuantity(context, quantityGoal.step),
+              ),
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+          ] else ...[
+            SectionTitle(localizations.objectivesLegend),
+            Wrap(
+              spacing: AppSpacing.small,
+              runSpacing: AppSpacing.small,
+              children: [
+                for (final objective in habit.objectives)
+                  Chip(
+                    avatar: ColorDot(color: Color(objective.colorArgb)),
+                    label: Text(objective.title),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.medium)),
+                  ),
+              ],
+            ),
+          ],
         ],
       ),
     );
   }
 
   Future<void> _pickDayToLog(
-    HabitWithObjectives habit,
-    Map<CalendarDay, int> objectiveIdByDay, {
+    Future<void> Function(CalendarDay day) openLogSheet, {
     required int firstYear,
     required CalendarDay today,
   }) async {
@@ -281,7 +308,7 @@ class _HabitDetailsScreenState extends ConsumerState<HabitDetailsScreen> {
     );
     if (pickedDate == null || !mounted) return;
     final pickedDay = CalendarDay.fromDateTime(pickedDate);
-    await _openLogSheet(habit, pickedDay, objectiveIdByDay[pickedDay]);
+    await openLogSheet(pickedDay);
   }
 
   Future<void> _openLogSheet(HabitWithObjectives habit, CalendarDay day, int? currentObjectiveId) =>

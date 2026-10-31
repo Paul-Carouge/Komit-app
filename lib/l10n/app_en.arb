@@ -1169,5 +1169,119 @@
         "type": "int"
       }
     }
-  }
+  },
+  "quantityProgress": "{value}/{target} {unit}",
+  "@quantityProgress": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "quantityProgressSemantics": "{value} of {target} {unit}",
+  "@quantityProgressSemantics": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "quantityAmount": "{value} {unit}",
+  "@quantityAmount": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "addQuantityStep": "Add {amount} to {habit}",
+  "@addQuantityStep": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "habit": {
+        "type": "String"
+      }
+    }
+  },
+  "typeAnAmountHint": "type an amount",
+  "quantityDayMessage": "{habit}: {progress}",
+  "@quantityDayMessage": {
+    "placeholders": {
+      "habit": {
+        "type": "String"
+      },
+      "progress": {
+        "type": "String"
+      }
+    }
+  },
+  "quantityTargetReachedMessage": "{habit}: target reached, {progress}",
+  "@quantityTargetReachedMessage": {
+    "placeholders": {
+      "habit": {
+        "type": "String"
+      },
+      "progress": {
+        "type": "String"
+      }
+    }
+  },
+  "decreaseQuantity": "Less",
+  "increaseQuantity": "More",
+  "quantityFieldLabel": "Amount",
+  "setQuantityToTarget": "Target · {target}",
+  "@setQuantityToTarget": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "saveQuantity": "Save",
+  "quantityMustBePositive": "Enter an amount above 0",
+  "habitKindTitle": "What you track",
+  "habitKindObjectives": "Objectives",
+  "habitKindObjectivesHint": "Pick how each day went",
+  "habitKindQuantity": "An amount",
+  "habitKindQuantityHint": "Count toward a daily target, like 8 glasses",
+  "habitKindLocked": "This habit already has logged days, so what it tracks can't change. Create a new habit to track it another way.",
+  "quantityUnitLabel": "Unit",
+  "quantityUnitHint": "glasses, min, L…",
+  "quantityTargetLabel": "Daily target",
+  "quantityStepLabel": "One tap adds",
+  "quantityUnitRequired": "Give the amount a unit",
+  "quantityValuesInvalid": "The daily target and the step must be numbers above 0",
+  "quantityGoalSummary": "{target} {unit} a day · {step} per tap",
+  "@quantityGoalSummary": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "step": {
+        "type": "String"
+      }
+    }
+  },
+  "quantityTotalThisYear": "Total this year",
+  "quantityDaysAtTarget": "Days at the target"
 }

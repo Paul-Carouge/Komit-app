@@ -18,6 +18,7 @@ import 'package:komit/data/database/app_database.dart';
 import 'package:komit/data/repositories/habit_repository.dart';
 import 'package:komit/data/repositories/note_repository.dart';
 import 'package:komit/data/repositories/settings_repository.dart';
+import 'package:komit/domain/quantity_goal.dart';
 import 'package:komit/l10n/app_localizations.dart';
 import 'package:komit/providers.dart';
 import 'package:komit/router.dart';
@@ -39,6 +40,10 @@ const int _seededHistoryDayCount = 120;
 /// Every third day is left empty, so the grids show both logged and empty days.
 const int _seededSkippedDayPeriod = 3;
 
+const double _waterGlassesPerDay = 8;
+const double _waterGlassesToday = 3;
+const int _seededPartialWaterDayPeriod = 4;
+
 const int _maximumCloseAttempts = 20;
 const Duration _closeAttemptFakeTimeStep = Duration(milliseconds: 100);
 const Duration _closeAttemptRealTimeStep = Duration(milliseconds: 10);
@@ -52,10 +57,12 @@ class KomitTestEnvironment {
   final int runningHabitId;
 
   /// [additionalHabitTitles] adds plain habits without history, e.g. to make the dashboard scroll.
+  /// [hasWaterHabit] adds "Drink water", a quantity habit of 8 glasses a day, with 3 glasses today.
   static Future<KomitTestEnvironment> create(
     WidgetTester tester, {
     String userName = 'Paul',
     List<String> additionalHabitTitles = const [],
+    bool hasWaterHabit = false,
   }) async {
     driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
     SharedPreferences.setMockInitialValues({});
@@ -105,6 +112,33 @@ class KomitTestEnvironment {
         );
       }
       final today = CalendarDay.fromDateTime(komitTestNow);
+      if (hasWaterHabit) {
+        final waterHabitId = await habitRepository.saveHabit(
+          HabitDraft(
+            id: null,
+            title: 'Drink water',
+            description: '',
+            colorArgb: habitColorPaletteArgb[14],
+            iconName: 'glassWater',
+            reminderMinuteOfDay: null,
+            objectives: const [],
+            quantityGoal: const QuantityGoal(unit: 'glasses', target: _waterGlassesPerDay, step: 1),
+          ),
+        );
+        for (var daysAgo = 0; daysAgo < _seededHistoryDayCount; daysAgo++) {
+          if (daysAgo % _seededSkippedDayPeriod == 2) continue;
+          await habitRepository.logQuantityForDay(
+            habitId: waterHabitId,
+            // Today partly done, and a partial day every so often, so the grids show every shade.
+            quantity: daysAgo == 0
+                ? _waterGlassesToday
+                : (daysAgo % _seededPartialWaterDayPeriod == 0
+                      ? 1.0 + daysAgo % (_waterGlassesPerDay - 1)
+                      : _waterGlassesPerDay),
+            day: today.addDays(-daysAgo),
+          );
+        }
+      }
       for (final habitId in [runningHabitId, readingHabitId]) {
         final habit = (await habitRepository.watchHabitWithObjectives(habitId).first)!;
         for (var daysAgo = 1; daysAgo < _seededHistoryDayCount; daysAgo++) {

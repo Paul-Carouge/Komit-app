@@ -1,0 +1,429 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../core/calendar_day.dart';
+import '../../core/current_calendar_day.dart';
+import '../../core/date_formatting.dart';
+import '../../core/habit_appearance.dart';
+import '../../core/haptics.dart';
+import '../../core/quantity_formatting.dart';
+import '../../core/theme/app_motion.dart';
+import '../../core/theme/app_theme.dart';
+import '../../core/theme/komit_icons.dart';
+import '../../data/database/app_database.dart' show maximumQuantityValue;
+import '../../data/repositories/habit_repository.dart';
+import '../../domain/quantity_goal.dart';
+import '../../l10n/app_localizations.dart';
+import '../../providers.dart';
+import '../celebrations/log_celebrations.dart';
+import '../shared/day_grid.dart';
+import '../shared/shared_widgets.dart';
+
+/// The quick button adding several steps at once, next to "Target".
+const int _quickStepMultiplier = 5;
+
+/// What the quantity sheet returns: the amount to save, or null to clear the day.
+typedef LogQuantityChoice = ({double? quantity});
+
+/// Opens the quantity sheet for [day], then saves or clears the amount, with an "Undo" message.
+Future<void> logQuantityFromSheet(
+  BuildContext context,
+  WidgetRef ref, {
+  required HabitWithObjectives habit,
+  required CalendarDay day,
+  required double? currentQuantity,
+}) async {
+  final today = ref.read(currentCalendarDayProvider);
+  final choice = await showLogQuantitySheet(
+    context,
+    habit: habit,
+    day: day,
+    today: today,
+    currentQuantity: currentQuantity,
+    canLogQuantity: !day.isAfter(today),
+  );
+  if (choice == null || !context.mounted || choice.quantity == currentQuantity) return;
+  await writeQuantityLogWithUndo(
+    context,
+    ref,
+    habit: habit,
+    day: day,
+    previousQuantity: currentQuantity,
+    quantity: choice.quantity,
+  );
+}
+
+/// Saves [quantity] for [day] (clears the day when null), then offers to restore
+/// [previousQuantity] from a message, as [writeDayLogWithUndo] does for objectives.
+Future<void> writeQuantityLogWithUndo(
+  BuildContext context,
+  WidgetRef ref, {
+  required HabitWithObjectives habit,
+  required CalendarDay day,
+  required double? previousQuantity,
+  required double? quantity,
+}) async {
+  final goal = habit.quantityGoal!;
+  // Captured before any await: the row or sheet that asked may be gone when the write ends.
+  final messenger = ScaffoldMessenger.of(context);
+  final localizations = AppLocalizations.of(context);
+  final repository = ref.read(habitRepositoryProvider);
+  final logger = ref.read(appLoggerProvider);
+  final celebrator = LogCelebrator.of(context, ref);
+  final progressText = describeQuantityProgress(context, goal, quantity);
+  final habitId = habit.habit.id;
+
+  Future<bool> write(double? quantityToWrite) async {
+    try {
+      if (quantityToWrite == null) {
+        await repository.clearLogForDay(habitId: habitId, day: day);
+      } else {
+        await repository.logQuantityForDay(habitId: habitId, quantity: quantityToWrite, day: day);
+      }
+      return true;
+    } on Object catch (error, stackTrace) {
+      unawaited(KomitHaptics.error());
+      unawaited(logger.logError(event: 'quantity_log_write_failed', error: error, stackTrace: stackTrace));
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: SnackBarMessage(localizations.genericError, kind: SnackBarMessageKind.error)));
+      return false;
+    }
+  }
+
+  if (!await write(quantity)) return;
+  final isReached = goal.isReachedBy(quantity);
+  if (quantity == null) {
+    unawaited(KomitHaptics.warning());
+  } else {
+    unawaited(KomitHaptics.success());
+  }
+  // Only the step that reaches the target makes the day a success worth celebrating.
+  if (isReached && !goal.isReachedBy(previousQuantity)) {
+    unawaited(
+      celebrator.celebrateLog(
+        habit: habit,
+        day: day,
+        previousObjectiveId: null,
+        objectiveId: habit.objectives.first.id,
+      ),
+    );
+  }
+  messenger
+    ..hideCurrentSnackBar()
+    ..showSnackBar(
+      SnackBar(
+        content: SnackBarMessage(
+          switch (quantity) {
+            null => localizations.dayClearedMessage(habit.habit.title),
+            _ when isReached => localizations.quantityTargetReachedMessage(habit.habit.title, progressText),
+            _ => localizations.quantityDayMessage(habit.habit.title, progressText),
+          },
+          kind: quantity == null ? SnackBarMessageKind.information : SnackBarMessageKind.success,
+          icon: quantity == null ? KomitIcons.eraser : null,
+          color: quantity == null ? null : Color(habit.habit.colorArgb),
+        ),
+        // With an action a SnackBar stays until dismissed by default; an undo window should close.
+        persist: false,
+        duration: AppDurations.undoSnackBar,
+        action: SnackBarAction(
+          label: localizations.undo,
+          onPressed: () {
+            unawaited(KomitHaptics.selection());
+            unawaited(write(previousQuantity));
+          },
+        ),
+      ),
+    );
+}
+
+/// Returns null when dismissed.
+Future<LogQuantityChoice?> showLogQuantitySheet(
+  BuildContext context, {
+  required HabitWithObjectives habit,
+  required CalendarDay day,
+  required CalendarDay today,
+  required double? currentQuantity,
+
+  /// False for a future day: only an existing log can be cleared.
+  required bool canLogQuantity,
+}) {
+  return showModalBottomSheet<LogQuantityChoice>(
+    context: context,
+    // Root navigator, like every Komit sheet: it covers the frosted navigation bar instead of sliding under it.
+    useRootNavigator: true,
+    isScrollControlled: true,
+    builder: (context) => _LogQuantitySheet(
+      habit: habit,
+      day: day,
+      today: today,
+      currentQuantity: currentQuantity,
+      canLogQuantity: canLogQuantity,
+    ),
+  );
+}
+
+class _LogQuantitySheet extends StatefulWidget {
+  const _LogQuantitySheet({
+    required this.habit,
+    required this.day,
+    required this.today,
+    required this.currentQuantity,
+    required this.canLogQuantity,
+  });
+
+  final HabitWithObjectives habit;
+  final CalendarDay day;
+  final CalendarDay today;
+  final double? currentQuantity;
+  final bool canLogQuantity;
+
+  @override
+  State<_LogQuantitySheet> createState() => _LogQuantitySheetState();
+}
+
+class _LogQuantitySheetState extends State<_LogQuantitySheet> {
+  late final TextEditingController _amountController = TextEditingController();
+  bool _isAmountInvalid = false;
+
+  QuantityGoal get _goal => widget.habit.quantityGoal!;
+
+  /// The typed amount, 0 while the field is empty or not a number.
+  double get _typedQuantity => parseQuantity(_amountController.text) ?? 0;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Formatting needs the locale, which is not available in initState.
+    if (_amountController.text.isEmpty) {
+      _amountController.text = formatQuantity(context, widget.currentQuantity ?? 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  void _setQuantity(double quantity) {
+    unawaited(KomitHaptics.selection());
+    setState(() {
+      _isAmountInvalid = false;
+      _amountController.text = formatQuantity(context, roundQuantity(quantity.clamp(0, maximumQuantityValue)));
+    });
+  }
+
+  void _save() {
+    final quantity = parseQuantity(_amountController.text);
+    if (quantity == null || quantity < 0 || quantity > maximumQuantityValue) {
+      unawaited(KomitHaptics.error());
+      setState(() => _isAmountInvalid = true);
+      return;
+    }
+    // Zero is no amount at all: the day is cleared rather than storing an empty log.
+    Navigator.of(context).pop((quantity: quantity == 0 ? null : roundQuantity(quantity)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final komitColors = KomitColors.of(context);
+    final habitColor = Color(widget.habit.habit.colorArgb);
+    final goal = _goal;
+    final typedQuantity = _typedQuantity;
+    final stepButtonStyle = IconButton.styleFrom(
+      minimumSize: const Size.square(AppSizes.primaryButtonHeight),
+      backgroundColor: colorScheme.surfaceContainerHigh,
+      foregroundColor: colorScheme.onSurface,
+    );
+    return Padding(
+      // The amount field opens the keyboard: the sheet rises above it.
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(AppSpacing.screenGutter, 0, AppSpacing.screenGutter, AppSpacing.large),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  HabitIconBadge(icon: habitIconForName(widget.habit.habit.iconName), color: habitColor),
+                  const SizedBox(width: AppSpacing.medium),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Semantics(header: true, child: Text(widget.habit.habit.title, style: textTheme.titleLarge)),
+                        Text(
+                          formatRelativeDay(context, widget.day, today: widget.today),
+                          style: textTheme.bodyMedium?.copyWith(color: komitColors.mutedText),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              if (widget.habit.pauseOn(widget.day) != null) ...[
+                const SizedBox(height: AppSpacing.medium),
+                Row(
+                  children: [
+                    const PausedDaySwatch(),
+                    const SizedBox(width: AppSpacing.medium),
+                    Expanded(
+                      child: Text(
+                        localizations.logDayPausedNote,
+                        style: textTheme.bodyMedium?.copyWith(color: komitColors.mutedText),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: AppSpacing.extraLarge),
+              if (widget.canLogQuantity) ...[
+                Row(
+                  children: [
+                    IconButton(
+                      style: stepButtonStyle,
+                      tooltip: localizations.decreaseQuantity,
+                      onPressed: typedQuantity > 0 ? () => _setQuantity(typedQuantity - goal.step) : null,
+                      icon: const Icon(KomitIcons.minus),
+                    ),
+                    const SizedBox(width: AppSpacing.medium),
+                    Expanded(
+                      child: TextField(
+                        controller: _amountController,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        textAlign: TextAlign.center,
+                        style: textTheme.headlineLarge?.copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
+                        onChanged: (_) => setState(() => _isAmountInvalid = false),
+                        onSubmitted: (_) => _save(),
+                        decoration: InputDecoration(
+                          labelText: localizations.quantityFieldLabel,
+                          suffixText: goal.unit,
+                          errorText: _isAmountInvalid ? localizations.quantityMustBePositive : null,
+                          errorMaxLines: 2,
+                          fillColor: colorScheme.surfaceContainerHigh,
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppRadii.medium),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.medium),
+                    IconButton(
+                      style: stepButtonStyle,
+                      tooltip: localizations.increaseQuantity,
+                      onPressed: () => _setQuantity(typedQuantity + goal.step),
+                      icon: const Icon(KomitIcons.plus),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.medium),
+                _QuantityProgressBar(goal: goal, quantity: typedQuantity, habitColor: habitColor),
+                const SizedBox(height: AppSpacing.medium),
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: AppSpacing.small,
+                  runSpacing: AppSpacing.small,
+                  children: [
+                    ActionChip(
+                      label: Text('+${formatQuantity(context, goal.step * _quickStepMultiplier)}'),
+                      onPressed: () => _setQuantity(typedQuantity + goal.step * _quickStepMultiplier),
+                    ),
+                    ActionChip(
+                      avatar: const Icon(KomitIcons.target),
+                      label: Text(localizations.setQuantityToTarget(formatQuantity(context, goal.target))),
+                      onPressed: () => _setQuantity(goal.target),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.large),
+                FilledButton(onPressed: _save, child: Text(localizations.saveQuantity)),
+              ] else if (widget.currentQuantity != null)
+                Text(
+                  localizations.futureLogExplanation,
+                  style: textTheme.bodyMedium?.copyWith(color: komitColors.mutedText),
+                ),
+              if (widget.currentQuantity != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.small),
+                  child: TextButton.icon(
+                    style: TextButton.styleFrom(
+                      foregroundColor: colorScheme.error,
+                      minimumSize: const Size.fromHeight(AppSizes.minimumTouchTarget),
+                    ),
+                    onPressed: () => Navigator.of(context).pop((quantity: null)),
+                    icon: const Icon(KomitIcons.eraser),
+                    label: Text(localizations.clearLog),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// "5/8 glasses" over a bar filling in the habit's color, with a check once the target is reached.
+class _QuantityProgressBar extends StatelessWidget {
+  const _QuantityProgressBar({required this.goal, required this.quantity, required this.habitColor});
+
+  final QuantityGoal goal;
+  final double quantity;
+  final Color habitColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final komitColors = KomitColors.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    final isReached = goal.isReachedBy(quantity);
+    return Semantics(
+      liveRegion: true,
+      label: describeQuantityProgressForScreenReaders(context, goal, quantity),
+      excludeSemantics: true,
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (isReached) ...[
+                Icon(KomitIcons.circleCheck, size: AppSizes.iconSmall, color: komitColors.accentText),
+                const SizedBox(width: AppSpacing.extraSmall),
+              ],
+              Text(
+                describeQuantityProgress(context, goal, quantity),
+                style: textTheme.bodyMedium?.copyWith(
+                  color: isReached ? komitColors.accentText : komitColors.mutedText,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.small),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppSizes.recapProgressBarHeight),
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(end: goal.shareReachedBy(quantity)),
+              duration: motionAwareDuration(context, AppDurations.standard),
+              curve: AppCurves.standard,
+              builder: (context, share, _) => LinearProgressIndicator(
+                value: share,
+                minHeight: AppSizes.recapProgressBarHeight,
+                color: habitColor,
+                backgroundColor: komitColors.emptyCell,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

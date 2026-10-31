@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/calendar_day.dart';
+import '../../core/quantity_formatting.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/repositories/habit_repository.dart';
 import '../../domain/habit_pause.dart';
@@ -19,6 +20,7 @@ class YearlyGrid extends StatelessWidget {
     required this.habit,
     required this.objectiveIdByDay,
     required this.onDayTapped,
+    this.quantityByDay = const {},
     super.key,
   });
 
@@ -26,6 +28,9 @@ class YearlyGrid extends StatelessWidget {
   final CalendarDay today;
   final HabitWithObjectives habit;
   final Map<CalendarDay, int> objectiveIdByDay;
+
+  /// A quantity habit's amounts, which shade its days by the share of the target reached.
+  final Map<CalendarDay, double> quantityByDay;
   final ValueChanged<CalendarDay> onDayTapped;
 
   @override
@@ -41,7 +46,7 @@ class YearlyGrid extends StatelessWidget {
     final cells = <DayGridCell>[];
     for (var dayOfMonth = 1; dayOfMonth <= _maximumDaysInMonth; dayOfMonth++) {
       for (var month = 1; month <= DateTime.monthsPerYear; month++) {
-        cells.add(_cellFor(month, dayOfMonth, komitColors, fullDateFormat, localizations));
+        cells.add(_cellFor(context, month, dayOfMonth, komitColors, fullDateFormat, localizations));
       }
     }
 
@@ -104,6 +109,7 @@ class YearlyGrid extends StatelessWidget {
   }
 
   DayGridCell _cellFor(
+    BuildContext context,
     int month,
     int dayOfMonth,
     KomitColors komitColors,
@@ -115,24 +121,35 @@ class YearlyGrid extends StatelessWidget {
     final day = CalendarDay.fromDate(year, month, dayOfMonth);
     final objectiveId = objectiveIdByDay[day];
     final objective = objectiveId == null ? null : habit.objectiveWithId(objectiveId);
+    final goal = habit.quantityGoal;
+    final quantity = quantityByDay[day];
+    // What the day holds: an objective, or an amount for a quantity habit, reached or not.
+    final (Color? loggedColor, String? loggedLabel) = switch ((goal, quantity)) {
+      (final goal?, final quantity?) => (
+        quantityCellColor(
+          emptyColor: komitColors.emptyCell,
+          habitColor: Color(habit.habit.colorArgb),
+          share: goal.shareReachedBy(quantity),
+        ),
+        describeQuantityProgressForScreenReaders(context, goal, quantity),
+      ),
+      (_?, null) => (null, null),
+      _ => (objective == null ? null : Color(objective.colorArgb), objective?.title),
+    };
     final isFuture = day.isAfter(today);
     final isPaused = isPausedOn(habit.pauses, day);
     final date = fullDateFormat.format(day.asLocalDate);
     return DayGridCell(
-      color: objective != null
-          ? Color(objective.colorArgb)
-          : isFuture || isPaused
-          ? komitColors.futureCell
-          : komitColors.emptyCell,
-      semanticLabel: switch ((objective, isPaused)) {
-        (final objective?, true) => localizations.stripDayLoggedWhilePaused(date, objective.title),
+      color: loggedColor ?? (isFuture || isPaused ? komitColors.futureCell : komitColors.emptyCell),
+      semanticLabel: switch ((loggedLabel, isPaused)) {
+        (final loggedLabel?, true) => localizations.stripDayLoggedWhilePaused(date, loggedLabel),
         (null, true) => localizations.stripDayPaused(date),
-        _ => '$date: ${objective?.title ?? '-'}',
+        _ => '$date: ${loggedLabel ?? '-'}',
       },
-      isPaused: isPaused && objective == null,
+      isPaused: isPaused && loggedLabel == null,
       // Future days cannot be logged: the old app allowed it and produced misleading streaks.
       // An imported future log stays tappable so it can be cleared.
-      onTap: isFuture && objective == null ? null : () => onDayTapped(day),
+      onTap: isFuture && loggedLabel == null ? null : () => onDayTapped(day),
     );
   }
 }

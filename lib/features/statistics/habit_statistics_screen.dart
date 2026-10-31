@@ -8,11 +8,13 @@ import '../../core/theme/komit_icons.dart';
 
 import '../../core/calendar_day.dart';
 import '../../core/current_calendar_day.dart';
+import '../../core/quantity_formatting.dart';
 import '../../core/theme/app_theme.dart';
 import '../mascot/komo_empty_state.dart';
 import '../mascot/komo_mascot.dart';
 import '../../data/repositories/habit_repository.dart';
 import '../../domain/habit_statistics.dart';
+import '../../domain/quantity_goal.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
 import '../../router.dart';
@@ -42,6 +44,7 @@ class HabitStatisticsScreen extends ConsumerWidget {
       (AsyncData(value: final habit?), AsyncData(value: final objectiveIdByDay)) => _StatisticsContent(
         habit: habit,
         objectiveIdByDay: objectiveIdByDay,
+        quantityByDay: ref.watch(quantityByDayForHabitProvider(habitId)).value ?? const {},
         year: year,
         today: ref.watch(currentCalendarDayProvider),
       ),
@@ -77,12 +80,18 @@ class _StatisticsContent extends StatelessWidget {
   const _StatisticsContent({
     required this.habit,
     required this.objectiveIdByDay,
+    required this.quantityByDay,
     required this.year,
     required this.today,
   });
 
   final HabitWithObjectives habit;
+
+  /// For a quantity habit, only the days that reached the target (docs/adr/0008).
   final Map<CalendarDay, int> objectiveIdByDay;
+
+  /// Empty for an objectives habit.
+  final Map<CalendarDay, double> quantityByDay;
   final int year;
   final CalendarDay today;
 
@@ -93,6 +102,11 @@ class _StatisticsContent extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final statistics = computeYearStatistics(objectiveIdByDay, year: year);
     final streaks = streakSummaryOf(habit, objectiveIdByDay, today: today);
+    final quantityGoal = habit.quantityGoal;
+    final yearQuantities = [
+      for (final MapEntry(key: day, value: quantity) in quantityByDay.entries)
+        if (day.year == year) quantity,
+    ];
     return SliverPadding(
       padding: EdgeInsets.fromLTRB(
         AppSpacing.screenGutter,
@@ -122,7 +136,7 @@ class _StatisticsContent extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          localizations.daysLogged,
+                          quantityGoal == null ? localizations.daysLogged : localizations.quantityDaysAtTarget,
                           style: textTheme.bodyLarge?.copyWith(color: komitColors.onHighlightContainer),
                         ),
                         AnimatedCount(
@@ -138,11 +152,22 @@ class _StatisticsContent extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.medium),
           StreakCards(streaks: streaks),
-          if (statistics.totalLogCount == 0)
+          if (quantityGoal == null ? statistics.totalLogCount == 0 : yearQuantities.isEmpty)
             KomoEmptyState(mood: KomoMood.sleepy, title: localizations.noLogsThisYear, mascotSize: AppSizes.mascotSmall)
           else ...[
-            SectionTitle(localizations.objectiveDistribution),
-            _ObjectiveDistributionChart(habit: habit, statistics: statistics),
+            if (quantityGoal == null) ...[
+              SectionTitle(localizations.objectiveDistribution),
+              _ObjectiveDistributionChart(habit: habit, statistics: statistics),
+            ] else ...[
+              SectionTitle(localizations.quantityTotalThisYear),
+              Text(
+                localizations.quantityAmount(
+                  formatQuantity(context, roundQuantity(yearQuantities.fold(0, (total, quantity) => total + quantity))),
+                  quantityGoal.unit,
+                ),
+                style: textTheme.headlineSmall?.copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
+              ),
+            ],
             SectionTitle(localizations.monthlyActivity),
             _MonthlyActivityChart(
               statistics: statistics,

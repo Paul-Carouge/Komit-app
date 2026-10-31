@@ -26,6 +26,11 @@ class DayGridCell {
   final bool isPaused;
 }
 
+/// A quantity day's cell: from [emptyColor] toward [habitColor] with the [share] of the target
+/// reached; only a reached day takes the full color (docs/adr/0008).
+Color quantityCellColor({required Color emptyColor, required Color habitColor, required double share}) =>
+    share >= 1 ? habitColor : Color.lerp(emptyColor, habitColor, share * AppOpacity.partialQuantityCellMaximumShade)!;
+
 /// Diagonal stripes clipped to [cell]: the one mark of a paused day, on grids and next to a
 /// pause's dates, so it reads as "on hold" without relying on color.
 void paintPausedHatch(Canvas canvas, RRect cell, Color stripeColor) {

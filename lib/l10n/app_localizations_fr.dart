@@ -1757,4 +1757,105 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String quantityProgress(String value, String target, String unit) {
+    return '$value/$target $unit';
+  }
+
+  @override
+  String quantityProgressSemantics(String value, String target, String unit) {
+    return '$value sur $target $unit';
+  }
+
+  @override
+  String quantityAmount(String value, String unit) {
+    return '$value $unit';
+  }
+
+  @override
+  String addQuantityStep(String amount, String habit) {
+    return 'Ajouter $amount à $habit';
+  }
+
+  @override
+  String get typeAnAmountHint => 'saisir une quantité';
+
+  @override
+  String quantityDayMessage(String habit, String progress) {
+    return '$habit : $progress';
+  }
+
+  @override
+  String quantityTargetReachedMessage(String habit, String progress) {
+    return '$habit : cible atteinte, $progress';
+  }
+
+  @override
+  String get decreaseQuantity => 'Moins';
+
+  @override
+  String get increaseQuantity => 'Plus';
+
+  @override
+  String get quantityFieldLabel => 'Quantité';
+
+  @override
+  String setQuantityToTarget(String target) {
+    return 'Cible · $target';
+  }
+
+  @override
+  String get saveQuantity => 'Enregistrer';
+
+  @override
+  String get quantityMustBePositive => 'Saisis une quantité supérieure à 0';
+
+  @override
+  String get habitKindTitle => 'Ce que tu suis';
+
+  @override
+  String get habitKindObjectives => 'Objectifs';
+
+  @override
+  String get habitKindObjectivesHint => 'Choisis comment s\'est passée chaque journée';
+
+  @override
+  String get habitKindQuantity => 'Une quantité';
+
+  @override
+  String get habitKindQuantityHint => 'Compte jusqu\'à une cible par jour, comme 8 verres';
+
+  @override
+  String get habitKindLocked =>
+      'Cette habitude a déjà des journées notées, donc ce qu\'elle suit ne peut plus changer. Crée une nouvelle habitude pour la suivre autrement.';
+
+  @override
+  String get quantityUnitLabel => 'Unité';
+
+  @override
+  String get quantityUnitHint => 'verres, min, L…';
+
+  @override
+  String get quantityTargetLabel => 'Cible par jour';
+
+  @override
+  String get quantityStepLabel => 'Un appui ajoute';
+
+  @override
+  String get quantityUnitRequired => 'Donne une unité à la quantité';
+
+  @override
+  String get quantityValuesInvalid => 'La cible par jour et le pas doivent être des nombres supérieurs à 0';
+
+  @override
+  String quantityGoalSummary(String target, String unit, String step) {
+    return '$target $unit par jour · $step par appui';
+  }
+
+  @override
+  String get quantityTotalThisYear => 'Total cette année';
+
+  @override
+  String get quantityDaysAtTarget => 'Jours à la cible';
 }

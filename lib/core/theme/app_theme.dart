@@ -58,6 +58,9 @@ abstract final class AppSizes {
   static const double logButton = 48;
   static const double checkMarkStrokeWidth = 2.5;
 
+  /// The ring a quantity habit's log button fills toward its target, inside the 48 dp circle.
+  static const double logButtonProgressRingStrokeWidth = 4;
+
   /// Diagonal stripes of a paused day cell: thin and close, so a 20 dp cell reads as a texture.
   static const double pausedHatchStrokeWidth = 1.5;
   static const double pausedHatchSpacing = 4;
@@ -130,6 +133,10 @@ abstract final class AppOpacity {
 
   /// Shadow of a card lifted for reordering, over the page color.
   static const double liftedShadow = 0.22;
+
+  /// The strongest shade of a quantity day below its target: only a reached day takes the habit's
+  /// full color, so success still reads at a glance on the grids.
+  static const double partialQuantityCellMaximumShade = 0.6;
 
   /// Frosted bars stay readable over any content while letting it show through.
   static const double frostedSurface = 0.78;

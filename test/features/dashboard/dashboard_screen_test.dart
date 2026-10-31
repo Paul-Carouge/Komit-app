@@ -19,6 +19,8 @@ const String _longUserName = 'Maximilien-Alexandre';
 
 final CalendarDay _today = CalendarDay.fromDateTime(komitTestNow);
 
+const Size _tallPhoneLogicalSize = Size(360, 1000);
+
 HabitRepository _repositoryOf(KomitTestEnvironment environment) =>
     HabitRepository(environment.database, now: () => komitTestNow);
 
@@ -161,10 +163,93 @@ void main() {
     await environment.dispose(tester);
   });
 
+  testWidgets('one tap on a quantity habit adds a step with Undo; reaching the target fills the button', (
+    tester,
+  ) async {
+    final environment = await KomitTestEnvironment.create(tester, hasWaterHabit: true);
+    // Tall enough for the third row to sit above the navigation bar.
+    await pumpKomitApp(tester, environment, theme: lightAppTheme, logicalSize: _tallPhoneLogicalSize);
+    final water = await _habitTitled(tester, environment, 'Drink water');
+    Future<double?> todayAmount() async => (await tester.runAsync(
+      () => _repositoryOf(environment).watchQuantityByDayForHabit(water.habit.id).first,
+    ))![_today];
+    final addStepButton = find.bySemanticsLabel('Add 1 glasses to Drink water');
+    expect(find.text('3/8 glasses · Logged today'), findsOneWidget);
+
+    await tester.tap(addStepButton);
+    await settleWithDatabaseWork(tester);
+    expect(await todayAmount(), 4);
+    expect(find.text('Drink water: 4/8 glasses'), findsOneWidget);
+    expect((await _logsOf(tester, environment, water.habit.id)).containsKey(_today), isFalse);
+
+    await tester.tap(find.text('Undo'));
+    await settleWithDatabaseWork(tester);
+    expect(await todayAmount(), 3);
+
+    for (var tap = 0; tap < 5; tap++) {
+      await tester.tap(addStepButton);
+      await settleWithDatabaseWork(tester);
+    }
+    expect(await todayAmount(), 8);
+    expect(find.text('Drink water: target reached, 8/8 glasses'), findsOneWidget);
+    // Reached: the day now counts like a logged objective everywhere.
+    expect((await _logsOf(tester, environment, water.habit.id))[_today], water.objectives.single.id);
+    await environment.dispose(tester);
+  });
+
+  testWidgets('holding a quantity habit opens the stepper sheet, which saves a typed or stepped amount', (
+    tester,
+  ) async {
+    final environment = await KomitTestEnvironment.create(tester, hasWaterHabit: true);
+    // Tall enough for the third row to sit above the navigation bar.
+    await pumpKomitApp(tester, environment, theme: lightAppTheme, logicalSize: _tallPhoneLogicalSize);
+    final water = await _habitTitled(tester, environment, 'Drink water');
+    Future<double?> todayAmount() async => (await tester.runAsync(
+      () => _repositoryOf(environment).watchQuantityByDayForHabit(water.habit.id).first,
+    ))![_today];
+    final addStepButton = find.bySemanticsLabel('Add 1 glasses to Drink water');
+
+    await tester.longPress(addStepButton);
+    await tester.pumpAndSettle();
+    final sheet = find.byType(BottomSheet);
+    expect(find.descendant(of: sheet, matching: find.text('3/8 glasses')), findsOneWidget);
+    for (final stepButton in ['More', 'More', 'Less']) {
+      await tester.tap(find.byTooltip(stepButton));
+      await tester.pump();
+    }
+    expect(find.descendant(of: sheet, matching: find.text('4/8 glasses')), findsOneWidget);
+    await tester.tap(find.text('Save'));
+    await settleWithDatabaseWork(tester);
+    expect(await todayAmount(), 4);
+
+    await tester.longPress(addStepButton);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.descendant(of: find.byType(BottomSheet), matching: find.byType(TextField)), '2,5');
+    await tester.tap(find.text('Save'));
+    await settleWithDatabaseWork(tester);
+    expect(await todayAmount(), 2.5);
+
+    await tester.longPress(addStepButton);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Target · 8'));
+    await tester.pump();
+    await tester.tap(find.text('Save'));
+    await settleWithDatabaseWork(tester);
+    expect(await todayAmount(), 8);
+
+    await tester.longPress(addStepButton);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Clear this day'));
+    await settleWithDatabaseWork(tester);
+    expect(await todayAmount(), isNull);
+    await environment.dispose(tester);
+  });
+
   testWidgets('tapping yesterday in the strip logs yesterday; a future day is not tappable', (tester) async {
     final environment = await KomitTestEnvironment.create(tester, additionalHabitTitles: ['Drink water']);
     final semantics = tester.ensureSemantics();
-    await pumpKomitApp(tester, environment, theme: lightAppTheme);
+    // Tall enough for the third row to sit above the navigation bar.
+    await pumpKomitApp(tester, environment, theme: lightAppTheme, logicalSize: _tallPhoneLogicalSize);
     final water = await _habitTitled(tester, environment, 'Drink water');
     await tester.ensureVisible(_rowOf('Drink water'));
     await tester.pumpAndSettle();

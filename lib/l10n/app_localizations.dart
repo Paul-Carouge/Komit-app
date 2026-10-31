@@ -2917,6 +2917,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 rest day a week keeps your streak alive} other{{count} rest days a week keep your streak alive}}'**
   String restDaysAllowance(int count);
+
+  /// No description provided for @quantityProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}/{target} {unit}'**
+  String quantityProgress(String value, String target, String unit);
+
+  /// No description provided for @quantityProgressSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} of {target} {unit}'**
+  String quantityProgressSemantics(String value, String target, String unit);
+
+  /// No description provided for @quantityAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} {unit}'**
+  String quantityAmount(String value, String unit);
+
+  /// No description provided for @addQuantityStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Add {amount} to {habit}'**
+  String addQuantityStep(String amount, String habit);
+
+  /// No description provided for @typeAnAmountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'type an amount'**
+  String get typeAnAmountHint;
+
+  /// No description provided for @quantityDayMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{habit}: {progress}'**
+  String quantityDayMessage(String habit, String progress);
+
+  /// No description provided for @quantityTargetReachedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{habit}: target reached, {progress}'**
+  String quantityTargetReachedMessage(String habit, String progress);
+
+  /// No description provided for @decreaseQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Less'**
+  String get decreaseQuantity;
+
+  /// No description provided for @increaseQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get increaseQuantity;
+
+  /// No description provided for @quantityFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get quantityFieldLabel;
+
+  /// No description provided for @setQuantityToTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Target · {target}'**
+  String setQuantityToTarget(String target);
+
+  /// No description provided for @saveQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get saveQuantity;
+
+  /// No description provided for @quantityMustBePositive.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount above 0'**
+  String get quantityMustBePositive;
+
+  /// No description provided for @habitKindTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What you track'**
+  String get habitKindTitle;
+
+  /// No description provided for @habitKindObjectives.
+  ///
+  /// In en, this message translates to:
+  /// **'Objectives'**
+  String get habitKindObjectives;
+
+  /// No description provided for @habitKindObjectivesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick how each day went'**
+  String get habitKindObjectivesHint;
+
+  /// No description provided for @habitKindQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'An amount'**
+  String get habitKindQuantity;
+
+  /// No description provided for @habitKindQuantityHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Count toward a daily target, like 8 glasses'**
+  String get habitKindQuantityHint;
+
+  /// No description provided for @habitKindLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'This habit already has logged days, so what it tracks can\'t change. Create a new habit to track it another way.'**
+  String get habitKindLocked;
+
+  /// No description provided for @quantityUnitLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get quantityUnitLabel;
+
+  /// No description provided for @quantityUnitHint.
+  ///
+  /// In en, this message translates to:
+  /// **'glasses, min, L…'**
+  String get quantityUnitHint;
+
+  /// No description provided for @quantityTargetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily target'**
+  String get quantityTargetLabel;
+
+  /// No description provided for @quantityStepLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'One tap adds'**
+  String get quantityStepLabel;
+
+  /// No description provided for @quantityUnitRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Give the amount a unit'**
+  String get quantityUnitRequired;
+
+  /// No description provided for @quantityValuesInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'The daily target and the step must be numbers above 0'**
+  String get quantityValuesInvalid;
+
+  /// No description provided for @quantityGoalSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{target} {unit} a day · {step} per tap'**
+  String quantityGoalSummary(String target, String unit, String step);
+
+  /// No description provided for @quantityTotalThisYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Total this year'**
+  String get quantityTotalThisYear;
+
+  /// No description provided for @quantityDaysAtTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Days at the target'**
+  String get quantityDaysAtTarget;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -132,6 +132,11 @@ final objectiveIdByDayForHabitProvider = StreamProvider.autoDispose.family<Map<C
   (ref, habitId) => ref.watch(habitRepositoryProvider).watchObjectiveIdByDayForHabit(habitId),
 );
 
+/// The amount of each logged day of a quantity habit, reached or not (docs/adr/0008).
+final quantityByDayForHabitProvider = StreamProvider.autoDispose.family<Map<CalendarDay, double>, int>(
+  (ref, habitId) => ref.watch(habitRepositoryProvider).watchQuantityByDayForHabit(habitId),
+);
+
 /// Days shown on each dashboard row: last week and this week, Monday first. Two weeks fit on
 /// one row at a readable cell size on a phone, weekly targets read week by week, and every
 /// row's columns are the same weekdays.
@@ -143,6 +148,12 @@ CalendarDay firstDayShownOnDashboard(CalendarDay today) => today.mondayOfWeek.ad
 final recentObjectiveIdByDayByHabitIdProvider = StreamProvider((ref) {
   final firstDay = firstDayShownOnDashboard(ref.watch(currentCalendarDayProvider));
   return ref.watch(habitRepositoryProvider).watchObjectiveIdByDayForAllHabitsSince(firstDay);
+});
+
+/// The amounts of quantity habits over the days shown on the dashboard.
+final recentQuantityByDayByHabitIdProvider = StreamProvider((ref) {
+  final firstDay = firstDayShownOnDashboard(ref.watch(currentCalendarDayProvider));
+  return ref.watch(habitRepositoryProvider).watchQuantityByDayForAllHabitsSince(firstDay);
 });
 
 /// The habit's current and best streak, null while its history loads. Memoized per habit, so a

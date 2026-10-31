@@ -1702,4 +1702,105 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String quantityProgress(String value, String target, String unit) {
+    return '$value/$target $unit';
+  }
+
+  @override
+  String quantityProgressSemantics(String value, String target, String unit) {
+    return '$value of $target $unit';
+  }
+
+  @override
+  String quantityAmount(String value, String unit) {
+    return '$value $unit';
+  }
+
+  @override
+  String addQuantityStep(String amount, String habit) {
+    return 'Add $amount to $habit';
+  }
+
+  @override
+  String get typeAnAmountHint => 'type an amount';
+
+  @override
+  String quantityDayMessage(String habit, String progress) {
+    return '$habit: $progress';
+  }
+
+  @override
+  String quantityTargetReachedMessage(String habit, String progress) {
+    return '$habit: target reached, $progress';
+  }
+
+  @override
+  String get decreaseQuantity => 'Less';
+
+  @override
+  String get increaseQuantity => 'More';
+
+  @override
+  String get quantityFieldLabel => 'Amount';
+
+  @override
+  String setQuantityToTarget(String target) {
+    return 'Target · $target';
+  }
+
+  @override
+  String get saveQuantity => 'Save';
+
+  @override
+  String get quantityMustBePositive => 'Enter an amount above 0';
+
+  @override
+  String get habitKindTitle => 'What you track';
+
+  @override
+  String get habitKindObjectives => 'Objectives';
+
+  @override
+  String get habitKindObjectivesHint => 'Pick how each day went';
+
+  @override
+  String get habitKindQuantity => 'An amount';
+
+  @override
+  String get habitKindQuantityHint => 'Count toward a daily target, like 8 glasses';
+
+  @override
+  String get habitKindLocked =>
+      'This habit already has logged days, so what it tracks can\'t change. Create a new habit to track it another way.';
+
+  @override
+  String get quantityUnitLabel => 'Unit';
+
+  @override
+  String get quantityUnitHint => 'glasses, min, L…';
+
+  @override
+  String get quantityTargetLabel => 'Daily target';
+
+  @override
+  String get quantityStepLabel => 'One tap adds';
+
+  @override
+  String get quantityUnitRequired => 'Give the amount a unit';
+
+  @override
+  String get quantityValuesInvalid => 'The daily target and the step must be numbers above 0';
+
+  @override
+  String quantityGoalSummary(String target, String unit, String step) {
+    return '$target $unit a day · $step per tap';
+  }
+
+  @override
+  String get quantityTotalThisYear => 'Total this year';
+
+  @override
+  String get quantityDaysAtTarget => 'Days at the target';
 }

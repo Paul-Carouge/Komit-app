@@ -16,19 +16,23 @@ import '../../core/current_calendar_day.dart';
 import '../../core/date_formatting.dart';
 import '../../core/habit_appearance.dart';
 import '../../core/haptics.dart';
+import '../../core/quantity_formatting.dart';
 import '../../core/theme/app_motion.dart';
 import '../../core/theme/app_theme.dart';
+import '../../data/database/app_database.dart' show maximumQuantityValue;
 import '../../data/repositories/habit_repository.dart';
 import '../../domain/greeting_period.dart';
 import '../../domain/habit_pause.dart';
 import '../../domain/habit_schedule.dart';
 import '../../domain/habit_statistics.dart';
+import '../../domain/quantity_goal.dart';
 import '../../domain/seasons.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
 import '../../router.dart';
 import '../habit_details/habit_actions_sheet.dart';
 import '../habit_details/log_day_sheet.dart';
+import '../habit_details/log_quantity_sheet.dart';
 import '../mascot/komo_empty_state.dart';
 import '../mascot/komo_mascot.dart';
 import '../shared/day_grid.dart';
@@ -224,9 +228,15 @@ class _TodayProgressRing extends StatelessWidget {
 }
 
 class _ProgressRingPainter extends CustomPainter {
-  const _ProgressRingPainter({required this.completedShare, required this.trackColor, required this.progressColor});
+  const _ProgressRingPainter({
+    required this.completedShare,
+    required this.trackColor,
+    required this.progressColor,
+    this.strokeWidth = AppSizes.todayProgressRingStrokeWidth,
+  });
 
   final double completedShare;
+  final double strokeWidth;
   final Color trackColor;
   final Color progressColor;
 
@@ -235,7 +245,6 @@ class _ProgressRingPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    const strokeWidth = AppSizes.todayProgressRingStrokeWidth;
     final rect = (Offset.zero & size).deflate(strokeWidth / 2);
     final paint = Paint()
       ..style = PaintingStyle.stroke
@@ -251,6 +260,7 @@ class _ProgressRingPainter extends CustomPainter {
   @override
   bool shouldRepaint(_ProgressRingPainter oldDelegate) =>
       oldDelegate.completedShare != completedShare ||
+      oldDelegate.strokeWidth != strokeWidth ||
       oldDelegate.trackColor != trackColor ||
       oldDelegate.progressColor != progressColor;
 }
@@ -432,15 +442,28 @@ class _HabitRow extends ConsumerWidget {
     final recentObjectiveIdByDay = ref
         .watch(
           recentObjectiveIdByDayByHabitIdProvider.select(
-            (logsByHabitId) => _ObjectiveIdByDayComparedByEntries(logsByHabitId.value?[habitId] ?? const {}),
+            (logsByHabitId) => _MapComparedByEntries<int>(logsByHabitId.value?[habitId] ?? const {}),
           ),
         )
-        .objectiveIdByDay;
+        .entries;
+    final quantityGoal = habit.quantityGoal;
+    final recentQuantityByDay = quantityGoal == null
+        ? const <CalendarDay, double>{}
+        : ref
+              .watch(
+                recentQuantityByDayByHabitIdProvider.select(
+                  (quantitiesByHabitId) =>
+                      _MapComparedByEntries<double>(quantitiesByHabitId.value?[habitId] ?? const {}),
+                ),
+              )
+              .entries;
     final lastLoggedDay = ref.watch(lastLoggedDayByHabitIdProvider.select((days) => days.value?[habitId]));
     final streak = ref.watch(streakSummaryForHabitProvider(habitId));
     final isScheduledToday = isHabitScheduledOn(habit, today);
     final todayObjectiveId = recentObjectiveIdByDay[today];
     final todayObjective = todayObjectiveId == null ? null : habit.objectiveWithId(todayObjectiveId);
+    final todayQuantity = recentQuantityByDay[today];
+    final isLoggedToday = quantityGoal == null ? todayObjective != null : todayQuantity != null;
     final targetDaysPerWeek = habit.habit.targetDaysPerWeek;
     final currentStreakLength = streak?.currentStreakLength ?? 0;
     final streakText = switch (streak?.unit) {
@@ -455,8 +478,10 @@ class _HabitRow extends ConsumerWidget {
         pauseEndDay == null
             ? localizations.pausedShort
             : localizations.pausedUntil(formatShortDate(context, pauseEndDay))
-      else if (!isScheduledToday && todayObjective == null)
+      else if (!isScheduledToday && !isLoggedToday)
         localizations.notToday,
+      if (quantityGoal != null && (isLoggedToday || isScheduledToday && pauseToday == null))
+        describeQuantityProgress(context, quantityGoal, todayQuantity),
       if (targetDaysPerWeek != null)
         localizations.weeklyProgress(
           countSuccessDaysInWeekOf(
@@ -470,6 +495,10 @@ class _HabitRow extends ConsumerWidget {
       _lastActivityText(context, localizations, lastLoggedDay),
     ];
     final todayState = switch (todayObjective) {
+      _ when quantityGoal != null && todayQuantity != null => localizations.habitRowLoggedToday(
+        title,
+        describeQuantityProgressForScreenReaders(context, quantityGoal, todayQuantity),
+      ),
       final objective? => localizations.habitRowLoggedToday(title, objective.title),
       null when pauseToday != null => localizations.habitRowPausedToday(title),
       null when !isScheduledToday => localizations.habitRowNotPlannedToday(title),
@@ -525,15 +554,32 @@ class _HabitRow extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: AppSpacing.small),
-                _TodayLogButton(
-                  objectiveColor: todayObjective == null ? null : Color(todayObjective.colorArgb),
-                  isScheduledToday: isScheduledToday,
-                  semanticLabel: todayObjective == null
-                      ? localizations.logHabitToday(title)
-                      : localizations.changeTodayLog(title),
-                  onTap: () => _logTodayWithOneTap(context, ref, todayObjectiveId),
-                  onLongPress: () => _openLogSheet(context, ref, today, todayObjectiveId),
-                ),
+                if (quantityGoal == null)
+                  _TodayLogButton(
+                    objectiveColor: todayObjective == null ? null : Color(todayObjective.colorArgb),
+                    isScheduledToday: isScheduledToday,
+                    semanticLabel: todayObjective == null
+                        ? localizations.logHabitToday(title)
+                        : localizations.changeTodayLog(title),
+                    longPressHint: localizations.chooseAnObjectiveHint,
+                    onTap: () => _logTodayWithOneTap(context, ref, todayObjectiveId),
+                    onLongPress: () => _openLogSheet(context, ref, today, todayObjectiveId),
+                  )
+                else
+                  _TodayLogButton(
+                    // A quantity habit takes its color and check only once the target is reached.
+                    objectiveColor: quantityGoal.isReachedBy(todayQuantity) ? Color(habit.habit.colorArgb) : null,
+                    progressShare: quantityGoal.shareReachedBy(todayQuantity),
+                    progressColor: Color(habit.habit.colorArgb),
+                    isScheduledToday: isScheduledToday,
+                    semanticLabel: localizations.addQuantityStep(
+                      localizations.quantityAmount(formatQuantity(context, quantityGoal.step), quantityGoal.unit),
+                      title,
+                    ),
+                    longPressHint: localizations.typeAnAmountHint,
+                    onTap: () => _addQuantityStepToday(context, ref, quantityGoal, todayQuantity),
+                    onLongPress: () => _openQuantitySheet(context, ref, today, todayQuantity),
+                  ),
               ],
             ),
             const SizedBox(height: AppSpacing.small),
@@ -543,7 +589,14 @@ class _HabitRow extends ConsumerWidget {
                 columnCount: recentDayCountShownOnDashboard,
                 minimumRowExtent: AppSizes.minimumTouchTarget,
                 cellTapActionLabel: localizations.logThisDayAction,
-                cells: _recentDayCells(context, localizations, komitColors, ref, recentObjectiveIdByDay),
+                cells: _recentDayCells(
+                  context,
+                  localizations,
+                  komitColors,
+                  ref,
+                  recentObjectiveIdByDay,
+                  recentQuantityByDay,
+                ),
               ),
             ),
           ],
@@ -571,6 +624,26 @@ class _HabitRow extends ConsumerWidget {
     );
   }
 
+  /// One tap adds one step, even past the target: counting is what the row is for.
+  void _addQuantityStepToday(BuildContext context, WidgetRef ref, QuantityGoal goal, double? todayQuantity) {
+    unawaited(KomitHaptics.selection());
+    unawaited(
+      writeQuantityLogWithUndo(
+        context,
+        ref,
+        habit: habit,
+        day: today,
+        previousQuantity: todayQuantity,
+        quantity: math.min(roundQuantity((todayQuantity ?? 0) + goal.step), maximumQuantityValue),
+      ),
+    );
+  }
+
+  void _openQuantitySheet(BuildContext context, WidgetRef ref, CalendarDay day, double? currentQuantity) {
+    unawaited(KomitHaptics.selection());
+    unawaited(logQuantityFromSheet(context, ref, habit: habit, day: day, currentQuantity: currentQuantity));
+  }
+
   void _openLogSheet(BuildContext context, WidgetRef ref, CalendarDay day, int? currentObjectiveId) {
     unawaited(KomitHaptics.selection());
     unawaited(logDayFromSheet(context, ref, habit: habit, day: day, currentObjectiveId: currentObjectiveId));
@@ -594,12 +667,65 @@ class _HabitRow extends ConsumerWidget {
     KomitColors komitColors,
     WidgetRef ref,
     Map<CalendarDay, int> recentObjectiveIdByDay,
+    Map<CalendarDay, double> recentQuantityByDay,
   ) {
     final firstDay = firstDayShownOnDashboard(today);
+    final quantityGoal = habit.quantityGoal;
     return [
       for (var offset = 0; offset < recentDayCountShownOnDashboard; offset++)
-        _recentDayCell(context, localizations, komitColors, ref, firstDay.addDays(offset), recentObjectiveIdByDay),
+        quantityGoal == null
+            ? _recentDayCell(context, localizations, komitColors, ref, firstDay.addDays(offset), recentObjectiveIdByDay)
+            : _recentQuantityDayCell(
+                context,
+                localizations,
+                komitColors,
+                ref,
+                quantityGoal,
+                firstDay.addDays(offset),
+                recentQuantityByDay[firstDay.addDays(offset)],
+              ),
     ];
+  }
+
+  /// Like [_recentDayCell], shaded by the share of the target the day reached.
+  DayGridCell _recentQuantityDayCell(
+    BuildContext context,
+    AppLocalizations localizations,
+    KomitColors komitColors,
+    WidgetRef ref,
+    QuantityGoal goal,
+    CalendarDay day,
+    double? quantity,
+  ) {
+    final date = formatWeekdayAndDate(context, day);
+    final isPaused = isPausedOn(habit.pauses, day);
+    if (day.isAfter(today) && quantity == null) {
+      return DayGridCell(
+        color: komitColors.futureCell,
+        semanticLabel: isPaused ? localizations.stripDayPaused(date) : localizations.stripDayNotAvailableYet(date),
+        isPaused: isPaused,
+      );
+    }
+    final isScheduled = isWeekdayScheduled(habit.habit.scheduledWeekdayMask, day.weekday);
+    final progress = describeQuantityProgressForScreenReaders(context, goal, quantity);
+    return DayGridCell(
+      color: quantity != null
+          ? quantityCellColor(
+              emptyColor: komitColors.emptyCell,
+              habitColor: Color(habit.habit.colorArgb),
+              share: goal.shareReachedBy(quantity),
+            )
+          : (isScheduled && !isPaused ? komitColors.emptyCell : komitColors.futureCell),
+      semanticLabel: switch ((quantity, isPaused)) {
+        (_?, true) => localizations.stripDayLoggedWhilePaused(date, progress),
+        (_?, false) => localizations.stripDayLogged(date, progress),
+        (null, true) => localizations.stripDayPaused(date),
+        (null, false) => localizations.stripDayNotLogged(date),
+      },
+      isOutlined: day == today,
+      isPaused: isPaused && quantity == null,
+      onTap: () => _openQuantitySheet(context, ref, day, quantity),
+    );
   }
 
   DayGridCell _recentDayCell(
@@ -641,21 +767,19 @@ class _HabitRow extends ConsumerWidget {
   }
 }
 
-/// One habit's recent logs, equal to another with the same entries: a fresh map from the
-/// database then only notifies the row when this habit's logs really changed.
+/// One habit's recent logs or amounts, equal to another with the same entries: a fresh map from
+/// the database then only notifies the row when this habit's logs really changed.
 @immutable
-class _ObjectiveIdByDayComparedByEntries {
-  const _ObjectiveIdByDayComparedByEntries(this.objectiveIdByDay);
+class _MapComparedByEntries<V> {
+  const _MapComparedByEntries(this.entries);
 
-  final Map<CalendarDay, int> objectiveIdByDay;
-
-  @override
-  bool operator ==(Object other) =>
-      other is _ObjectiveIdByDayComparedByEntries && mapEquals(other.objectiveIdByDay, objectiveIdByDay);
+  final Map<CalendarDay, V> entries;
 
   @override
-  int get hashCode =>
-      Object.hashAllUnordered(objectiveIdByDay.entries.map((entry) => Object.hash(entry.key, entry.value)));
+  bool operator ==(Object other) => other is _MapComparedByEntries<V> && mapEquals(other.entries, entries);
+
+  @override
+  int get hashCode => Object.hashAllUnordered(entries.entries.map((entry) => Object.hash(entry.key, entry.value)));
 }
 
 class _StreakChip extends StatelessWidget {
@@ -696,13 +820,21 @@ class _TodayLogButton extends StatefulWidget {
     required this.objectiveColor,
     required this.isScheduledToday,
     required this.semanticLabel,
+    required this.longPressHint,
     required this.onTap,
     required this.onLongPress,
+    this.progressShare = 0,
+    this.progressColor,
   });
 
   final Color? objectiveColor;
   final bool isScheduledToday;
   final String semanticLabel;
+  final String longPressHint;
+
+  /// A quantity habit's share of today's target, drawn as a ring until [objectiveColor] fills it.
+  final double progressShare;
+  final Color? progressColor;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
 
@@ -723,6 +855,27 @@ class _TodayLogButtonState extends State<_TodayLogButton> with SingleTickerProvi
     super.didUpdateWidget(oldWidget);
     final hasJustBeenLogged = oldWidget.objectiveColor == null && widget.objectiveColor != null;
     if (hasJustBeenLogged && !MediaQuery.disableAnimationsOf(context)) unawaited(_logAnimation.forward(from: 0));
+  }
+
+  /// The ring a quantity habit fills toward its target; nothing for an objectives habit.
+  Widget _withProgressRing(Widget icon) {
+    final progressColor = widget.progressColor;
+    if (progressColor == null) return icon;
+    return TweenAnimationBuilder<double>(
+      tween: Tween(end: widget.progressShare),
+      duration: motionAwareDuration(context, AppDurations.standard),
+      curve: AppCurves.standard,
+      builder: (context, share, child) => CustomPaint(
+        painter: _ProgressRingPainter(
+          completedShare: share,
+          trackColor: Colors.transparent,
+          progressColor: progressColor,
+          strokeWidth: AppSizes.logButtonProgressRingStrokeWidth,
+        ),
+        child: child,
+      ),
+      child: icon,
+    );
   }
 
   @override
@@ -748,7 +901,7 @@ class _TodayLogButtonState extends State<_TodayLogButton> with SingleTickerProvi
       container: true,
       button: true,
       label: widget.semanticLabel,
-      onLongPressHint: localizations.chooseAnObjectiveHint,
+      onLongPressHint: widget.longPressHint,
       child: Tooltip(
         message: localizations.logToday,
         excludeFromSemantics: true,
@@ -771,7 +924,7 @@ class _TodayLogButtonState extends State<_TodayLogButton> with SingleTickerProvi
               child: SizedBox.square(
                 dimension: AppSizes.logButton,
                 child: objectiveColor == null
-                    ? Icon(KomitIcons.plus, color: colorScheme.onSurfaceVariant)
+                    ? _withProgressRing(Icon(KomitIcons.plus, color: colorScheme.onSurfaceVariant))
                     : CustomPaint(
                         painter: _CheckMarkPainter(
                           progress: _logAnimation,

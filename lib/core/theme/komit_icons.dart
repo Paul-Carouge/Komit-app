@@ -58,6 +58,7 @@ abstract final class KomitIcons {
   static const IconData flower2 = IconData(0xe2d4, fontFamily: _fontFamily);
   static const IconData footprints = IconData(0xe3b9, fontFamily: _fontFamily);
   static const IconData frown = IconData(0xe0db, fontFamily: _fontFamily);
+  static const IconData gauge = IconData(0xe1bf, fontFamily: _fontFamily);
   static const IconData gem = IconData(0xe242, fontFamily: _fontFamily);
   static const IconData ghost = IconData(0xe20e, fontFamily: _fontFamily);
   static const IconData gift = IconData(0xe0e1, fontFamily: _fontFamily);
@@ -78,6 +79,7 @@ abstract final class KomitIcons {
   static const IconData layers = IconData(0xe529, fontFamily: _fontFamily);
   static const IconData layoutGrid = IconData(0xe0ff, fontFamily: _fontFamily);
   static const IconData leaf = IconData(0xe2de, fontFamily: _fontFamily);
+  static const IconData listChecks = IconData(0xe1d0, fontFamily: _fontFamily);
   static const IconData lock = IconData(0xe10b, fontFamily: _fontFamily);
   static const IconData lockKeyhole = IconData(0xe531, fontFamily: _fontFamily);
   static const IconData medal = IconData(0xe36f, fontFamily: _fontFamily);
