@@ -4,6 +4,17 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
 
 ## [Unreleased]
 
+## [2.7.0] - 2026-10-31
+
+### Added
+- In the sheet that opens when you hold a habit's round button, hold an objective to move it.
+  The new order is saved at once, and the first objective is the one a single tap logs.
+
+### Changed
+- Messages at the bottom of the screen have a round status icon: a check in the objective's
+  color after a log, a red alert when something failed, and an icon for pauses, archives and
+  cleared days. "Undo" is a pill button, and the hard dark outline is gone.
+
 ## [2.6.0] - 2026-10-30
 
 ### Added
