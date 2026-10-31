@@ -4,6 +4,8 @@ All notable changes to Komit. Versions follow [SemVer](https://semver.org).
 
 ## [Unreleased]
 
+## [2.8.0] - 2026-10-31
+
 ### Added
 - Quantity habits: track an amount with a unit and a daily target, like "8 glasses" or
   "20 min". One tap on the round button adds a step (with Undo) and fills a ring until the
