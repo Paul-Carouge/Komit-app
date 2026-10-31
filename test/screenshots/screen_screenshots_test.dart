@@ -116,6 +116,67 @@ void main() {
   }
 
   for (final (themeName, theme) in [('light', lightAppTheme), ('dark', darkAppTheme)]) {
+    testWidgets('renders a quantity habit in $themeName', skip: _outputDirectory == null, (tester) async {
+      await tester.runAsync(_loadRealFonts);
+      final environment = await KomitTestEnvironment.create(tester, hasWaterHabit: true);
+      final waterHabitId = (await tester.runAsync(
+        () async => (await HabitRepository(
+          environment.database,
+        ).watchActiveHabits().first).firstWhere((habit) => habit.habit.title == 'Drink water'),
+      ))!.habit.id;
+      final router = await pumpKomitApp(tester, environment, theme: theme, logicalSize: _phoneLogicalSize);
+      final waterLogButton = find.descendant(
+        of: find.ancestor(of: find.text('Drink water'), matching: find.byType(PressableCard)).first,
+        matching: find.byTooltip('Log today'),
+      );
+      await tester.ensureVisible(waterLogButton);
+      await tester.drag(find.byType(CustomScrollView).first, const Offset(0, -120));
+      await tester.pumpAndSettle();
+      await _saveScreenshot(tester, 'quantity_dashboard_$themeName');
+      await tester.tap(waterLogButton);
+      await settleWithDatabaseWork(tester);
+      await _saveScreenshot(tester, 'quantity_dashboard_step_$themeName');
+      tester.state<ScaffoldMessengerState>(find.byType(ScaffoldMessenger)).hideCurrentSnackBar();
+      await tester.pumpAndSettle();
+      await tester.longPress(waterLogButton);
+      await tester.pumpAndSettle();
+      await _saveScreenshot(tester, 'quantity_log_sheet_$themeName');
+      Navigator.of(tester.element(find.byType(BottomSheet))).pop();
+      await tester.pumpAndSettle();
+
+      for (final (name, location) in [
+        ('details', AppRoutes.habitDetails(waterHabitId)),
+        ('statistics', AppRoutes.habitStatistics(waterHabitId, komitTestNow.year)),
+        ('editor', AppRoutes.habitEditor(waterHabitId)),
+      ]) {
+        router.go(AppRoutes.habits);
+        unawaited(router.push(location));
+        await settleWithDatabaseWork(tester);
+        await _saveScreenshot(tester, 'quantity_${name}_$themeName');
+      }
+      await tester.drag(find.byType(CustomScrollView).first, const Offset(0, -500));
+      await tester.pumpAndSettle();
+      await _saveScreenshot(tester, 'quantity_editor_scrolled_$themeName');
+
+      router.go(AppRoutes.habits);
+      unawaited(router.push(AppRoutes.newHabit));
+      await settleWithDatabaseWork(tester);
+      await tester.enterText(find.widgetWithText(TextField, 'Habit name'), 'Read');
+      await tester.tap(find.text('An amount'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.widgetWithText(TextField, 'Unit'), 'pages');
+      await tester.enterText(find.widgetWithText(TextField, 'Daily target'), '20');
+      await tester.enterText(find.widgetWithText(TextField, 'One tap adds'), '5');
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pumpAndSettle();
+      await tester.drag(find.byType(CustomScrollView).first, const Offset(0, -350));
+      await tester.pumpAndSettle();
+      await _saveScreenshot(tester, 'quantity_editor_new_$themeName');
+      await environment.dispose(tester);
+    });
+  }
+
+  for (final (themeName, theme) in [('light', lightAppTheme), ('dark', darkAppTheme)]) {
     testWidgets('renders the recap, a celebration and the achievements in $themeName', skip: _outputDirectory == null, (
       tester,
     ) async {
