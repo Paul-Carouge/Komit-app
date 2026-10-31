@@ -9,12 +9,14 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/habit_appearance.dart';
 import '../../core/haptics.dart';
+import '../../core/quantity_formatting.dart';
 import '../../core/theme/app_motion.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/komit_icons.dart';
 import '../../data/database/app_database.dart';
 import '../../data/repositories/habit_repository.dart';
 import '../../domain/habit_schedule.dart' show maximumRestDaysFor;
+import '../../domain/quantity_goal.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers.dart';
 import '../../services/notification_permission_service.dart';
@@ -22,6 +24,7 @@ import '../mascot/komo_empty_state.dart';
 import '../mascot/komo_mascot.dart';
 import '../shared/shared_widgets.dart';
 import 'appearance_pickers.dart';
+import 'habit_kind_picker.dart';
 import 'schedule_picker.dart';
 
 const int _defaultReminderMinuteOfDay = 20 * Duration.minutesPerHour;
@@ -31,6 +34,9 @@ const int _defaultTargetDaysPerWeek = 3;
 
 /// The first objective of a new habit: green, the color of a day that went well.
 const int _firstObjectiveColorIndex = 9;
+
+/// A new quantity habit adds one unit per tap until the user says otherwise.
+const double _defaultQuantityStep = 1;
 
 class HabitEditorScreen extends ConsumerStatefulWidget {
   const HabitEditorScreen({required this.habitId, super.key});
@@ -71,6 +77,18 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
   /// As chosen; [_restDaysPerWeekForSchedule] caps it for the chosen days without forgetting it
   /// while weekdays are toggled.
   int _restDaysPerWeek = 0;
+
+  /// A quantity habit tracks an amount instead of objectives (docs/adr/0008).
+  bool _isQuantity = false;
+
+  /// True once the habit has a log: it keeps its kind.
+  bool _isKindLocked = false;
+
+  /// The hidden objective carrying a quantity habit's logs, kept on save.
+  int? _quantityObjectiveId;
+  final _quantityUnitController = TextEditingController();
+  final _quantityTargetController = TextEditingController();
+  final _quantityStepController = TextEditingController();
   bool _isLoading = true;
   bool _hasLoadFailed = false;
   bool _isSaving = false;
@@ -87,7 +105,24 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
   @override
   void initState() {
     super.initState();
+    // A new habit fills its fields synchronously, before these listeners may call setState.
     _loadHabit();
+    // The quantity row's subtitle sums up the three fields as they are typed.
+    for (final controller in [_quantityUnitController, _quantityTargetController, _quantityStepController]) {
+      controller.addListener(_onQuantityFieldChanged);
+    }
+  }
+
+  void _onQuantityFieldChanged() => setState(() {});
+
+  /// Typed with the locale's decimal separator; formatted once the locale is known.
+  void _fillQuantityFields(QuantityGoal? goal) {
+    _quantityUnitController.text = goal?.unit ?? '';
+    _quantityTargetController.text = goal == null ? '' : formatQuantity(context, goal.target);
+    // A whole default needs no locale, which initState cannot read yet.
+    _quantityStepController.text = goal == null
+        ? '${_defaultQuantityStep.round()}'
+        : formatQuantity(context, goal.step);
   }
 
   Future<void> _loadHabit() async {
@@ -96,6 +131,7 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
       _objectives.add(
         _EditableObjective(id: null, title: '', colorArgb: habitColorPaletteArgb[_firstObjectiveColorIndex]),
       );
+      _fillQuantityFields(null);
       setState(() {
         _isLoading = false;
         _loadedFormSnapshot = _formSnapshot();
@@ -103,8 +139,11 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
       return;
     }
     final HabitWithObjectives? existingHabit;
+    final bool hasLogs;
     try {
-      existingHabit = await ref.read(habitRepositoryProvider).watchHabitWithObjectives(habitId).first;
+      final repository = ref.read(habitRepositoryProvider);
+      existingHabit = await repository.watchHabitWithObjectives(habitId).first;
+      hasLogs = (await repository.watchLastLoggedDayByHabitId().first).containsKey(habitId);
     } on Object catch (error, stackTrace) {
       unawaited(
         ref.read(appLoggerProvider).logError(event: 'habit_editor_load_failed', error: error, stackTrace: stackTrace),
@@ -122,8 +161,12 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
       context.pop();
       return;
     }
-    final HabitWithObjectives(:habit, :objectives) = existingHabit;
+    final HabitWithObjectives(:habit, :objectives, :quantityGoal) = existingHabit;
+    _fillQuantityFields(quantityGoal);
     setState(() {
+      _isQuantity = quantityGoal != null;
+      _isKindLocked = hasLogs;
+      if (quantityGoal != null) _quantityObjectiveId = objectives.firstOrNull?.id;
       _titleController.text = habit.title;
       _descriptionController.text = habit.description;
       _colorArgb = habit.colorArgb;
@@ -139,13 +182,15 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
         (null, _) => HabitScheduleKind.someDays,
       };
       _objectives.addAll([
-        for (final objective in objectives)
-          _EditableObjective(
-            id: objective.id,
-            title: objective.title,
-            colorArgb: objective.colorArgb,
-            countsAsSuccess: objective.countsAsSuccess,
-          ),
+        // A quantity habit's one objective is internal: the editor never shows it.
+        if (quantityGoal == null)
+          for (final objective in objectives)
+            _EditableObjective(
+              id: objective.id,
+              title: objective.title,
+              colorArgb: objective.colorArgb,
+              countsAsSuccess: objective.countsAsSuccess,
+            ),
       ]);
       _isLoading = false;
       _loadedFormSnapshot = _formSnapshot();
@@ -165,6 +210,9 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
     _titleController.dispose();
     _titleFocusNode.dispose();
     _descriptionController.dispose();
+    _quantityUnitController.dispose();
+    _quantityTargetController.dispose();
+    _quantityStepController.dispose();
     for (final objective in _objectives) {
       objective.titleController.dispose();
     }
@@ -190,12 +238,15 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
     _scheduledWeekdayMask,
     _targetDaysPerWeek,
     _restDaysPerWeekForSchedule,
-    for (final objective in _objectives) ...[
-      objective.id,
-      objective.titleController.text,
-      objective.colorArgb,
-      objective.countsAsSuccess,
-    ],
+    _isQuantity,
+    if (_isQuantity) ...[_quantityUnitController.text, _quantityTargetController.text, _quantityStepController.text],
+    if (!_isQuantity)
+      for (final objective in _objectives) ...[
+        objective.id,
+        objective.titleController.text,
+        objective.colorArgb,
+        objective.countsAsSuccess,
+      ],
   ];
 
   bool get _hasUnsavedChanges => !listEquals(_formSnapshot(), _loadedFormSnapshot);
@@ -305,6 +356,27 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
         },
       ),
     ),
+    SectionTitle(localizations.habitKindTitle),
+    HabitKindPicker(
+      habitColor: Color(_colorArgb),
+      isQuantity: _isQuantity,
+      isLocked: _isKindLocked,
+      quantitySummary: _describeQuantityGoal(localizations),
+      unitController: _quantityUnitController,
+      targetController: _quantityTargetController,
+      stepController: _quantityStepController,
+      onKindChanged: (isQuantity) {
+        unawaited(KomitHaptics.selection());
+        setState(() {
+          _isQuantity = isQuantity;
+          if (!isQuantity && _objectives.isEmpty) {
+            _objectives.add(
+              _EditableObjective(id: null, title: '', colorArgb: habitColorPaletteArgb[_firstObjectiveColorIndex]),
+            );
+          }
+        });
+      },
+    ),
     SectionTitle(localizations.schedule),
     HabitSchedulePicker(
       habitColor: Color(_colorArgb),
@@ -341,28 +413,49 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
       onToggled: _onReminderToggled,
       onTimeTapped: _chooseReminderTime,
     ),
-    SectionTitle(localizations.objectives),
-    Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.medium),
-      child: Text(
-        localizations.habitEditorObjectivesHelp,
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: KomitColors.of(context).mutedText),
+    if (!_isQuantity) ...[
+      SectionTitle(localizations.objectives),
+      Padding(
+        padding: const EdgeInsets.only(bottom: AppSpacing.medium),
+        child: Text(
+          localizations.habitEditorObjectivesHelp,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: KomitColors.of(context).mutedText),
+        ),
       ),
-    ),
-    _ObjectivesCard(
-      objectives: _objectives,
-      onReordered: (oldIndex, newIndex) => setState(() {
-        _objectives.insert(newIndex, _objectives.removeAt(oldIndex));
-      }),
-      onColorTapped: _chooseObjectiveColor,
-      onRemoved: _removeObjective,
-      onCountsAsSuccessChanged: (objective, countsAsSuccess) {
-        unawaited(KomitHaptics.selection());
-        setState(() => objective.countsAsSuccess = countsAsSuccess);
-      },
-      onAdded: _addObjective,
-    ),
+      _ObjectivesCard(
+        objectives: _objectives,
+        onReordered: (oldIndex, newIndex) => setState(() {
+          _objectives.insert(newIndex, _objectives.removeAt(oldIndex));
+        }),
+        onColorTapped: _chooseObjectiveColor,
+        onRemoved: _removeObjective,
+        onCountsAsSuccessChanged: (objective, countsAsSuccess) {
+          unawaited(KomitHaptics.selection());
+          setState(() => objective.countsAsSuccess = countsAsSuccess);
+        },
+        onAdded: _addObjective,
+      ),
+    ],
   ];
+
+  /// The goal as typed, or null while a field is missing or not a number above zero.
+  QuantityGoal? _typedQuantityGoal() {
+    final unit = _quantityUnitController.text.trim();
+    final target = parseQuantity(_quantityTargetController.text);
+    final step = parseQuantity(_quantityStepController.text);
+    bool isValidAmount(double? amount) => amount != null && amount > 0 && amount <= maximumQuantityValue;
+    if (unit.isEmpty || !isValidAmount(target) || !isValidAmount(step)) return null;
+    return QuantityGoal(unit: unit, target: roundQuantity(target!), step: roundQuantity(step!));
+  }
+
+  String? _describeQuantityGoal(AppLocalizations localizations) => switch (_typedQuantityGoal()) {
+    final goal? => localizations.quantityGoalSummary(
+      formatQuantity(context, goal.target),
+      goal.unit,
+      formatQuantity(context, goal.step),
+    ),
+    null => null,
+  };
 
   void _addObjective() {
     unawaited(KomitHaptics.selection());
@@ -501,6 +594,10 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
     if (_scheduleKind == HabitScheduleKind.someDays && _scheduledWeekdayMask == 0) {
       return localizations.pickAtLeastOneDay;
     }
+    if (_isQuantity) {
+      if (_quantityUnitController.text.trim().isEmpty) return localizations.quantityUnitRequired;
+      return _typedQuantityGoal() == null ? localizations.quantityValuesInvalid : null;
+    }
     if (_objectives.isEmpty) return localizations.objectiveRequired;
     final objectiveTitles = _objectives.map((objective) => objective.titleController.text.trim()).toList();
     final hasEmptyOrDuplicateTitle =
@@ -539,15 +636,19 @@ class _HabitEditorScreenState extends ConsumerState<HabitEditorScreen> {
               scheduledWeekdayMask: _scheduledWeekdayMaskToSave,
               targetDaysPerWeek: _scheduleKind == HabitScheduleKind.perWeek ? _targetDaysPerWeek : null,
               restDaysPerWeek: _restDaysPerWeekForSchedule,
-              objectives: [
-                for (final objective in _objectives)
-                  ObjectiveDraft(
-                    id: objective.id,
-                    title: objective.titleController.text,
-                    colorArgb: objective.colorArgb,
-                    countsAsSuccess: objective.countsAsSuccess,
-                  ),
-              ],
+              quantityGoal: _isQuantity ? _typedQuantityGoal() : null,
+              // The repository names a quantity habit's one objective after its unit.
+              objectives: _isQuantity
+                  ? [ObjectiveDraft(id: _quantityObjectiveId, title: '', colorArgb: _colorArgb)]
+                  : [
+                      for (final objective in _objectives)
+                        ObjectiveDraft(
+                          id: objective.id,
+                          title: objective.titleController.text,
+                          colorArgb: objective.colorArgb,
+                          countsAsSuccess: objective.countsAsSuccess,
+                        ),
+                    ],
             ),
           );
       unawaited(KomitHaptics.success());

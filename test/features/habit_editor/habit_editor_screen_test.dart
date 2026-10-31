@@ -89,6 +89,7 @@ void main() {
 
       unawaited(router.push(AppRoutes.newHabit));
       await settleWithDatabaseWork(tester);
+      await tester.scrollUntilVisible(find.text('Rest days'), 200, scrollable: find.byType(Scrollable).first);
       expect(find.text('Rest days'), findsOneWidget);
       await _scrollToAndTap(tester, find.text('Per week'));
       expect(find.text('Rest days'), findsNothing);
@@ -168,6 +169,57 @@ void main() {
       expect(find.bySemanticsLabel(RegExp('Habit name')), findsOneWidget);
       expect(find.bySemanticsLabel(RegExp('Description')), findsOneWidget);
       semantics.dispose();
+      await environment.dispose(tester);
+    });
+
+    testWidgets('a new habit can track an amount: unit, daily target and step are saved', (tester) async {
+      final (router: _, :environment) = await _openNewHabitEditor(tester);
+      await tester.enterText(find.widgetWithText(TextField, 'Habit name'), 'Drink water');
+      await _scrollToAndTap(tester, find.text('An amount'));
+      expect(find.text('Objective name'), findsNothing);
+
+      await tester.enterText(find.widgetWithText(TextField, 'Unit'), 'glasses');
+      await tester.enterText(find.widgetWithText(TextField, 'Daily target'), '8');
+      await tester.enterText(find.widgetWithText(TextField, 'One tap adds'), '0,5');
+      await tester.pumpAndSettle();
+      expect(find.text('8 glasses a day · 0.5 per tap'), findsOneWidget);
+      await _save(tester);
+
+      final saved = await _savedHabitTitled(tester, environment, 'Drink water');
+      expect((saved.quantityGoal?.unit, saved.quantityGoal?.target, saved.quantityGoal?.step), ('glasses', 8, 0.5));
+      expect(saved.objectives.single.title, 'glasses');
+      await environment.dispose(tester);
+    });
+
+    testWidgets('an amount without a unit or a target is not saved, and says why', (tester) async {
+      final (router: _, :environment) = await _openNewHabitEditor(tester);
+      await tester.enterText(find.widgetWithText(TextField, 'Habit name'), 'Drink water');
+      await _scrollToAndTap(tester, find.text('An amount'));
+      await _save(tester);
+      expect(find.text('Give the amount a unit'), findsOneWidget);
+
+      await tester.enterText(find.widgetWithText(TextField, 'Unit'), 'glasses');
+      await _save(tester);
+      expect(find.text('The daily target and the step must be numbers above 0'), findsOneWidget);
+      final habits = await tester.runAsync(() => HabitRepository(environment.database).watchActiveHabits().first);
+      expect(habits!.map((habit) => habit.habit.title), isNot(contains('Drink water')));
+      await environment.dispose(tester);
+    });
+
+    testWidgets('a habit with logs keeps its kind and explains why', (tester) async {
+      final environment = await KomitTestEnvironment.create(tester);
+      await pumpKomitApp(
+        tester,
+        environment,
+        theme: lightAppTheme,
+        location: AppRoutes.habitEditor(environment.runningHabitId),
+      );
+      final lockedExplanation = find.textContaining('already has logged days');
+      await tester.scrollUntilVisible(lockedExplanation, 200, scrollable: find.byType(Scrollable).first);
+      await tester.tap(find.text('An amount'));
+      await tester.pumpAndSettle();
+      expect(find.widgetWithText(TextField, 'Unit'), findsNothing);
+      expect(find.text('Objectives'), findsWidgets);
       await environment.dispose(tester);
     });
   });

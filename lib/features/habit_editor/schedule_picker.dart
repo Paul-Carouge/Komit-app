@@ -90,7 +90,7 @@ class HabitSchedulePicker extends StatelessWidget {
       targetDaysPerWeek: targetDaysPerWeek,
     );
     Widget optionRow(HabitScheduleKind kind, IconData icon, String title, String hint, {Widget? setting}) =>
-        _ScheduleOptionRow(
+        EditorOptionRow(
           icon: icon,
           title: title,
           // The chosen row says what was chosen; the others say what they would mean.
@@ -233,8 +233,10 @@ class _RestDaysSetting extends StatelessWidget {
   }
 }
 
-class _ScheduleOptionRow extends StatelessWidget {
-  const _ScheduleOptionRow({
+/// A choice in an editor card: a badge taking the habit's color once chosen, a title, a line saying
+/// what it means (or what was chosen), and its own setting opening underneath.
+class EditorOptionRow extends StatelessWidget {
+  const EditorOptionRow({
     required this.icon,
     required this.title,
     required this.subtitle,
@@ -243,6 +245,7 @@ class _ScheduleOptionRow extends StatelessWidget {
     required this.habitColor,
     required this.onSelected,
     required this.setting,
+    super.key,
   });
 
   final IconData icon;
@@ -251,7 +254,9 @@ class _ScheduleOptionRow extends StatelessWidget {
   final bool isSubtitleAnError;
   final bool isSelected;
   final Color habitColor;
-  final VoidCallback onSelected;
+
+  /// Null when the choice cannot change.
+  final VoidCallback? onSelected;
 
   /// Shown under the row while it is selected.
   final Widget? setting;
